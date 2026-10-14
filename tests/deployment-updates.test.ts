@@ -58,6 +58,13 @@ describe("deployment-updates", () => {
     const documentStub = documentWithVisibility()
 
     try {
+      // A site that has never been deployed has no previous artifact directory and nothing to retain.
+      const fresh = await createBuild("fresh", { "only-001.js": "only chunk" })
+      await retainAssets({ dist: fresh, previous: path.join(temporary, "never-deployed"), site, now: 9 * day })
+      assert.deepEqual(JSON.parse(await readFile(path.join(fresh, "asset-history.json"), "utf8")).assets, {
+        "only-001.js": null,
+      })
+
       const previous = await createBuild("legacy", { "old-123.js": "legacy lazy chunk", "shared-123.js": "shared" })
       const first = await createBuild("first", { "new-456.js": "new chunk", "shared-123.js": "shared" })
       await retainAssets({ dist: first, previous, site, now: 10 * day })

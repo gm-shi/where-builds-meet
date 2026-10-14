@@ -1,9 +1,21 @@
-import { copyFile, mkdir, readFile, readdir, writeFile } from "node:fs/promises"
+import { copyFile, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { pathToFileURL } from "node:url"
 
 const retentionMs = 7 * 24 * 60 * 60 * 1000
 const assetName = /^[A-Za-z0-9_.-]+$/
+
+// A site that has never been deployed has no previous Pages artifact, so the
+// workflow never creates the directory and there is nothing to retain.
+async function neverDeployed(previous) {
+  try {
+    await stat(previous)
+    return false
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error
+    return true
+  }
+}
 
 async function fetchRequired(url) {
   const response = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(30000) })
@@ -39,7 +51,8 @@ export async function retainAssets({ dist, previous, site, now = Date.now() }) {
         if (error.code !== "ENOENT") throw error
         previousAssets = {}
         // Missing archives fail deployment instead of silently dropping live chunks.
-        for (const file of await readdir(path.join(previous, "assets"))) previousAssets[file] = null
+        if (await neverDeployed(previous)) console.log("No previous deployment; nothing to retain.")
+        else for (const file of await readdir(path.join(previous, "assets"))) previousAssets[file] = null
       }
       break
     default:
