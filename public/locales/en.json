@@ -180,8 +180,6 @@
   "data.buff.silkbindJade.FloatingUmbrella.description": "Unfading Flower's floating umbrella fires every 0.5 seconds, first 0.55 seconds after the throw, and each shot spends 5 Blossoms. While the target carries Lingering Bone, each volley fires one extra shot 0.15 seconds later that also spends 5 Blossoms. It ends when fewer than 5 Blossoms remain, or when another umbrella skill other than Hidden Sword recalls it; ending returns 15 Blossoms at most once every 5 seconds.",
   "data.buff.silkbindJade.FloatingUmbrella.name": "Floating Umbrella",
   "data.buff.silkbindJade.FloatingUmbrella.shortName": "Float",
-  "data.buff.silkbindJade.FloatingUmbrellaReturnCooldown.description": "The floating umbrella's 15 Blossom return on ending is available again when this expires.",
-  "data.buff.silkbindJade.FloatingUmbrellaReturnCooldown.name": "Floating Umbrella Return Cooldown",
   "data.buff.silkbindJade.FlyingTornado.description": "Gourd Toss T4: the next Forsaken Fame within 3 seconds charges faster, landing its whirlwind 11 frames and finishing 12 frames earlier.",
   "data.buff.silkbindJade.FlyingTornado.name": "Flying Tornado",
   "data.buff.silkbindJade.FlyingTornado.shortName": "Tornado",

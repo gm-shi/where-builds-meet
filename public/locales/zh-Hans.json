@@ -180,8 +180,6 @@
   "data.buff.silkbindJade.FloatingUmbrella.description": "不谢花抛出的浮伞每0.5秒射击一次，首发在抛伞0.55秒后，每发消耗5点繁花。目标带有滞骨时，每轮在0.15秒后追加一发，同样消耗5点繁花。剩余繁花不足5点，或施放伞中剑以外的其他伞技能将伞收回时结束；结束时返还15点繁花，每5秒最多一次。",
   "data.buff.silkbindJade.FloatingUmbrella.name": "不谢花·浮伞",
   "data.buff.silkbindJade.FloatingUmbrella.shortName": "浮伞",
-  "data.buff.silkbindJade.FloatingUmbrellaReturnCooldown.description": "此效果结束后，浮伞结束时的15点繁花返还才可再次生效。",
-  "data.buff.silkbindJade.FloatingUmbrellaReturnCooldown.name": "不谢花·浮伞返还冷却",
   "data.buff.silkbindJade.FlyingTornado.description": "葫芦飞飞T4：3秒内的下一次浮名无寄蓄力更快，龙卷提前11帧命中，施放提前12帧结束。",
   "data.buff.silkbindJade.FlyingTornado.name": "葫芦飞飞·龙卷加速",
   "data.buff.silkbindJade.FlyingTornado.shortName": "龙卷",

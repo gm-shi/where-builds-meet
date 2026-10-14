@@ -935,9 +935,8 @@ M1zuke/where-winds-meet-dps 的 `src/data/skills/silkbind-jade/*.ts`（MIT，“
 沿用业火/嗔焰的「资源驱动周期效果」写法：首发在投掷命中后 0.55 秒，之后每 0.5 秒一轮；每发射击先检查并扣除
 5 点繁花，目标带有滞骨（`LingeringBone`）时在 0.15 秒后追加一发并再扣 5 点；一轮结束时若剩余不足 5 点，
 就触发 `FloatingUmbrellaRecall` 收伞。施放除伞中剑（`HiddenSword`）以外的任何伞技能（不含触发组件）时，
-增益自身的 `skillStart` 触发器同样收伞。收伞返还 15 点繁花，由隐藏标记 `FloatingUmbrellaReturnCooldown`
-限制为每 5 秒一次。动作级 `cooldown` 目前对资源动作不生效（资源动作在记录动作冷却之前就已返回），
-因此这里用标记而不是动作冷却。射击组件不带 `martialArt`/`weapon`，
+增益自身的 `skillStart` 触发器同样收伞。收伞返还 15 点繁花，由该返还动作自身的 `cooldown: 5`
+限制为每 5 秒一次。射击组件不带 `martialArt`/`weapon`，
 不会把当前武器切回伞。
 
 非玩家额外增伤（浮名无寄、月出惊春 ×1.45，春飞尽 ×1.25，浮伞射击 ×1.15）写成技能 `modifier` 上的

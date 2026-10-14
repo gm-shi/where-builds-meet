@@ -195,24 +195,7 @@
     "castTime": 0,
     "action": [
       { "type": "consume", "target": "self", "value": "FloatingUmbrella", "stack": "all", "time": 0 },
-      {
-        "type": "addResource",
-        "value": "Blossoms",
-        "amount": 15,
-        "time": 0,
-        "requirement": [
-          { "operator": "not", "operand": [{ "target": "self", "value": "FloatingUmbrellaReturnCooldown" }] }
-        ]
-      },
-      {
-        "type": "apply",
-        "target": "self",
-        "value": "FloatingUmbrellaReturnCooldown",
-        "time": 0,
-        "requirement": [
-          { "operator": "not", "operand": [{ "target": "self", "value": "FloatingUmbrellaReturnCooldown" }] }
-        ]
-      }
+      { "type": "addResource", "value": "Blossoms", "amount": 15, "time": 0, "cooldown": 5 }
     ],
     "modifier": [],
     "tags": ["Triggered", "FloatingUmbrellaRecall"]
