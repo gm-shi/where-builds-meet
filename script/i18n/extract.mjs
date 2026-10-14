@@ -11,7 +11,11 @@ const root = process.cwd()
 const catalogFile = path.join(root, "locales", "translations.csv")
 const generatedDirectory = path.join(root, "public", "locales")
 const checkOnly = process.argv.includes("--check")
-const publishedLocales = new Set(["en", "zh-Hant", "ko"])
+// The app ships Simplified Chinese only. English stays in the catalog as the source language that
+// gameText() maps game-data display names from, but it is not published in the selector.
+const sourceLocale = "en"
+const defaultLocale = "zh-Hans"
+const publishedLocales = new Set([defaultLocale])
 const translatableDataFields = new Set(["name", "title", "shortName", "description", "skillBreakdownCategory"])
 const translatableJsxAttributes = new Set(["aria-label", "title", "placeholder", "alt", "label"])
 
@@ -127,8 +131,8 @@ function collectInnerWayIds(source, file) {
 
 const existing = await readCatalog(catalogFile)
 const headers = existing.headers.length >= 2 ? existing.headers : ["key", "en"]
-if (headers[0] !== "key" || !headers.includes("en"))
-  throw new Error("Translation CSV must start with key and include en.")
+if (headers[0] !== "key" || !headers.includes(sourceLocale) || !headers.includes(defaultLocale))
+  throw new Error(`Translation CSV must start with key and include ${sourceLocale} and ${defaultLocale}.`)
 const duplicateKeys = existing.records
   .map(record => record.key)
   .filter((key, index, keys) => key && keys.indexOf(key) !== index)
@@ -271,12 +275,22 @@ const localeFiles = Object.fromEntries(
 const manifestLocales = headers.slice(1).filter(locale => publishedLocales.has(locale))
 const completion = Object.fromEntries(
   manifestLocales
-    .filter(locale => locale !== "en")
+    .filter(locale => locale !== defaultLocale)
     .map(locale => [locale, Math.round((records.filter(record => record[locale]).length / records.length) * 100)]),
 )
 const manifestLocaleList = `[${manifestLocales.map(locale => JSON.stringify(locale)).join(", ")}]`
 const manifestCompletion = JSON.stringify(completion, null, 2).replaceAll("\n", "\n  ")
-const manifest = `{\n  "default": "en",\n  "locales": ${manifestLocaleList},\n  "completion": ${manifestCompletion}\n}\n`
+const manifest = `{\n  "default": ${JSON.stringify(defaultLocale)},\n  "source": ${JSON.stringify(sourceLocale)},\n  "locales": ${manifestLocaleList},\n  "completion": ${manifestCompletion}\n}\n`
+// The published locale has no runtime fallback to English, so every row must carry it. The files
+// are still written first so a new key shows up in the CSV with its English source to translate.
+const missingDefault = records.filter(record => !record[defaultLocale])
+const missingDefaultError = () =>
+  new Error(
+    `${missingDefault.length} catalog row(s) have no ${defaultLocale} translation:\n${missingDefault
+      .slice(0, 40)
+      .map(record => `- ${record.key}: ${record.en}`)
+      .join("\n")}${missingDefault.length > 40 ? "\n- …" : ""}`,
+  )
 
 if (checkOnly) {
   const currentCsv = await readFile(catalogFile, "utf8")
@@ -286,6 +300,7 @@ if (checkOnly) {
       throw new Error(`${locale}.json is out of date. Run npm run i18n:extract.`)
   if ((await readFile(path.join(generatedDirectory, "manifest.json"), "utf8")) !== manifest)
     throw new Error("Locale manifest is out of date. Run npm run i18n:extract.")
+  if (missingDefault.length) throw missingDefaultError()
 } else {
   await mkdir(path.dirname(catalogFile), { recursive: true })
   await mkdir(generatedDirectory, { recursive: true })
@@ -296,6 +311,7 @@ if (checkOnly) {
     ),
   )
   await writeFile(path.join(generatedDirectory, "manifest.json"), manifest, "utf8")
+  if (missingDefault.length) throw missingDefaultError()
 }
 
 console.log(`Localization catalog contains ${records.length} entries across ${headers.length - 1} locale(s).`)

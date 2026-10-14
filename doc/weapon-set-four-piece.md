@@ -1,69 +1,46 @@
-# Weapon-set four-piece audit
+# 武器套装四件套审计
 
-Source: `local/datamine/wwm-item-sets-weapon.json`. Two-piece bonuses remain
-at the exact level-96 values. This pass adds only effects expressible through
-existing setup rules, tracked buffs, skill actions, and damage/healing calculations.
-It does not assign additional path eligibility or introduce runtime mechanisms.
+来源：`local/datamine/wwm-item-sets-weapon.json`。两件套加成仍保持为精确的 96 级数值。本次处理只加入能够通过现有设置规则、已跟踪的增益、技能动作以及伤害/治疗计算来表达的效果。它不会额外分配流派适用资格，也不会引入新的运行时机制。
 
-## Implemented and retained
+## 已实现与保留
 
-| Set             | Four-piece coverage                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cleftpeak       | Retains one five-second stack per damage event, 1% HP damage per stack, up to five. Successful Deflect now applies five stacks immediately when four pieces are selected. At five stacks, the extra 8% applies to Light/Heavy Varied Combos of Snowparting Blade, Thundercry Blade, and Vernal Umbrella, plus existing Anxi Soldier and assist-trigger tags. Unlisted martial arts no longer receive the varied-combo bonus. Inkwell Fan's Moon Shatter Spring has no skill definition to attach its exception to and remains deferred. |
-| Hawkwing        | Retains the existing Affinity-outcome trigger: 2% Physical Attack per stack, five stacks, five-second refreshing duration. Expected calculations use the existing probability tracker; simulations use sampled Affinity outcomes.                                                                                                                                                                                                                                                                                                       |
-| Rain Whisper    | Retains 10% Critical DMG plus 15% while Shield is active. Adds the matching 10%/15% Critical Healing bonuses. These add to critical multipliers, not normal healing. Comparisons now rebuild timelines because healing can change overhealing and triggered events. Shield uses the existing player-shield state.                                                                                                                                                                                                                       |
-| Ivorybloom      | Retains 5% Critical Rate and 15% Critical DMG/Critical Healing while at full HP.                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| Etherwrath      | Retains the previously confirmed Direct Damage stack generation: 1.2% to all five attack channels per stack, five stacks, eight-second refresh. At five stacks, Martial Art Effects gain six penetration in each channel. Both Perfect Dodge variants and the attack-gated Dodge grant five stacks. Existing target and direct-hit assumptions are preserved.                                                                                                                                                                           |
-| Swaying Heights | Adds 5% HP damage strictly above 50% target HP, then another 1% at 55%, 60%, 65%, 70%, and 75%, capped at 10% total. Conditions resolve at each damage action.                                                                                                                                                                                                                                                                                                                                                                          |
-| Swallowcall     | Light-tagged attacks and Rodent deal 12% more HP damage. Those actions also gain 6% Physical and Bamboocut damage below 40% target Qi, or while Bone Corrosion or Qi Imbalance is present. Matching multiple tags/statuses applies each bonus only once. Exact 40% Qi does not satisfy the low-Qi condition. The supported Wind light-attack effect is Rodent; unspecified future proc categories are not inferred.                                                                                                                     |
+| 套装   | 四件套覆盖情况                                                                                                                                                                                                                                                                                                                                                         |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 断岳   | 保留每次伤害事件获得一层持续五秒的层数，每层气血伤害提高 1%，最多五层。选择四件套时，成功卸势现在会立即施加五层。满五层时，额外的 8% 作用于斩雪刀法、嗟夫刀法和九重春色的轻重击派生技，以及现有的安西军标签与协助触发（assist-trigger）标签。未列出的武学不再获得派生技加成。青山执笔的碎月泉（Moon Shatter Spring）没有可供挂接其例外规则的技能定义，因此仍暂缓处理。 |
+| 飞隼   | 保留现有的会意结果触发：每层外功攻击提高 2%，最多五层，持续时间五秒且可刷新。期望计算使用现有的概率跟踪器；模拟则使用抽样得到的会意结果。                                                                                                                                                                                                                              |
+| 时雨   | 保留 10% 会心伤害，护盾生效期间另加 15%。新增与之对应的 10%/15% 会心治疗加成。这些加成计入会心倍率，而非普通治疗。对比现在会重建时间轴，因为治疗可能改变溢出治疗与触发事件。护盾使用现有的角色护盾状态。                                                                                                                                                               |
+| 浣花   | 保留满气血时的 5% 会心率以及 15% 会心伤害/会心治疗。                                                                                                                                                                                                                                                                                                                   |
+| 撼天   | 保留先前已确认的直接伤害叠层方式：每层使全部五种攻击通道提高 1.2%，最多五层，刷新时长八秒。满五层时，武学效果在每种通道获得六点穿透。两种完美闪避变体以及以来袭攻击为条件的闪避均会给予五层。现有的目标与直接命中假设保持不变。                                                                                                                                        |
+| 岳山倾 | 目标气血严格高于 50% 时气血伤害提高 5%，之后在 55%、60%、65%、70% 和 75% 处各再提高 1%，总计上限为 10%。条件在每个伤害动作时结算。                                                                                                                                                                                                                                     |
+| 燕归   | 带有轻击标签的攻击与鼠鼠造成的气血伤害提高 12%。当目标真气低于 40%，或存在蚀骨或真气失衡时，这些动作的外功与破竹伤害还会提高 6%。同时匹配多个标签/状态时，每项加成只生效一次。真气恰好为 40% 时不满足低真气条件。受支持的风流派轻击效果为鼠鼠；未明确说明的未来触发类别不作推断。                                                                                      |
 
-The simulator currently treats its encounter as a boss. This pass does not add
-PvP or multiple-target hit tracking. Four-piece selections still include their
-two-piece stats once; zero- and two-piece selections do not activate these rules.
+模拟器目前将其战斗场景视为首领战。本次处理不增加 PvP 或多目标命中跟踪。四件套选择仍会计入一次其两件套属性；零件和两件套选择不会激活这些规则。
 
-## Jadeware and player Qi
+## 玉斗与角色真气
 
-Jadeware activates on Martial Art Skill casts, including canceled casts without a hit, for ten seconds with a twelve-second cooldown. While active, it always grants 10% Affinity DMG. Only its additional 7.5% Direct Affinity Rate requires Qi Imbalance, target Qi below player Qi, or target Qi below 40%. Conditions are evaluated at each hit.
+玉斗在施放武学技时激活，包括被取消且未造成命中的施放，持续十秒，冷却十二秒。生效期间，它始终提供 10% 会意伤害。只有其额外的 7.5% 直接会意率需要满足真气失衡、目标真气低于角色真气或目标真气低于 40% 之一。条件在每次命中时判定。
 
-For the Fully Relayed dummy encounter, player Qi is fixed at the user-confirmed 100%. The target-Qi comparison is therefore below 100%, which also covers the below-40% alternative. This is an explicit encounter assumption; player Qi is not tracked as a resource. The four-piece selection retains the two-piece Physical Attack bonus once.
+在全承音木桩战斗场景中，角色真气固定为经用户确认的 100%。因此，目标真气比较条件即为低于 100%，这也涵盖了低于 40% 这一替代条件。这是一项明确的战斗场景假设；角色真气不作为资源进行跟踪。四件套选择会保留一次两件套的外功攻击加成。
 
-`tests/jadeware.test.ts` verifies cast activation, selection gating, conditional rate boundaries, mid-cast Qi changes, damage, duration, and cooldown through the calculation pipeline.
+`tests/jadeware.test.ts` 通过计算流水线验证施放激活、选择门控、条件性比率的边界、施放过程中的真气变化、伤害、持续时间与冷却。
 
-## Target role and the Starweave gain condition
+## 目标角色与连星的获取条件
 
-Starweave's source gain condition is a disjunction: hit at least two enemies
-simultaneously, **or** hit a boss or a player. Both halves are expressible, and
-both resolve to "always" for a different reason than a missing capability.
+连星在来源中的获取条件是一个析取：同时命中至少两名敌人，**或**命中首领或玩家。两个分支都可以表达，且都会解析为「始终满足」，其原因并非缺少某项能力。
 
-The `enemyCount` half is an existing requirement target. The boss half is
-implicit rather than tested: both `Dummy` and `DummyAttack` count as a boss, so a
-mechanic whose source says it works against a boss must not gate on
-`targetType`, and matching `Boss` would exclude both dummies. `vsBossDmg` sets
-the precedent by being added to the damage multiplier with no target check.
+`enemyCount` 分支是现有的需求目标。首领分支是隐含的，而非显式判定：`Dummy` 和 `DummyAttack` 都算作首领，因此来源注明对首领生效的机制不得以 `targetType` 作为限定条件，而匹配 `Boss` 会将两种木桩都排除在外。`vsBossDmg` 开创了这一先例：它被加入伤害乘数，而不进行任何目标检查。
 
-The trigger is therefore written unconditionally, which is the same expression
-the boss half alone would produce. The `or` collapses, so the `enemyCount` branch
-is redundant under this model. It is recorded here because the collapse is a
-consequence of the target-role policy rather than of the source text: if the
-implicit boss role ever stops holding, Starweave would need its `enemyCount`
-branch restored to stay correct on single-target dummies, and the Dust
-weapon-set choice would need revisiting, since Etherwrath's four-piece would
-then be the stronger set.
+因此，该触发器被写成无条件的，这与仅由首领分支得出的表达式相同。`or` 发生坍缩，因此在该模型下 `enemyCount` 分支是冗余的。之所以在此记录，是因为这种坍缩源于目标角色策略，而非来源文本：如果隐含的首领角色不再成立，连星需要恢复其 `enemyCount` 分支，才能在单目标木桩上保持正确；同时尘流派的武器套装选择也需要重新评估，因为届时撼天的四件套将成为更强的套装。
 
-## Deferred
+## 暂缓处理
 
-| Set        | Why its four-piece effect remains unimplemented                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Swift Gale | There is no implemented Airborne Heavy Attack classification or knockdown lifecycle with a confirmed duration. Existing target Airborne/Controlled markers do not establish the attack category or the knockdown's behavior. The ten-second trigger cooldown alone is supported.                                                                                                                                                                                                                                                                                                                                                  |
-| Mistwillow | The upgraded Mistwillow description omits its damage percentage and does not settle whether the two-second refresh restriction is shared or per effect. Reciprocal buff merging and subsequent refresh ownership are also unclear. No replacement values or timer behavior are guessed.                                                                                                                                                                                                                                                                                                                                           |
-| Starweave  | Implemented for the Dust path. Adds one five-second stack per damage event, up to five, granting Martial Art Skills 3% increased damage per stack plus a distance-scaled bonus beyond 4 meters reaching 1% per stack at 8 meters. Gains are limited to two per second via the setup-trigger cooldown, and taking damage consumes one stack. The distance ramp uses a `segment` on `distance` at one-meter granularity, because the source states a linear ramp without specifying interpolation. The gain condition is an `or` of two branches, and the boss half is treated as always satisfied; see the target-role note below. |
-| Tiltrim    | The source mentions a bonus at five stacks but does not specify a maximum stack count. Flower Burial and its applicable skill mapping are absent, and the Inebriate-enhanced attack scope is not complete. The cap and missing enhancement semantics are not inferred.                                                                                                                                                                                                                                                                                                                                                            |
+| 套装     | 其四件套效果仍未实现的原因                                                                                                                                                                                                                                                                                                                                                                             |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 急风骤   | 目前尚未实现浮空重击分类，也没有持续时间已确认的击倒（knockdown）生命周期。现有的目标浮空/控制标记无法确定攻击类别或击倒的行为。目前仅支持其十秒的触发冷却。                                                                                                                                                                                                                                           |
+| 烟柳重重 | 升级后的烟柳重重描述省略了其伤害百分比，也未说明两秒的刷新限制是共享的还是按效果单独计算。相互增益的合并方式以及后续刷新的归属同样不明确。不对替代数值或计时器行为作任何猜测。                                                                                                                                                                                                                         |
+| 连星     | 已为尘流派实现。每次伤害事件增加一层持续五秒的层数，最多五层；每层使武学技伤害提高 3%，并在距离超过 4 米时获得按距离缩放的额外加成，8 米时达到每层 1%。通过设置触发器冷却，每秒最多获得两层；受到伤害时消耗一层。距离递增在 `distance` 上使用 `segment`，粒度为一米，因为来源只说明了线性递增，并未指明插值方式。获取条件是由两个分支组成的 `or`，其中首领分支被视为始终满足；参见下方的目标角色说明。 |
+| 倾觞     | 来源提到了五层时的加成，但未指明最大层数。葬花及其适用技能映射缺失，酩酊强化攻击的作用范围也不完整。不对上限及缺失的强化语义进行推断。                                                                                                                                                                                                                                                                 |
 
-## Verification
+## 验证
 
-`npm run test:sets` is available as a focused local check and is also included
-in the ordinary Vitest suite run by `npm run build`. The probe exercises the real
-calculation pipeline: Swaying Heights HP boundaries and cap, Swallowcall damage
-channels/Qi boundaries/status alternatives and mid-cast state changes, Rain
-Whisper critical versus normal healing, Cleftpeak Deflect selection and expiry,
-its martial-art scope, and expected/sampled behavior.
+`npm run test:sets` 可作为针对性的本地检查使用，同时也包含在 `npm run build` 所运行的常规 Vitest 测试套件中。该探针会调用真实的计算流水线：岳山倾的气血边界与上限，燕归的伤害通道/真气边界/替代状态以及施放过程中的状态变化，时雨的会心治疗与普通治疗，断岳的卸势选择与到期，其武学作用范围，以及期望/抽样行为。

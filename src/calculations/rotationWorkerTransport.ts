@@ -1,3 +1,5 @@
+import { t } from "@/i18n"
+
 import type { EditorTimelineResult } from "./editorTimeline"
 import type {
   RotationSimulationBaseline,
@@ -162,7 +164,7 @@ function translateResult(request: QueuedRequest, message: WorkerResultMessage): 
   if (message.error) throw new Error(message.error)
   if (message.editorTimeline) return message.editorTimeline
   if (message.throughput) return message.throughput
-  if (!message.metrics) throw new Error("Rotation calculation worker returned no result")
+  if (!message.metrics) throw new Error(t("ui.notices.calculationWorkerNoResult"))
   if (request.mode !== "baseline") return { metrics: message.metrics }
   return {
     metrics: message.metrics,
@@ -213,16 +215,16 @@ function createSlot(): WorkerSlot {
       completed.resolve(result)
     } catch (error) {
       reportTiming(completed)
-      completed.reject(error instanceof Error ? error : new Error("Rotation calculation failed"))
+      completed.reject(error instanceof Error ? error : new Error(t("ui.notices.calculationWorkerFailed")))
     }
     dispatchPending()
   })
 
   createdWorker.addEventListener("error", event => {
-    settleSlotFailure(slot, event.message || "Rotation calculation worker failed")
+    settleSlotFailure(slot, event.message || t("ui.notices.calculationWorkerFailed"))
   })
   createdWorker.addEventListener("messageerror", () => {
-    settleSlotFailure(slot, "Rotation calculation worker returned an unreadable result")
+    settleSlotFailure(slot, t("ui.notices.calculationWorkerUnreadableResult"))
   })
 
   slots.push(slot)
@@ -245,7 +247,7 @@ function dispatchTo(slot: WorkerSlot, request: QueuedRequest) {
     slot.running = undefined
     removeSlot(slot)
     reportTiming(request)
-    requeueOrReject(request, error instanceof Error ? error : new Error("Rotation calculation worker failed"))
+    requeueOrReject(request, error instanceof Error ? error : new Error(t("ui.notices.calculationWorkerFailed")))
   }
 }
 

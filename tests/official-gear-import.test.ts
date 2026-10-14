@@ -1,6 +1,20 @@
-import { assert, describe, it } from "vitest"
+// @vitest-environment jsdom
+import { readFile } from "node:fs/promises"
+
+import { afterEach, assert, beforeEach, describe, it, vi } from "vitest"
 
 import type { OfficialProfileMap } from "@/officialGearImport"
+
+// The imported build name is interface copy, so the shipped locale is loaded for the assertion.
+beforeEach(async () => {
+  vi.stubGlobal("fetch", async (url: string) => ({
+    ok: true,
+    json: async () => JSON.parse(await readFile(`public/locales/${url.split("/").at(-1)}`, "utf8")),
+  }))
+  await (await import("@/i18n")).initializeI18n()
+})
+
+afterEach(() => vi.unstubAllGlobals())
 
 // Ported from script/probe/check-official-gear-import.mjs.
 describe("official-gear-import", () => {
@@ -75,7 +89,7 @@ describe("official-gear-import", () => {
     )
     const build = merged.state.entries[0]!
     assert(
-      Object.keys(build.equipped ?? {}).length === 8 && build.name === "Probe Character Import",
+      Object.keys(build.equipped ?? {}).length === 8 && build.name === "Probe Character 导入",
       "The imported build must equip every imported piece under the character import name.",
     )
     assert(

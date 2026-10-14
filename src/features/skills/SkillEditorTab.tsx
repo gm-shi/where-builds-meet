@@ -106,6 +106,19 @@ function asString(value: unknown) {
   return typeof value === "string" ? value : ""
 }
 
+function itemKindLabel(kind: "action" | "modifier" | "effect") {
+  switch (kind) {
+    case "action":
+      return t("ui.app.action")
+    case "modifier":
+      return t("ui.app.modifier")
+    case "effect":
+      return t("ui.app.effect")
+    default:
+      return kind
+  }
+}
+
 function itemSummary(item: string, index: number, kind: "action" | "modifier" | "effect") {
   try {
     const parsed = JSON.parse(item) as EditableObject
@@ -115,13 +128,13 @@ function itemSummary(item: string, index: number, kind: "action" | "modifier" | 
           ? (parsed.effect as EditableObject)
           : parsed
       const fields = Object.keys(payload).filter(field => field !== "requirement")
-      return `${index + 1}. ${fields.join(", ") || "effect"}`
+      return `${index + 1}. ${fields.join(", ") || itemKindLabel(kind)}`
     }
-    const type = typeof parsed.type === "string" ? parsed.type : kind
-    const time = typeof parsed.time === "number" ? ` at ${parsed.time}s` : ""
-    return `${index + 1}. ${type}${time}`
+    const type = typeof parsed.type === "string" ? parsed.type : itemKindLabel(kind)
+    const summary = typeof parsed.time === "number" ? t("ui.app.itemSummaryAtTime", { type, time: parsed.time }) : type
+    return `${index + 1}. ${summary}`
   } catch {
-    return `${index + 1}. ${kind}`
+    return `${index + 1}. ${itemKindLabel(kind)}`
   }
 }
 
@@ -1266,7 +1279,7 @@ export function SkillEditorTab({
       const optionalNumber = (value: string, label: string) => {
         if (!value.trim()) return undefined
         const number = Number(value)
-        if (!Number.isFinite(number)) throw new Error(`${label} must be a number.`)
+        if (!Number.isFinite(number)) throw new Error(t("ui.app.fieldMustBeNumber", { field: label }))
         return number
       }
       let updatedSkill: SkillRecord
@@ -1276,9 +1289,9 @@ export function SkillEditorTab({
           name: draft.name,
           description: draft.description,
           refresh: draft.refresh,
-          duration: optionalNumber(draft.duration, "Duration"),
-          cooldown: optionalNumber(draft.cooldown, "Cooldown"),
-          maxStack: optionalNumber(draft.maxStack, "Max stack"),
+          duration: optionalNumber(draft.duration, t("ui.app.duration")),
+          cooldown: optionalNumber(draft.cooldown, t("ui.app.cooldown")),
+          maxStack: optionalNumber(draft.maxStack, t("ui.app.maxStack")),
           effect: draft.effectItems,
           stackEffects: draft.stackEffectGroups,
         }
@@ -1287,20 +1300,18 @@ export function SkillEditorTab({
         const modifier = draft.modifierItems
         const actionTimes = action.map(item => item.time)
         if (actionTimes.some(time => typeof time !== "number" || !Number.isFinite(time))) {
-          throw new Error("Every action must have a numeric time.")
+          throw new Error(t("ui.app.everyActionMustHaveNumericTime"))
         }
         const numericActionTimes = actionTimes as number[]
         const firstOutOfOrder = numericActionTimes.findIndex(
           (time, index) => index > 0 && time < numericActionTimes[index - 1],
         )
         if (firstOutOfOrder !== -1) {
-          throw new Error(
-            `Actions are out of order: action ${firstOutOfOrder + 1} occurs before action ${firstOutOfOrder}.`,
-          )
+          throw new Error(t("ui.app.actionsOutOfOrder", { number: firstOutOfOrder + 1, previous: firstOutOfOrder }))
         }
         const parsedCastTime = category === "DOT" ? undefined : Number(draft.castTime)
         if (parsedCastTime !== undefined && !Number.isFinite(parsedCastTime))
-          throw new Error("Cast time must be a number.")
+          throw new Error(t("ui.app.castTimeMustBeNumber"))
         const originalFallback = baseSkillCastTime({ castTime: draft.originalCastTime })
         const castTime =
           parsedCastTime !== undefined && draft.castTime === String(originalFallback)
@@ -1311,7 +1322,7 @@ export function SkillEditorTab({
           name: draft.name,
           shortName: draft.shortName.trim() || undefined,
           ...(castTime === undefined ? {} : { castTime }),
-          cooldown: optionalNumber(draft.cooldown, "Cooldown"),
+          cooldown: optionalNumber(draft.cooldown, t("ui.app.cooldown")),
           action,
           modifier,
           tags: draft.tags
@@ -1322,13 +1333,13 @@ export function SkillEditorTab({
             ? {
                 action: undefined,
                 periodic: {
-                  interval: optionalNumber(draft.periodicInterval, "Periodic interval"),
-                  firstTick: optionalNumber(draft.firstTick, "First tick"),
+                  interval: optionalNumber(draft.periodicInterval, t("ui.app.interval")),
+                  firstTick: optionalNumber(draft.firstTick, t("ui.app.firstTick")),
                   resetOnRefresh: draft.resetOnRefresh,
                   action,
                 },
-                duration: optionalNumber(draft.duration, "Duration"),
-                maxStack: optionalNumber(draft.maxStack, "Max stack"),
+                duration: optionalNumber(draft.duration, t("ui.app.duration")),
+                maxStack: optionalNumber(draft.maxStack, t("ui.app.maxStack")),
                 refresh: draft.refresh,
               }
             : {}),

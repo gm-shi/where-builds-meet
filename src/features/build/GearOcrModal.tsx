@@ -7,12 +7,12 @@ import {
   type DragEvent,
 } from "react"
 
-import { gearData } from "../../gear"
-import type { GearOcrResult } from "../../gearOcr"
-import { t } from "../../i18n"
-import { publishNotice, dismissNotice } from "../../notices"
-import { Button } from "../../ui/Button"
-import { Dialog } from "../../ui/Dialog"
+import { gearData } from "@/gear"
+import type { GearOcrResult } from "@/gearOcr"
+import { gameText, t } from "@/i18n"
+import { publishNotice, dismissNotice } from "@/notices"
+import { Button } from "@/ui/Button"
+import { Dialog } from "@/ui/Dialog"
 
 type GearOcrModule = typeof import("../../gearOcr")
 
@@ -97,7 +97,10 @@ export function GearOcrModal({ open, definitionId, definitionName, onClose, onIm
       if (result.definitionId !== definitionId) {
         const recognizedName = gearData.gear[result.definitionId]?.name ?? result.definitionId
         throw new Error(
-          `This image contains ${recognizedName}, but the current editor expects ${definitionName}. Open the matching gear slot and try again.`,
+          t("ui.buildTab.imageGearMismatchError", {
+            recognized: gameText(recognizedName),
+            expected: gameText(definitionName),
+          }),
         )
       }
       onImport(result)
@@ -199,7 +202,7 @@ export function GearOcrModal({ open, definitionId, definitionName, onClose, onIm
         {ocrBusy && (
           <div className="gear-ocr-progress" aria-live="polite">
             <div>
-              <span>{ocrStatus || "Reading image"}</span>
+              <span>{ocrStatus || t("ui.buildTab.readingImage")}</span>
               <span>{Math.round(ocrProgress * 100)}%</span>
             </div>
             <progress max={1} value={ocrProgress} />

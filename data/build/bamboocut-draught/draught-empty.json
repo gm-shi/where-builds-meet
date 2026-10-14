@@ -1,0 +1,19 @@
+{
+  "id": "draught-empty",
+  "name": "Draught Empty Build",
+  "order": 3,
+  "martialArts": ["skystrikeGauntlets", "rivenTwinblades"],
+  "setup": {
+    "innerWays": [
+      { "innerWay": "", "tier": "T6" },
+      { "innerWay": "", "tier": "T6" },
+      { "innerWay": "", "tier": "T6" },
+      { "innerWay": "", "tier": "T6" }
+    ],
+    "weaponSets": {},
+    "armorSets": {},
+    "bowRingSet": "None",
+    "arsenal": "Bamboocut"
+  },
+  "gearByTier": { "96": {}, "100": {} }
+}

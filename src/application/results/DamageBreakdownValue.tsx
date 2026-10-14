@@ -15,7 +15,7 @@ const damageTooltipParts: Array<[keyof DamageBreakdown, string]> = [
 function damageTooltipContent(breakdown: DamageBreakdown) {
   return damageTooltipParts.map(([key, label]) => (
     <span className={`damage-breakdown-part damage-${key}`} key={key}>
-      <i>{label}</i>
+      <i>{gameText(label)}</i>
       {formatThroughput(breakdown[key] as number)}
     </span>
   ))

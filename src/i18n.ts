@@ -8,9 +8,9 @@ import { validateUnknown } from "./schemas/json"
 type Messages = LocaleMessages
 
 export { developmentModeStorageKey }
-const fallbackManifest: LocaleManifest = { default: "en", locales: ["en"] }
+const fallbackManifest: LocaleManifest = { default: "zh-Hans", source: "en", locales: ["zh-Hans"] }
 const wipLocales = new Set<string>()
-const localeDisplayNames: Record<string, string> = { en: "English", "zh-Hant": "繁體中文", ko: "한국어" }
+const localeDisplayNames: Record<string, string> = { "zh-Hans": "简体中文", en: "English" }
 
 let manifest = fallbackManifest
 let activeLocale = fallbackManifest.default
@@ -64,12 +64,14 @@ export function resolveLocale(savedLocale = getPersistentItem(localeStorageKey))
   return availableLocale(savedLocale) ?? browserLocale() ?? manifest.default
 }
 
+// The source locale (English) is the language game data is authored in. It is loaded alongside
+// the selected locale so gameText() can map English display names to translations and so a key
+// missing from the selected locale still resolves. It is not itself offered in the selector.
 async function loadLocale(locale: string) {
+  const source = manifest.source ?? manifest.default
   const [selected, fallback] = await Promise.all([
     loadJson(`${locale}.json`, localeMessagesSchema),
-    locale === manifest.default
-      ? Promise.resolve(undefined)
-      : loadJson(`${manifest.default}.json`, localeMessagesSchema),
+    locale === source ? Promise.resolve(undefined) : loadJson(`${source}.json`, localeMessagesSchema),
   ])
   activeLocale = locale
   activeMessages = selected

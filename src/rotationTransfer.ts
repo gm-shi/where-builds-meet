@@ -6,6 +6,7 @@ import {
   type RotationRecord,
   type RotationStep,
 } from "./calculations/rotationTimeline"
+import { t } from "./i18n"
 import { migrateVendettaTokenStep } from "./rotationEditing"
 import {
   migrateAutomaticDelays,
@@ -366,7 +367,7 @@ export function exportRotationEntries(entries: RotationEntry[]) {
 
 export function mergeImportedRotationEntries(current: RotationEntry[], value: unknown) {
   const validated = validateUnknown(rotationExportInputSchema, value)
-  if (!validated.success) throw new Error("This is not a Where Builds Meet rotation export file.")
+  if (!validated.success) throw new Error(t("ui.app.rotationImportNotExportFile"))
   const source = value as { format?: unknown; version?: unknown; rotations?: unknown }
   if (
     source.format !== rotationExportFormat ||
@@ -376,7 +377,7 @@ export function mergeImportedRotationEntries(current: RotationEntry[], value: un
     source.version > rotationExportVersion ||
     !Array.isArray(source.rotations)
   ) {
-    throw new Error("This file uses an unsupported rotation export format.")
+    throw new Error(t("ui.app.rotationImportUnsupportedFormat"))
   }
 
   const usedIds = new Set(current.map(entry => entry.id))

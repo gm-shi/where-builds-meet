@@ -1,8 +1,23 @@
-import { expect, it } from "vitest"
+// @vitest-environment jsdom
+import { readFile } from "node:fs/promises"
+
+import { afterEach, beforeEach, expect, it, vi } from "vitest"
 
 import affixMap from "../data/official/affix-map.json"
 import { mergeImportedBuildState } from "../src/gear"
+import { initializeI18n } from "../src/i18n"
 import { parseOfficialGearExport } from "../src/officialGearImport"
+
+// The imported build name is interface copy, so the shipped locale is loaded for the assertion.
+beforeEach(async () => {
+  vi.stubGlobal("fetch", async (url: string) => ({
+    ok: true,
+    json: async () => JSON.parse(await readFile(`public/locales/${url.split("/").at(-1)}`, "utf8")),
+  }))
+  await initializeI18n()
+})
+
+afterEach(() => vi.unstubAllGlobals())
 
 const weapons = ["snowparting", "phalanxbane"] as ["snowparting", "phalanxbane"]
 function row(key: string, value: number) {
@@ -47,7 +62,7 @@ it("imports the reported affixless dashboard setup without fabricating gear", ()
   })
   expect(parsed.gearCount).toBe(0)
   expect(parsed.warnings).toHaveLength(8)
-  expect(merged.state.entries[0].name).toBe("greydust Import")
+  expect(merged.state.entries[0].name).toBe("greydust 导入")
   expect(merged.state.entries[0].equipped).toEqual({})
   expect(merged.state.entries[0].martialArts).toEqual(["infernalTwinblades", "mortalRopeDart"])
   const moraleChant = merged.state.entries[0].setup?.innerWays.find(item => item.innerWay === "MoraleChant")
@@ -111,5 +126,5 @@ it("allows a setup-only export but still rejects unrecognized input", () => {
   expect(merged.state.entries[0].equipped).toEqual({})
   expect(parsed.warnings).toHaveLength(1)
   expect(() => parseOfficialGearExport({}, weapons)).toThrow("wearEquipsDetailed")
-  expect(() => parseOfficialGearExport({ source: "other", wearEquipsDetailed: {} }, weapons)).toThrow("recognized")
+  expect(() => parseOfficialGearExport({ source: "other", wearEquipsDetailed: {} }, weapons)).toThrow("无法识别")
 })

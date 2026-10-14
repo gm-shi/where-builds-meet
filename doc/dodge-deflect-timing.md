@@ -1,27 +1,27 @@
-# Dodge and deflect timing
+# 闪避与卸势时长
 
-For cast-time modeling, use the recovery time. Defense-active time is not included in the cast time.
+在对施放时间建模时，使用后摇时间。防御判定生效时间不计入施放时间。
 
-| Weapon     | Forward-dodge cast time | Missed-deflect cast time |
-| ---------- | ----------------------- | ------------------------ |
-| Spear      | 0.40 s                  | 0.300 s                  |
-| Sword      | 0.40 s                  | 0.300 s                  |
-| Fan        | 0.50 s                  | 0.301 s                  |
-| Mo Blade   | 0.70 s                  | 0.301 s                  |
-| Twinblades | 0.30 s                  | 0.300 s                  |
-| Umbrella   | 0.40 s                  | 0.301 s                  |
-| Rope Dart  | 0.40 s                  | 0.300 s                  |
-| Heng Blade | 0.40 s                  | 0.250 s                  |
-| Gauntlets  | 0.40 s                  | 0.300 s                  |
+| 武器 | 前闪避施放时间 | 卸势落空施放时间 |
+| ---- | -------------- | ---------------- |
+| 枪   | 0.40 s         | 0.300 s          |
+| 剑   | 0.40 s         | 0.300 s          |
+| 扇   | 0.50 s         | 0.301 s          |
+| 陌刀 | 0.70 s         | 0.301 s          |
+| 双刀 | 0.30 s         | 0.300 s          |
+| 伞   | 0.40 s         | 0.301 s          |
+| 绳镖 | 0.40 s         | 0.300 s          |
+| 横刀 | 0.40 s         | 0.250 s          |
+| 手甲 | 0.40 s         | 0.300 s          |
 
-## Branches and limitations
+## 分支与局限
 
-- Twinblades' down-state dodge branch has 0.40 s recovery, so its cast time is 0.40 s.
-- Successful deflects switch to separate response actions. The missed-deflect cast times above do not describe those actions.
-- Deflect detection lasts up to 0.50 s, but the actual acceptance window depends on the incoming attack, difficulty, and modifiers. Detection duration is not used as the cast time.
-- Gauntlets' defense-active timer is 0.25 s in PvP and 0.30 s otherwise; the retained Skystrike branch uses 0.25 s. These defense timers do not affect the recovery-based cast times above.
-- The investigation is not exhaustive. Exact side and back dodge recovery times remain unresolved because they depend on animation details; the forward-dodge values should not be assumed to apply to those directions.
+- 双刀的倒地状态闪避分支后摇为 0.40 s，因此其施放时间为 0.40 s。
+- 成功卸势会切换为独立的响应动作。上表中的卸势落空施放时间并不描述这些动作。
+- 卸势判定最长持续 0.50 s，但实际的生效窗口取决于来袭攻击、难度和各类修正。判定持续时间不作为施放时间使用。
+- 手甲的防御判定计时在 PvP 中为 0.25 s，其他情况下为 0.30 s；保留的悬身拳法分支使用 0.25 s。这些防御计时不影响上表中基于后摇的施放时间。
+- 本次调查并不详尽。侧闪避和后闪避的确切后摇时间仍未确定，因为它们取决于动画细节；不应假定前闪避的数值适用于这些方向。
 
-## Source
+## 来源
 
-Timings and branch notes supplied by the user. This document records the cast-time convention without changing combat data or calculation behavior.
+时长数据与分支说明由用户提供。本文档记录施放时间的约定，不改变战斗数据或计算行为。

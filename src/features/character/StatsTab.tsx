@@ -52,7 +52,7 @@ import { innerWayEntriesForTag } from "@/data/innerWayDefinitions"
 import { attunementData, selectSetTier, type BuildSetup, type BuildSetupOverrides } from "@/gear"
 import { globalDebuffRows, type GlobalDebuffState } from "@/globalDebuffs"
 import { dataText, gameText, t } from "@/i18n"
-import { publishNotice, dismissNotice } from "@/notices"
+import { dismissNotice, errorNoticeMessage, publishNotice } from "@/notices"
 import { useLoadoutStore } from "@/stores/loadoutStore"
 import { type CharacterStats } from "@/types"
 import { Button } from "@/ui/Button"
@@ -239,7 +239,7 @@ export function StatsTab({
     } catch (error) {
       publishNotice({
         id: "profile-transfer",
-        message: error instanceof Error ? error.message : t("ui.app.profileImportError"),
+        message: errorNoticeMessage(error, t("ui.app.profileImportError")),
         error: true,
       })
     }
@@ -1431,7 +1431,7 @@ export function StatsTab({
                       {
                         ...profile,
                         id,
-                        name: `${profile.name} Copy`,
+                        name: t("ui.app.copyOfNamedProfile", { name: profile.name }),
                         statOverrides: { ...profile.statOverrides },
                         attunementOverrides: { ...profile.attunementOverrides },
                         innerWays: profile.innerWays.map(row => ({ ...row })),

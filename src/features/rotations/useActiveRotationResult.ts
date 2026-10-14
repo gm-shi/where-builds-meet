@@ -13,7 +13,7 @@ import { buildRotationCalculationBundle, measurementSubject } from "@/calculatio
 import { buildRotationComparisonBundle } from "@/calculations/rotationComparisonBundle"
 import type { RotationCalculationCategory } from "@/calculations/rotationMetrics"
 import type { BuildEntry, GearItem } from "@/gear"
-import { gameText } from "@/i18n"
+import { gameText, t } from "@/i18n"
 import { publishNotice } from "@/notices"
 import type { RotationEntry } from "@/rotationTransfer"
 import { useDpsStore } from "@/stores/dpsStore"
@@ -57,7 +57,11 @@ function resolveActiveRotation(
     entries[0]
   if (!entry) return undefined
   const rotation = rotationRecordForEntry(entry)
-  return { entry, rotation, name: entry.isDefault ? gameText(rotation.name) : rotation.name || "Active rotation" }
+  return {
+    entry,
+    rotation,
+    name: entry.isDefault ? gameText(rotation.name) : rotation.name || t("ui.app.activeRotation"),
+  }
 }
 
 /** The graduation reading already held for every candidate, or undefined while any is missing. */
@@ -229,7 +233,7 @@ export function useActiveRotationResult(input: ActiveRotationInput) {
         publishNotice({
           id: "rotation-calculation",
           error: true,
-          message: error instanceof Error ? error.message : String(error),
+          message: `${t("ui.notices.calculationError")} ${error instanceof Error ? error.message : String(error)}`,
         })
       } finally {
         if (current()) {

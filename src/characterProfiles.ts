@@ -6,6 +6,7 @@ import type { AttunementStats } from "./calculations/damage"
 import type { CharacterStatOverrides } from "./calculations/statEffects"
 import { allStatDefinitions } from "./data/statDefinitions"
 import { attunementData, defaultBuildSetup, normalizeBuildSetup, type BuildSetup } from "./gear"
+import { t } from "./i18n"
 import { getPersistentItem } from "./persistentStorage"
 import { characterProfileExportInputSchema, characterProfileInputSchema } from "./schemas/characterProfiles"
 import { parseJson, validateUnknown } from "./schemas/json"
@@ -109,14 +110,13 @@ function importedId(originalId: string, usedIds: Set<string>) {
 
 export function mergeImportedCharacterProfiles(current: CharacterProfile[], value: unknown) {
   const validated = validateUnknown(characterProfileExportInputSchema, value)
-  if (!validated.success) throw new Error("This is not a Where Builds Meet character profile file.")
+  if (!validated.success) throw new Error(t("ui.app.profileImportNotProfileFile"))
   const source = value as Record<string, unknown>
   if (source.format !== characterProfileExportFormat || !supportedProfileVersions.has(source.version as number))
-    throw new Error("This file uses an unsupported character profile format.")
-  if (!Array.isArray(source.profiles)) throw new Error("The character profile file does not contain a profile list.")
+    throw new Error(t("ui.app.profileImportUnsupportedFormat"))
+  if (!Array.isArray(source.profiles)) throw new Error(t("ui.app.profileImportMissingProfileList"))
   const parsed = parseCharacterProfiles(source.profiles)
-  if (source.profiles.length > 0 && parsed.length === 0)
-    throw new Error("The character profile file does not contain any valid profiles.")
+  if (source.profiles.length > 0 && parsed.length === 0) throw new Error(t("ui.app.profileImportNoValidProfiles"))
   const usedIds = new Set(current.map(({ id }) => id))
   const imported = parsed.map(profile => {
     const id = importedId(profile.id, usedIds)

@@ -1,244 +1,110 @@
-# Wind Inner Way swap performance audit
+# 风流派心法替换性能审计
 
-Date: 2026-09-27. Calculator revision: `f0f40a7` before this audit.
+日期：2026-09-27。本次审计前的计算器版本：`f0f40a7`。
 
-The original measurements below precede the internal-buff counter change.
-The implementation follow-up at the end corrects the original attribution of
-the comparison rebuilds to Rodent counters alone.
+下文的原始测量早于内部增益计数器的改动。末尾的实现后续说明纠正了原先将对比重建仅归因于鼠鼠计数器的结论。
 
-## Reproduction and scope
+## 复现与范围
 
-Run `node script/probe/benchmark-wind-innerways.mjs` from the repository root.
-The benchmark uses the production preset bundle factory, the Fully Relayed Min
-Wind build, Dummy 1 Min Infinite Vitality rotation, breakthrough 17, 40 ms ping,
-Simmering Fish Slices, Fire Divinecraft and no Script. It replaces only T6
-Morale Chant with T6 Fivefold Bleed in the process-local preset object and
-rebuilds the complete character sheet. Canonical JSON is unchanged.
+在仓库根目录运行 `node script/probe/benchmark-wind-innerways.mjs`。该基准测试使用生产环境的模板数据包工厂、风·全承音小外配装、「木桩1分钟无限精元」循环、破阵 17、40 ms 延迟、涮鱼、天工·火，且无帖。它仅在进程本地的模板对象中将 T6 易水歌替换为 T6 极乐泣血，并重建完整的角色属性面板。规范 JSON 保持不变。
 
-The stat and attunement groups use the same eligibility, maximum-roll and base
-stat inputs as RotationEditorTab. There are 26 stat variants and seven attunement
-variants. Comparisons receive the uncompressed baseline, as on a warm worker
-cache hit. Two alternating warm-up pairs are discarded before six measured
-pairs; output includes individual timings, medians, row counts and DPS.
+属性与定音分组使用与 RotationEditorTab 相同的适用条件、满值词条和基础属性输入。共有 26 个属性变体和七个定音变体。对比接收未压缩的基线，与 worker 缓存热命中时相同。先丢弃两对交替预热，再测量六对；输出包括各次计时、中位数、行数和秒伤。
 
-These are local Node 24.14.0/Vite SSR timings with the phase collector inactive,
-not end-to-end browser latency or a production-bundle benchmark. Setup/set/Inner
-Way comparisons, graduation calculations, inactive rotations, worker transport
-and rendering are excluded. Therefore the measured comparison groups explain
-only part of the full refresh. The user's exact saved build was not available.
+这些是在阶段收集器未激活时测得的本地 Node 24.14.0/Vite SSR 计时，而非端到端的浏览器延迟或生产构建包基准测试。设置/套装/心法对比、毕业率计算、非当前循环、worker 传输和渲染均未计入。因此，所测量的对比分组只能解释完整刷新的一部分。无法获得用户实际保存的配装。
 
-## Findings
+## 发现
 
-The final six-sample medians are:
+最终六次采样的中位数为：
 
-| Work                     | Morale Chant | Fivefold Bleed |
-| ------------------------ | -----------: | -------------: |
-| Baseline                 |     62.11 ms |      235.03 ms |
-| Publication compaction   |      0.69 ms |       30.06 ms |
-| 26 stat comparisons      |  1,075.95 ms |    4,434.12 ms |
-| 7 attunement comparisons |    289.33 ms |    1,156.55 ms |
+| 计算项        |      易水歌 |    极乐泣血 |
+| ------------- | ----------: | ----------: |
+| 基线          |    62.11 ms |   235.03 ms |
+| 发布压缩      |     0.69 ms |    30.06 ms |
+| 26 项属性对比 | 1,075.95 ms | 4,434.12 ms |
+| 7 项定音对比  |   289.33 ms | 1,156.55 ms |
 
-The two comparison categories total 1.37 seconds versus 5.59 seconds, about
-4.1 times as long with Fivefold, before the other categories finish.
+两个对比类别合计分别为 1.37 秒与 5.59 秒，使用极乐泣血时约为前者的 4.1 倍，而此时其他类别尚未完成。
 
-Baseline output grows from 746 to 2,086 timeline rows. Publication compaction
-costs about 30 ms for Fivefold and removes only three rows (2,083 remain), versus
-less than 1 ms for Morale. Both have stable DPS across repeated runs:
-67,544.2331265345 for Morale and 67,003.14845386177 for Fivefold. These are fixture
-results, not advice about the user's own build.
+基线输出从 746 行时间轴增至 2,086 行。对极乐泣血而言，发布压缩耗时约 30 ms，却仅移除三行（剩余 2,083 行）；易水歌则不到 1 ms。两者在重复运行中秒伤均保持稳定：易水歌为 67,544.2331265345，极乐泣血为 67,003.14845386177。这些是夹具结果，并非针对用户自身配装的建议。
 
-A diagnostic run instrumenting ExpectedPeriodicTracker.apply observed a maximum
-of 244 live states and 2,167 applications for Fivefold. The initial phase trace
-reported 3,421 action-resolution calls and 3,480 damage-formula calls versus
-1,253 and 906 with Morale. Formula calls also include attribution calculations;
-these counts must not be interpreted as repeated combat traversals. A warmed
-CPU sample likewise identifies damage calculation, combat traversal and generated
-event handling as substantial costs. It does not establish a probability-state
-explosion.
+一次对 ExpectedPeriodicTracker.apply 进行插桩的诊断运行观测到，极乐泣血最多有 244 个存活状态，共 2,167 次施加。最初的阶段追踪报告了 3,421 次动作解析调用和 3,480 次伤害公式调用，而易水歌分别为 1,253 次和 906 次。公式调用也包括归因计算；这些计数不得解读为重复的战斗遍历。一次预热后的 CPU 采样同样表明，伤害计算、战斗遍历和生成事件的处理是可观的开销。它并不能证明发生了概率状态爆炸。
 
-## Comparison with the design
+## 与设计的对比
 
-- The battle-aligned DOT clock, indexed probability lists, tiny-state merging,
-  and causal branch isolation remain enabled. No evidence of a fallback to
-  individual exact tick cadences was found.
-- Baselines use one live traversal. The existing single-pass, Wind and Fivefold
-  tests pass (seven files, 13 cases).
-- Worker baseline caching is present. Comparison requests do not resend the
-  baseline when the worker already knows its cache key. Published compaction is
-  separate from the full baseline retained in that cache.
-- The practical mismatch is the broad statement that pure stat and attunement
-  comparisons reuse a timeline. `calculateRotationComparisons` requires live
-  resolution whenever the baseline contains an accumulator application, among
-  other feedback conditions. Wind applies Rodent Rampage/Enhanced Rodent Rampage,
-  which use accumulators, so even the seven attunement variants rebuild combat.
-  Subsequent inspection also found Rodent Hunt recording/replays and World to
-  Sword applications in this fixture. Each independently keeps the live guard
-  active, so removing the Rodent counter blocker alone cannot enable reuse for
-  the full preset. The guard has existed since September 16; this audit does not establish a new
-  regression. Fivefold magnifies the cost of that existing conservative choice.
-- Any supplied `setupEffects` also forces live resolution, even when the caller
-  supplies no replacement timeline. The current fast-path description is thus
-  more permissive than the actual implementation. The guard protects feedback
-  correctness; simply deleting it is not a safe optimization.
-- All comparison categories and their individual variants run sequentially.
-  The baseline is published first, but the full refresh waits for much more than
-  the displayed build's single DPS calculation.
+- 与战斗对齐的 DOT 时钟、索引概率列表、微小状态合并以及因果分支隔离仍处于启用状态。未发现回退为逐个精确跳伤节奏的证据。
+- 基线使用一次实时遍历。现有的单次遍历、风与极乐泣血测试均通过（七个文件，13 个用例）。
+- 已有 worker 基线缓存。当 worker 已知缓存键时，对比请求不会重新发送基线。发布压缩与该缓存中保留的完整基线相互独立。
+- 实际的不一致在于“纯属性与定音对比会复用时间轴”这一笼统表述。`calculateRotationComparisons` 在基线包含累加器施加时（以及其他反馈条件下）需要实时解析。风会施加鼠鼠生威/强化鼠鼠生威，二者使用累加器，因此即使是七个定音变体也会重建战斗。后续检查还在该夹具中发现了鼠鼠追命的记录/重放以及万物为锋的施加。其中每一项都会独立地使实时守卫保持生效，因此仅移除鼠鼠计数器这一阻碍因素，无法让完整模板启用复用。该守卫自 9 月 16 日起即已存在；本审计并未证实存在新的回归。极乐泣血放大了这一既有保守选择的代价。
+- 任何传入的 `setupEffects` 也会强制实时解析，即使调用方未提供替代时间轴。因此，当前对快速路径的描述比实际实现更为宽松。该守卫保护反馈的正确性；直接删除它并不是安全的优化。
+- 所有对比类别及其各个变体都按顺序运行。基线会先发布，但完整刷新所等待的远不止所显示配装的单次秒伤计算。
 
-## Improvements, in priority order
+## 改进项（按优先级排序）
 
-1. **Distinguish event-count feedback from damage-value feedback.** Audit whether
-   an attunement-only variant can reuse Wind's event sequence when its accumulator
-   depends on action tags/counts, not damage amount. Preserve rebuilds for damage
-   recording, target HP, healing, conditional outcome/resource effects and compacted
-   fallback baselines. Differential tests must compare complete live and reused
-   results before relaxing the guard. This targets repeated combat work without
-   changing Fivefold probability accuracy. No speedup is claimed until measured.
-2. **Reduce repeated per-hit preparation.** The damage formula still iterates
-   every attunement entry and checks its tags on each hit, including zero-valued
-   entries. Prepare matching contributions per immutable attunement/tag context,
-   and profile the remaining effect-field scan. Preserve summation order and
-   invalidate on variant/overridden input changes. Validate against exact DPS
-   snapshots and direct formula tests.
-3. **Prioritize requested comparison panels.** The current eager sequential
-   refresh is consistent with the documented UI design, but demand-driven or
-   deferred categories could improve perceived responsiveness. This changes
-   refresh behavior and should be an explicit product decision.
-4. **Review publication compaction separately.** About 30 ms buys only three
-   merged rows here because full contexts are serialized to identify duplicates.
-   A cheaper eligibility/key path may help, but it is much smaller than the
-   multi-second comparison cost and must preserve attribution/outcome equality.
+1. **区分事件计数反馈与伤害数值反馈。** 审查当累加器依赖动作标签/计数而非伤害量时，仅定音不同的变体能否复用风的事件序列。对于伤害记录、目标气血、治疗、条件结果/资源效果以及已压缩的回退基线，保留重建。在放宽守卫之前，差分测试必须比较完整的实时结果与复用结果。这针对的是重复的战斗工作，而不改变极乐泣血的概率精度。在实际测量之前，不宣称任何加速。
+2. **减少每次命中的重复准备工作。** 伤害公式仍会在每次命中时遍历每个定音条目并检查其标签，包括值为零的条目。应针对每个不可变的定音/标签上下文预先准备匹配的贡献，并对剩余的效果字段扫描进行性能分析。保持求和顺序，并在变体/被覆盖的输入发生变化时使其失效。以精确秒伤快照和直接的公式测试进行验证。
+3. **优先处理所请求的对比面板。** 当前的立即顺序刷新与文档记录的界面设计一致，但按需或延迟计算的类别可以改善感知上的响应速度。这会改变刷新行为，应作为明确的产品决策。
+4. **单独审查发布压缩。** 由于需要序列化完整上下文来识别重复项，这里约 30 ms 仅换来三行合并。更廉价的资格判定/键路径或许有帮助，但这部分开销远小于数秒级的对比开销，并且必须保持归因/结果的等价性。
 
-Do not raise the probability-merging threshold, discard rare bursts or reuse
-merged publication rows as combat inputs merely to improve this benchmark.
-Those changes alter numerical behavior or causal semantics. No production
-calculation changes or snapshot updates were made by this audit.
+不要仅为了改善该基准测试而提高概率合并阈值、丢弃罕见爆发，或将合并后的发布行复用为战斗输入。这些改动会改变数值行为或因果语义。本次审计未对生产计算做任何更改，也未更新任何快照。
 
-## Internal-buff counter implementation follow-up
+## 内部增益计数器实现后续说明
 
-Rodent Rampage and Enhanced Rodent Rampage now count coordinated attacks with
-separate hidden buffs, using `onMaxStack` like Dust's summon cadence. Active
-buff triggers reuse the setup-trigger action handler. The shared
-`oncePerSkill` filter accepts the first damage action of each stage and rejects
-probability-weighted expected rows. `additionalStack` supplies the second count
-for Infernal/Mortal attacks. Each counter declares its `parentEffect` so refresh
-preserves progress and updates expiry/attribution, while removal or replacement
-clears the count. Other accumulator behavior and the comparison guard are
-unchanged.
+鼠鼠生威与强化鼠鼠生威现在通过独立的隐藏增益统计协同攻击，并像尘的召唤节奏那样使用 `onMaxStack`。生效增益的触发器复用设置触发器的动作处理器。共享的 `oncePerSkill` 过滤器接受每一段的第一个伤害动作，并拒绝按概率加权的期望行。`additionalStack` 为泥犁三垢/粟子游尘的攻击提供第二次计数。每个计数器都声明其 `parentEffect`，因此刷新时会保留进度并更新到期/归因，而移除或替换则会清除计数。其他累加器行为和对比守卫保持不变。
 
-Differential tests use a coordinated-Rodent rotation without recording or
-healing. Both Morale Chant and Fivefold Bleed variants reuse the timeline, and
-all eligible attunement comparisons match forced live resolution. The full
-dummy preset still takes the live path because of Rodent Hunt and World to
-Sword; this change alone does not resolve its multi-second comparison cost.
+差分测试使用一个不含记录与治疗的协同鼠鼠循环。易水歌与极乐泣血两种变体均复用时间轴，且所有符合条件的定音对比都与强制实时解析的结果一致。由于鼠鼠追命和万物为锋，完整的木桩模板仍走实时路径；仅凭这项改动无法解决其数秒级的对比开销。
 
-A same-process before/after benchmark replaced only the Wind buff definitions
-with their pre-change versions for the control cases. Each case discarded two
-warm-ups and measured six samples, alternating forward/reverse order. Full-preset
-medians (milliseconds) were:
+一次同进程的前后对比基准测试，在对照用例中仅将风的增益定义替换为改动前的版本。每个用例丢弃两次预热并测量六次采样，交替使用正向/反向顺序。完整模板的中位数（毫秒）为：
 
-| Work                     | Morale before | Morale after | Fivefold before | Fivefold after |
-| ------------------------ | ------------: | -----------: | --------------: | -------------: |
-| Baseline                 |        100.15 |       102.65 |          406.65 |         404.63 |
-| 26 stat comparisons      |      1,818.43 |     1,930.75 |        7,341.00 |       7,523.15 |
-| 7 attunement comparisons |        505.88 |       509.18 |        1,941.74 |       2,005.42 |
+| 计算项        | 易水歌（改动前） | 易水歌（改动后） | 极乐泣血（改动前） | 极乐泣血（改动后） |
+| ------------- | ---------------: | ---------------: | -----------------: | -----------------: |
+| 基线          |           100.15 |           102.65 |             406.65 |             404.63 |
+| 26 项属性对比 |         1,818.43 |         1,930.75 |           7,341.00 |           7,523.15 |
+| 7 项定音对比  |           505.88 |           509.18 |           1,941.74 |           2,005.42 |
 
-There is no measured full-preset speedup; combined comparison time was about
-3–5% higher in this run. Baseline DPS and timeline row counts were unchanged.
+未测得完整模板有任何加速；本次运行中合计对比时间约高出 3–5%。基线秒伤和时间轴行数保持不变。
 
-An isolated rotation (Rampage, ten Infernal Light 3 casts, three-second delay,
-40 ms ping) removes recording/healing casts while retaining the same build and
-comparison groups. Its medians were:
+一个独立循环（鼠鼠生威、施放十次泥犁三垢的双刀·轻击3、三秒延迟、40 ms 网络延迟）去除了记录/治疗施放，同时保留相同的配装和对比分组。其中位数为：
 
-| Work                     | Morale before | Morale after | Fivefold before | Fivefold after |
-| ------------------------ | ------------: | -----------: | --------------: | -------------: |
-| 26 stat comparisons      |         78.54 |        39.99 |          177.70 |          71.95 |
-| 7 attunement comparisons |         18.06 |         7.27 |           45.69 |          16.40 |
+| 计算项        | 易水歌（改动前） | 易水歌（改动后） | 极乐泣血（改动前） | 极乐泣血（改动后） |
+| ------------- | ---------------: | ---------------: | -----------------: | -----------------: |
+| 26 项属性对比 |            78.54 |            39.99 |             177.70 |              71.95 |
+| 7 项定音对比  |            18.06 |             7.27 |              45.69 |              16.40 |
 
-This demonstrates the reuse benefit where Rodent was the only blocker. It does
-not represent the full preset or browser latency. Differential tests additionally
-cover attack, crit, and affinity stat variants; the accepted DPS snapshot guard
-passes without refreshing any snapshot.
+这表明了在鼠鼠是唯一阻碍因素时复用带来的收益。它不代表完整模板或浏览器延迟。差分测试还覆盖了攻击、会心和会意属性变体；已接受的秒伤快照守卫在未刷新任何快照的情况下通过。
 
-## Attunement matching cache follow-up
+## 定音匹配缓存后续说明
 
-The damage formula now reuses an ordered list of matching attunement keys and
-definitions, keyed by the immutable input object and complete effective tag
-signature. Values and numerical totals are not cached. Every hit retains the
-original multiplication/addition order, including its initial character-stat
-Formless Penetration contribution. Weak ownership allows discarded inputs and
-their cached lists to be collected together.
+伤害公式现在会复用一个由匹配的定音键及其定义组成的有序列表，以不可变的输入对象和完整的有效标签签名作为键。不缓存数值本身及其数值合计。每次命中都保留原有的乘法/加法顺序，包括其初始的角色属性无相穿透贡献。采用弱引用持有，被丢弃的输入及其缓存列表可以一同被回收。
 
-A same-process benchmark used separate Vite SSR module graphs for the previous
-full-scan damage function and the cached function. Both used the full preset
-fixture above, alternated forward/reverse case order, discarded two warm-ups,
-and measured six samples. Medians in milliseconds:
+一次同进程基准测试为之前的全量扫描伤害函数和带缓存的函数分别使用了独立的 Vite SSR 模块图。两者都使用上述完整模板夹具，交替使用正向/反向用例顺序，丢弃两次预热，并测量六次采样。中位数（毫秒）：
 
-| Work                     | Morale before | Morale after | Fivefold before | Fivefold after |
-| ------------------------ | ------------: | -----------: | --------------: | -------------: |
-| Baseline                 |         90.61 |       106.73 |          435.75 |         345.27 |
-| 26 stat comparisons      |      1,594.39 |     1,667.87 |        6,710.41 |       6,318.05 |
-| 7 attunement comparisons |        440.28 |       411.99 |        1,757.22 |       1,702.92 |
+| 计算项        | 易水歌（改动前） | 易水歌（改动后） | 极乐泣血（改动前） | 极乐泣血（改动后） |
+| ------------- | ---------------: | ---------------: | -----------------: | -----------------: |
+| 基线          |            90.61 |           106.73 |             435.75 |             345.27 |
+| 26 项属性对比 |         1,594.39 |         1,667.87 |           6,710.41 |           6,318.05 |
+| 7 项定音对比  |           440.28 |           411.99 |           1,757.22 |           1,702.92 |
 
-These initial measurements are confounded by the benchmark setup; see the
-controlled investigation below. They should not be treated as implementation
-speedup or regression estimates.
+这些初始测量受到基准测试设置的混杂影响；参见下文的受控调查。不应将其视为实现带来的加速或回归的估计。
 
-Fivefold's baseline was about 21% faster and the sum of the comparison-group
-medians about 5% lower. Morale did not show an overall gain: its baseline was
-about 18% slower and its combined comparison medians about 2% higher. These
-local SSR measurements include runtime/GC variation and do not establish a
-uniform or browser-level speedup. The full preset still needs live combat
-resolution, so matching reuse does not remove the dominant repeated traversal.
-Both versions produced exactly the same baseline DPS and timeline row counts.
+极乐泣血的基线约快 21%，对比分组中位数之和约低 5%。易水歌未表现出整体收益：其基线约慢 18%，合计对比中位数约高 2%。这些本地 SSR 测量包含运行时/GC 波动，并不能证明存在一致的或浏览器层面的加速。完整模板仍需实时战斗解析，因此匹配复用并不能消除占主导地位的重复遍历。两个版本产生了完全相同的基线秒伤和时间轴行数。
 
-Direct differential tests compare cached and uncached expected/sampled damage
-with inclusion/exclusion/alternative tags, multiple matching bonuses, reversed
-input orders, zero-to-nonzero values, changed tags, and replacement inputs.
+直接差分测试在包含/排除/替代标签、多个匹配加成、反转的输入顺序、从零变为非零的数值、变化的标签以及替换输入等情况下，比较带缓存与不带缓存的期望/采样伤害。
 
-## Morale timing investigation (2026-09-28)
+## 易水歌计时调查（2026-09-28）
 
-The earlier 90.61 → 106.73 ms baseline result did not reproduce consistently
-when each implementation ran alone in a fresh Node process. Four processes ran
-in scan/cache/cache/scan order. Each used one Vite SSR module graph, 20 baseline
-warm-ups and 40 measured baselines. Comparison groups used two warm-ups and four
-measured samples. The full Morale fixture and calculations were unchanged.
+先前 90.61 → 106.73 ms 的基线结果，在每种实现单独于全新 Node 进程中运行时无法稳定复现。四个进程按扫描/缓存/缓存/扫描的顺序运行。每个进程使用一个 Vite SSR 模块图，进行 20 次基线预热和 40 次基线测量。对比分组使用两次预热和四次测量采样。完整的易水歌夹具与计算保持不变。
 
-| Fresh process     | Baseline median | All 33 comparisons median |
-| ----------------- | --------------: | ------------------------: |
-| Full scan, first  |        80.23 ms |               1,951.89 ms |
-| Cache, first      |        83.38 ms |               1,883.13 ms |
-| Cache, second     |        82.32 ms |               1,751.96 ms |
-| Full scan, second |        88.47 ms |               2,028.57 ms |
+| 全新进程         | 基线中位数 | 全部 33 项对比中位数 |
+| ---------------- | ---------: | -------------------: |
+| 全量扫描，第一次 |   80.23 ms |          1,951.89 ms |
+| 缓存，第一次     |   83.38 ms |          1,883.13 ms |
+| 缓存，第二次     |   82.32 ms |          1,751.96 ms |
+| 全量扫描，第二次 |   88.47 ms |          2,028.57 ms |
 
-Separate phase-instrumented runs (ten baselines per process) measured the same
-906 attunement aggregations per baseline. Their median combined time was
-6.90/7.63 ms for the full scan and 1.34/1.25 ms for the cache. These instrumented
-times are diagnostic and are not substituted for the uninstrumented totals.
+另行进行的阶段插桩运行（每个进程十次基线）测得每次基线同样为 906 次定音聚合。其合计时间的中位数为：全量扫描 6.90/7.63 ms，缓存 1.34/1.25 ms。这些插桩计时仅供诊断，不用于替代未插桩时的总计时。
 
-An isolated aggregation benchmark used all 457 retained Morale damage-entry
-contexts, covering 16 tag signatures and 54 attunement keys. The cached list
-averaged 3.86 matching entries. Across 12 alternating sample pairs after eight
-warm-ups, 91,400 aggregations took a median 238.47 ms with the full scan and
-54.45 ms with the cache (about 4.4 times faster). Outputs matched exactly.
+一项独立的聚合基准测试使用了易水歌全部 457 个保留的伤害条目上下文，涵盖 16 种标签签名和 54 个定音键。缓存列表平均包含 3.86 个匹配条目。在八次预热之后的 12 组交替采样对中，91,400 次聚合的中位耗时为：全量扫描 238.47 ms，缓存 54.45 ms（约快 4.4 倍）。输出完全一致。
 
-The original four-case ordering was also unbalanced: in both forward and reverse
-order, cached Morale always followed a heavy Fivefold comparison workload.
-Uncached Morale followed another Morale case at alternate round boundaries.
-Reversing case order therefore did not balance the preceding allocation/workload
-history. The original comparison additionally shared a process between two
-separate module graphs and used only two warm-up pairs. Its single median
-difference is not reliable evidence of a Morale cache regression. The isolated
-measurements show that matching is faster, while the few milliseconds saved in
-that phase can be masked by variation in the rest of the calculation.
+原先的四用例顺序也不均衡：无论正向还是反向顺序，带缓存的易水歌总是跟在繁重的极乐泣血对比工作负载之后。不带缓存的易水歌则在交替的轮次边界上跟在另一个易水歌用例之后。因此，反转用例顺序并不能平衡此前的内存分配/工作负载历史。原先的对比还让两个独立的模块图共享同一个进程，并且只使用了两对预热。其单一的中位数差异不能作为易水歌缓存回归的可靠证据。独立测量表明匹配确实更快，而该阶段节省的几毫秒可能被其余计算的波动所掩盖。
 
-An identical-code control repeated the original two-graph, four-case ordering,
-but loaded the same uncached damage implementation in both graphs. After two
-warm-ups and six measured samples, graph A/B baseline medians were 96.67/128.69 ms
-for Morale and 445.11/373.10 ms for Fivefold. The harness thus reported Morale
-33% slower and Fivefold 16% faster without any implementation difference.
-Morale's stat-comparison medians were 1,779.73/1,794.30 ms and attunement-comparison
-medians were 481.20/473.94 ms. This demonstrates that the original baseline
-comparison cannot isolate the cache's effect. It does not identify the exact
-runtime cause of the historical difference; GC alone was not established as
-the explanation. Future performance comparisons should isolate implementations
-in fresh processes, balance run order, and report repeated runs and phase costs.
+一项代码完全相同的对照实验重复了原先的双模块图、四用例顺序，但在两个模块图中加载相同的不带缓存的伤害实现。经过两次预热和六次测量采样后，图 A/B 的基线中位数分别为：易水歌 96.67/128.69 ms，极乐泣血 445.11/373.10 ms。因此，在没有任何实现差异的情况下，该测试框架报告易水歌慢了 33%、极乐泣血快了 16%。易水歌的属性对比中位数为 1,779.73/1,794.30 ms，定音对比中位数为 481.20/473.94 ms。这表明原先的基线对比无法单独隔离缓存的影响。它并未确定历史差异的确切运行时原因；也未证实 GC 本身就是原因。今后的性能对比应在全新进程中隔离各实现、平衡运行顺序，并报告重复运行结果与各阶段开销。

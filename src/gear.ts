@@ -11,6 +11,7 @@ import { activeBuildStorageKey, buildListStorageKey, legacyGearStorageKey } from
 import { readLegacyBuildSetup, readLegacyGearInventory } from "./application/persistence/legacy"
 import type { AttunementTagFilter } from "./calculations/attunementStats"
 import type { AttunementStats } from "./calculations/damage"
+import { t } from "./i18n"
 import { getPersistentItem } from "./persistentStorage"
 import {
   buildExportInputSchema,
@@ -846,7 +847,7 @@ export function mergeImportedBuildState(
   options: { reuseIdenticalGear?: boolean } = {},
 ) {
   const validated = validateUnknown(buildExportInputSchema, value)
-  if (!validated.success) throw new Error("This is not a Where Builds Meet export file.")
+  if (!validated.success) throw new Error(t("ui.notices.buildImportNotExportFile"))
   const source = value as { format?: unknown; version?: unknown; gearItems?: unknown; builds?: unknown }
   if (
     source.format !== buildExportFormat ||
@@ -860,7 +861,7 @@ export function mergeImportedBuildState(
     !Array.isArray(source.gearItems) ||
     !Array.isArray(source.builds)
   ) {
-    throw new Error("This file uses an unsupported build export format.")
+    throw new Error(t("ui.notices.buildImportUnsupportedFormat"))
   }
 
   const importedItems = parseGearItems(source.gearItems)

@@ -1,7 +1,22 @@
-import { describe, expect, it } from "vitest"
+// @vitest-environment jsdom
+import { readFile } from "node:fs/promises"
+
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import type { TimelineRow } from "../src/calculations/rotationTimeline"
+import { initializeI18n } from "../src/i18n"
 import { readableRotationText } from "../src/readableRotation"
+
+// The text is interface copy, so the shipped locale is loaded and the translated form asserted.
+beforeEach(async () => {
+  vi.stubGlobal("fetch", async (url: string) => ({
+    ok: true,
+    json: async () => JSON.parse(await readFile(`public/locales/${url.split("/").at(-1)}`, "utf8")),
+  }))
+  await initializeI18n()
+})
+
+afterEach(() => vi.unstubAllGlobals())
 
 // Ported from script/probe/check-readable-rotation.mjs.
 function skillRow(
@@ -57,13 +72,13 @@ describe("readableRotationText", () => {
 
   it("formats action-level anchors with hit modifiers", () => {
     expect(readableRotationText(timeline, { rowId: "rotation-1", actionIndex: 2 }, 2)).toBe(
-      "One at 2 > Two (start at hit 3) > Three (break) > Four",
+      "One（战前2秒） > Two（第3击起） > Three（破盾） > Four",
     )
   })
 
   it("formats skill-level anchors with the start modifier", () => {
     expect(readableRotationText(timeline, { rowId: "rotation-1" }, 1)).toBe(
-      "One at 1 > Two (start) > Three (break) > Four",
+      "One（战前1秒） > Two（起点） > Three（破盾） > Four",
     )
   })
 
@@ -76,9 +91,9 @@ describe("readableRotationText", () => {
       skillRow(4, 4, 1, "One"),
     ] as unknown as TimelineRow[]
 
-    expect(readableRotationText(repeatedTimeline, { rowId: "missing" }, 0)).toBe("One x3 > Two > One")
+    expect(readableRotationText(repeatedTimeline, { rowId: "missing" }, 0)).toBe("One ×3 > Two > One")
     expect(readableRotationText(repeatedTimeline, { rowId: "rotation-1" }, 1)).toBe(
-      "One at 1 > One (start) > One > Two > One",
+      "One（战前1秒） > One（起点） > One > Two > One",
     )
   })
 })

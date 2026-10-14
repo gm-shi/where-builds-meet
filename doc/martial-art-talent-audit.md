@@ -1,119 +1,68 @@
-# Martial-art talent rank-13 audit
+# 武学天赋 13 级审计
 
-Source: `local/datamine/wwm-martial-arts-normal.json`, interpreted fields only.
-Selection uses each art's `unlockLevel: 13` and its ordered `talentIds` resolved
-against `definitions`. All 20 arts now contain their five selected talents at
-`talent[13]`; ranks 0–12 remain empty. Runtime talents contain effects only,
-with no display names or source IDs. Rank 14 is also implemented as a complete independent selection. It retains
-the supported non-stat mechanics and deliberate source exceptions described
-here, with upgraded stat caps and raw attribute attack. Additional Attack and
-its coefficient exceptions are documented in `damage-formula.md`.
+来源：`local/datamine/wwm-martial-arts-normal.json`，仅使用经过解读的字段。选取依据为每门武学的 `unlockLevel: 13` 及其有序的 `talentIds`，并对照 `definitions` 进行解析。现在全部 20 门武学都已在 `talent[13]` 中包含其选定的五个天赋；0–12 级仍为空。运行时天赋只包含效果，不含显示名称或来源 ID。14 级也已作为一套完整、独立的选取实现。它保留此处所述的受支持的非属性机制和有意保留的来源例外，同时采用提升后的属性上限和原始属性攻击。额外攻击（Additional Attack）及其系数例外记录在 `damage-formula.md` 中。
 
-Panacea Fan has one additional rank-13 entry: **Mystic Precision Enhancement**.
-The user confirmed that this behavior exists in the game even though it is
-absent from the datamined talent list. Keep it represented as a talent: with
-Soulshade Umbrella equipped, Mystic actions convert all Abrasion probability to
-Normal probability. This is an intentional source-list exception, not deferred
-work; future audits must preserve it.
+明川药典在 13 级还有一个额外条目：**奇术精准强化（Mystic Precision Enhancement）**。用户已确认该效果在游戏中确实存在，尽管它并未出现在解包得到的天赋列表中。应继续将其作为天赋表示：装备千香引魂蛊时，奇术动作会将全部擦伤概率转为普伤概率。这是有意设置的来源列表例外，而非延后的工作；今后的审计必须保留它。
 
-## Numerical corrections
+## 数值修正
 
-| Conversion                                                 | Exact rate | Rank-13 cap   |
-| ---------------------------------------------------------- | ---------- | ------------- |
-| Agility/Power/Momentum to Physical Attack, where specified | 0.264      | 73.92 at 280  |
-| Agility to Critical Rate                                   | 0.000304   | 8.512% at 280 |
-| Power/Momentum to Affinity Rate                            | 0.000152   | 4.256% at 280 |
-| Minimum attribute attack to penetration                    | 0.0672     | 22            |
-| Maximum attribute attack to penetration                    | 0.0336     | 22            |
-| Minimum attribute attack to damage/healing bonus           | 0.000336   | 11%           |
-| Maximum attribute attack to damage bonus                   | 0.000168   | 11%           |
+| 转换                               | 精确比率 | 13 级上限       |
+| ---------------------------------- | -------- | --------------- |
+| 敏/劲/势转外功攻击（仅在有说明处） | 0.264    | 280 时为 73.92  |
+| 敏转会心率                         | 0.000304 | 280 时为 8.512% |
+| 劲/势转会意率                      | 0.000152 | 280 时为 4.256% |
+| 最小属性攻击转穿透                 | 0.0672   | 22              |
+| 最大属性攻击转穿透                 | 0.0336   | 22              |
+| 最小属性攻击转伤害/治疗加成        | 0.000336 | 11%             |
+| 最大属性攻击转伤害加成             | 0.000168 | 11%             |
 
-Every attribute talent adds 98 minimum and 196 maximum raw attack before
-conversions. Formula inputs use the existing immutable raw-stat stage. Food and
-other talent conversion results do not feed another talent's formula. Source
-thresholds such as 328 and 655 are rounded; rates and caps govern actual results.
-Fixed bonuses and scaling bonuses are separate effects, without formula offsets
-or lower bounds. Descriptions explicitly saying “for every” a fixed quantity use
-the existing segment mechanism, including Nameless Sword's 100-attack steps and
-Vernal/Inkwell's 50-attack steps.
+每个属性天赋在转换之前增加 98 点最小原始攻击和 196 点最大原始攻击。公式输入使用现有的、不可变的原始属性阶段。食物以及其他天赋的转换结果不会作为另一个天赋公式的输入。来源中的 328、655 等阈值均为取整后的数值；实际结果以比率和上限为准。固定加成与按比例缩放的加成是相互独立的效果，没有公式偏移量或下限。描述中明确写有“每”某一固定数量的，使用现有的分段机制，包括无名剑法每 100 点攻击一档，以及九重春色/青山执笔每 50 点攻击一档。
 
-## Deferred or unclear portions
+## 延后或不明确的部分
 
-The shared four attribute damage channels and primary-path 1.5 multiplier cover
-every Attr. Attack DMG UP talent. Panacea/Soulshade's Attribute Attack Enhancement
-also uses the existing Silkbind healing coefficient. Those entries intentionally
-have empty effect arrays and do not apply a second multiplier.
+共用的四个属性伤害通道以及主流派 1.5 倍乘数已覆盖所有属攻增伤（Attr. Attack DMG UP）天赋。明川药典/千香引魂蛊的属性攻击强化（Attribute Attack Enhancement）也使用现有的牵丝治疗系数。这些条目有意保留空的效果数组，不会施加第二次乘数。
 
-| Martial art          | Deferred or unclear                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Strategic Sword      | Five-stack consumption and the once-per-cast ten-Endurance restore are implemented for the registered Special stages. Bleed tick coefficients remain missing; Blood Burst uses user-confirmed 2.4 coefficients in both channels. The model currently has one tracked target.                                                                                                                                                                                                                                                                                                                                                                                                    |
-| Nameless Sword       | Qi calculation and player/non-player target distinction are absent. HP bonus uses the current PvE calculation; the PvP Qi branch is not implemented.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Heavenquaker Spear   | Registered Heavenquaker skills apply charged-hit Soul-Shaken. High Bleed uses DOTEmpowered and receives the shared DOT bonus bucket; Blood Burst uses the user-confirmed coefficients; other empowered payloads remain pending.                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| Nameless Spear       | The below-60% Affinity damage condition and below-30% natural Endurance recovery bonus are implemented. The latter boosts only natural regeneration by 20%, not direct skill or Inner Way restores.                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Panacea Fan          | Water Clone's +2 Dew/second needs clone proximity/ownership and Dew resource data; +50% healing below 30% ally HP needs recipient HP and clone identity.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| Inkwell Fan          | Moon Shatter Spring skill/tag wiring is pending. Additional flat 5 Qi damage per critical hit lacks a calculated Qi-damage action.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Stormbreaker Spear   | Higher of raw Body/Power to Max HP is implemented at 10 HP per point, capped at 2800 for rank 13 and 3000 for rank 14. Battle Will cap increases need base cap data and talent-dependent maximums. Three-second incoming Physical damage reduction needs typed incoming damage and reduction scaling.                                                                                                                                                                                                                                                                                                                                                                           |
-| Phalanxbane Blade    | Blade Momentum maximum and Anxi Soldier refunds need cap and gain/spending data; “four times per second” is not assumed equivalent to a 0.25-second cooldown.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Infernal Twinblades  | Dodge success window and breath-hold are unmodeled. Automatic Flamelash entry/exit needs skill data. Earlier user-confirmed charge/reset semantics are retained.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| Riven Twinblades     | Actual skill/tag wiring and Inebriate/Deepdaze entry/exit are pending. Whaledraft's increased Binge amount is unspecified, so no increase is guessed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| Vernal Umbrella      | Ballistic skill classification and automatic control-state timing await skill data. Unfading Flower's three-Blossom refund needs resource data and boss/non-boss distinctions.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| Soulshade Umbrella   | Party-wide copies and Tenacity behavior/per-recipient 60-second lockout are not modeled. The supported 5% Exhausted-target damage bonus is an effect of Floating Grace and follows the parent buff's lifetime, including consumption.                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| Everspring Umbrella  | Implemented. Each Scarlet Spin stage consumes Fragrant Song for a 0.769x cast-time multiplier, an unconditional guaranteed critical, and 20% HP damage, so the accelerated flight is modelled; the Perfect Catch is queued with the throw it seeds, so that flight also carries its guaranteed catch and a cast cannot resolve a throw without its catch. Falling Blossoms transitions into one-use Fragrant Song after three catches, with Delicate from Phantom Rally T1 gating the Dreamwrought Bubbles charge. Tenacity damage is intentionally ignored by user instruction.                                                                                                |
-| Mortal Rope Dart     | Rodent and Bone Corrosion application need actual skills; Qi bonuses remain inactive until Qi calculation exists.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Unfettered Rope Dart | Piercing Dart hit timing is measured: a seven-hit marker series from the side-button press, with the four-hit release truncating it (1.841 s full, 0.796 s interrupted). Soul Sweep's three hit timestamps are still unmeasured placeholders at 0 s. Token resource units are intentionally ignored by user instruction, so the text's mixed two-Token and ten-Token refund wording is not modelled. Charged Combo uses `clearCD.seconds` for 0.5 seconds per Piercing Dart damage hit with a 0.5-second trigger cooldown; activation awaits the damage events. Its seven sweep coefficients are read per ordinal from `20702104` `timings.hitCoefficients` rather than shared. |
-| Skygrasp Rope Dart   | Initial resource/cap and Unity behavior remain in existing system/skill data rather than rank-dependent effects. The exact-one-bar comparison changed from `>= 1` to `> 1` to match the source.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| Snowparting Blade    | Tenacity interrupt, stagger, boss/mode distinctions, and General's Bane: Stab's 2/6-second Dread extension lack sufficient classification/state data.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| Heavenwill Gauntlets | Wider dodge window, Arena Tenacity, other-mode invincibility and dodge-gated combo availability are not modeled. “Small amount” of Endurance recovery has no numeric value.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Skystrike Gauntlets  | Inebriate dodge/Bloombreak replacements and actual skill wiring are pending. Binge base/cap/spending data are missing; only the stated additive gain is authored. Deflect gain is non-Arena-specific and remains deferred because combat mode is unmodeled.                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| 武学       | 延后或不明确                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 积矩九剑   | 已为已注册的特殊技各段实现五层消耗以及每次施放仅触发一次的 10 点耐力回复。流血每跳系数仍然缺失；爆血在两个通道中均使用用户确认的 2.4 系数。模型目前只追踪一个目标。                                                                                                                                                                                                                                                                                                         |
+| 无名剑法   | 缺少真气计算以及玩家/非玩家目标的区分。气血加成使用当前的 PvE 计算；PvP 的真气分支尚未实现。                                                                                                                                                                                                                                                                                                                                                                                |
+| 九曲惊神枪 | 已注册的九曲惊神枪技能会施加蓄力命中的惊神。高额流血使用 DOTEmpowered，并享受共用的 DOT 加成区；爆血使用用户确认的系数；其他强化后的效果载荷仍待实现。                                                                                                                                                                                                                                                                                                                      |
+| 无名枪法   | 已实现低于 60% 时的会意伤害条件，以及低于 30% 时的自然耐力回复加成。后者只将自然回复提高 20%，不影响技能或心法的直接回复。                                                                                                                                                                                                                                                                                                                                                  |
+| 明川药典   | 水分身（Water Clone）的每秒 +2 露水（Dew）需要分身距离/归属以及露水资源数据；友方气血低于 30% 时 +50% 治疗需要受疗者气血及分身身份数据。                                                                                                                                                                                                                                                                                                                                    |
+| 青山执笔   | 碎月泉（Moon Shatter Spring）的技能/标签接入尚待完成。每次会心命中额外附加的固定 5 点真气伤害缺少可计算的真气伤害动作。                                                                                                                                                                                                                                                                                                                                                     |
+| 八方风雷枪 | 已实现取原始体/劲中较高者转换为气血最大值，每点 10 点气血，13 级上限为 2800，14 级上限为 3000。战意（Battle Will）上限提升需要基础上限数据以及随天赋变化的最大值。三秒的受到外功伤害减免需要区分类型的受击伤害以及减伤缩放。                                                                                                                                                                                                                                                |
+| 十方破阵   | 刀势（Blade Momentum）上限及安西军返还需要上限与获取/消耗数据；不假定“每秒四次”等同于 0.25 秒冷却。                                                                                                                                                                                                                                                                                                                                                                         |
+| 泥犁三垢   | 闪避成功窗口与屏息尚未建模。自动进入/退出嗔焰需要技能数据。保留先前经用户确认的充能/重置语义。                                                                                                                                                                                                                                                                                                                                                                              |
+| 断水双诀   | 实际的技能/标签接入以及酩酊/浓醺的进入/退出尚待完成。鲸饮（Whaledraft）提高的酒意（Binge）数值未注明，因此不臆测任何增量。                                                                                                                                                                                                                                                                                                                                                  |
+| 九重春色   | 弹道技能分类与自动控制状态的时机有待技能数据。不谢花（Unfading Flower）返还三朵花（Blossom）需要资源数据以及首领/非首领的区分。                                                                                                                                                                                                                                                                                                                                             |
+| 千香引魂蛊 | 全队复制、韧性（Tenacity）行为以及每个受益者各自 60 秒的锁定均未建模。已支持的对气竭目标 5% 伤害加成是一念浮生的一个效果，跟随父增益的生命周期，包括被消耗。                                                                                                                                                                                                                                                                                                                |
+| 醉梦游春   | 已实现。红消香断的每一段都会消耗芳歌，获得 0.769 倍施放时间乘数、无条件必定会心以及 20% 气血伤害，因此加速后的飞行已被建模；完美接伞与其所引出的那次投掷一同排入队列，因此该次飞行也带有其必定接伞，一次施放不会在没有接伞的情况下结算投掷。落花在三次接伞后转为一次性的芳歌，并以千营一呼 T1 提供的玲珑作为玲珑泡影蓄力的前置条件。按用户指示，有意忽略韧性伤害。                                                                                                          |
+| 粟子游尘   | 鼠鼠与蚀骨的施加需要实际技能；在真气计算实现之前，真气加成保持不生效。                                                                                                                                                                                                                                                                                                                                                                                                      |
+| 粟子行云   | 镖鸣彻野的命中时机已实测：从按下侧键起为七击的标记序列，四击释放会将其截断（完整 1.841 s，打断 0.796 s）。履虚扫尘的三个命中时间戳仍是未实测的占位值，均为 0 s。按用户指示，有意忽略信物（Token）资源单位，因此文本中两枚信物与十枚信物混用的返还措辞未被建模。蓄力连击（Charged Combo）使用 `clearCD.seconds`，每次镖鸣彻野伤害命中计 0.5 秒，触发冷却为 0.5 秒；其生效仍有待伤害事件。其七次横扫系数按序号分别从 `20702104` 的 `timings.hitCoefficients` 读取，而非共用。 |
+| 千机索天   | 初始资源/上限以及合一行为仍保留在现有的系统/技能数据中，而非作为随等级变化的效果。“恰好一格”的比较已由 `>= 1` 改为 `> 1`，以与来源一致。                                                                                                                                                                                                                                                                                                                                    |
+| 斩雪刀法   | 韧性打断、硬直、首领/模式区分，以及白刃杀将·刺对胆寒 2/6 秒的延长，均缺少足够的分类/状态数据。                                                                                                                                                                                                                                                                                                                                                                              |
+| 天志垂象   | 更宽的闪避窗口、论剑（Arena）韧性、其他模式下的无敌以及以闪避为前提的连招可用性均未建模。“少量”耐力回复没有具体数值。                                                                                                                                                                                                                                                                                                                                                       |
+| 悬身拳法   | 酩酊状态下的闪避/破花（Bloombreak）替换以及实际技能接入尚待完成。缺少酒意的基础值/上限/消耗数据；只录入了文中明确给出的加算获取量。卸势获取仅适用于非论剑模式，由于战斗模式尚未建模，仍暂缓处理。                                                                                                                                                                                                                                                                           |
 
-## Data wiring for pending skills
+## 待实现技能的数据接入
 
-New tags use the existing skill-tag requirement mechanism; they do not create
-castable skills or invent damage coefficients/timing:
+新标签使用现有的技能标签需求机制；它们不会创建可施放的技能，也不会臆造伤害系数/时机：
 
-- Strategic Bleed actions: `Bleed`; amplified burst: `HighBleed` and `DOTEmpowered`.
-- Heavenquaker charged hits: `HeavenQuakerSpear` and `Charged`. The existing
-  martial-art tag's capital Q is retained and Soul-Shaken's old spelling fixed.
-- Inkwell pursuit: `MoonShatterSpring`.
-- Vernal projectiles: `VernalUmbrella` and `Ballistic`.
-- Everspring return hits: `EverspringUmbrella` and `ReturningUmbrella`.
-- Mortal rodent hits: `Rodent`.
-- Riven Hero's Blood: `HeroesBlood`; its Inebriate version:
-  `HeroesBloodInebriate`; Dragonquench's Inebriate version: `DragonquenchInebriate`.
-- Skystrike's enhanced attacks: `InebriateEnhanced`.
+- 积矩九剑流血动作：`Bleed`；强化爆发：`HighBleed` 和 `DOTEmpowered`。
+- 九曲惊神枪蓄力命中：`HeavenQuakerSpear` 和 `Charged`。保留现有武学标签中的大写 Q，并修正了惊神的旧拼写。
+- 青山执笔追击：`MoonShatterSpring`。
+- 九重春色弹道：`VernalUmbrella` 和 `Ballistic`。
+- 醉梦游春回程命中：`EverspringUmbrella` 和 `ReturningUmbrella`。
+- 粟子游尘鼠鼠命中：`Rodent`。
+- 断水双诀英雄血（Hero's Blood）：`HeroesBlood`；其酩酊版本：`HeroesBloodInebriate`；饮龙（Dragonquench）的酩酊版本：`DragonquenchInebriate`。
+- 悬身拳法的强化攻击：`InebriateEnhanced`。
 
-Manual statuses `Inebriate`, `InebriateDeepdaze`, `Soulbreak`, `Immobilized`, and
-`Airborne` have no guessed default duration. Apply with explicit duration or
-remove through existing consume actions. Deepdaze does not automatically apply
-Inebriate; both statuses must be represented when both conditions hold. Carouse
-has its stated 20-second refreshable lifetime. `Binge` reuses numeric resources
-without an invented starting value or cap. The user confirmed that Blade Momentum
-and Battle Will start at `4`; `system.json.initialResources` supplies both values.
-They remain fixed and hidden while generation, spending, and caps are unimplemented.
-Snowparting's Critical DMG Up condition therefore activates in normal rotations.
+手动状态 `Inebriate`、`InebriateDeepdaze`、`Soulbreak`、`Immobilized` 和 `Airborne` 没有臆测的默认持续时间。施加时需指定明确的持续时间，或通过现有的消耗动作移除。浓醺不会自动施加酩酊；当两个条件同时成立时，两种状态都必须表示出来。酣饮按其描述持续 20 秒，且可刷新。`Binge` 复用数值资源，不臆造初始值或上限。用户已确认刀势和战意的初始值为 `4`；这两个值由 `system.json.initialResources` 提供。在获取、消耗和上限尚未实现期间，它们保持固定且隐藏。因此，斩雪刀法的“会心伤害提高”条件在常规循环中会生效。
 
-## Verification
+## 验证
 
-Focused probes cover stat conversions at intermediate values/caps, raw-stat
-isolation, conditional damage and healing, resource thresholds, tag isolation,
-debuff stacking/refresh, and new buff/trigger behavior. Existing affected probes
-are revised for the datamined numbers and the confirmed Mystic Precision exception.
-Formatting, localization extraction, and the production build remain the gates.
+专项探针覆盖中间值/上限处的属性转换、原始属性隔离、条件伤害与治疗、资源阈值、标签隔离、减益叠加/刷新，以及新增益/触发器行为。受影响的现有探针已按解包数值及已确认的奇术精准例外进行修订。格式化、本地化提取和生产构建仍是质量门禁。
 
-## Dust modelling notes
+## 尘流派建模说明
 
-Dust's rotation uses explicitly successful catch variants. The
-rank-13 Perfect Catch Enhancement accumulates five-second Falling Blossoms;
-three stacks grant one-use Fragrant Song, with Delicate from Phantom Rally T1.
-The next throw snapshots Fragrant Song damage and an unconditional guaranteed crit,
-then consumes it. Charged umbrella consumes Delicate. Input-window detection
-remains deferred. Tenacity damage is intentionally ignored by user instruction. Charged Combo partial cooldown reduction is
-implemented but awaits Piercing Dart damage events. Fragrant Song's 30% faster
-flight and accelerated-flight guaranteed catch are represented in the
-source-faithful Scarlet Spin chain; the acceleration is applied to the next
-throw's Stage 4 cadence. Each queued throw pays its own ping, and both the
-outgoing and returning hit remain in the timeline.
-The rotation only casts the four-hit opener, so sweeps five through seven are
-modelled but unused; Tokens of Gratitude and Fading Crimson are intentionally
-ignored by user instruction. Per-skill timing fallbacks are listed in
-[skill-data](skill-data.md#bamboocut-dust-definitions).
+尘的循环使用明确为接伞成功的变体。13 级的完美接伞强化（Perfect Catch Enhancement）会累积持续五秒的落花；三层落花给予一次性的芳歌，并附带千营一呼 T1 提供的玲珑。下一次投掷会对芳歌伤害及无条件必定会心进行快照，然后将其消耗。伞的蓄力攻击会消耗玲珑。输入窗口检测仍暂缓处理。按用户指示，有意忽略韧性伤害。蓄力连击的部分冷却缩减已实现，但仍有待镖鸣彻野的伤害事件。芳歌 30% 的飞行提速以及加速飞行的必定接伞，已在忠实于来源的红消香断链中体现；该加速作用于下一次投掷的第 4 段节奏。每次排队的投掷各自承担其延迟，去程与回程命中都保留在时间轴中。循环只施放四击起手，因此第五至第七次横扫已建模但未使用；按用户指示，有意忽略谢礼（Tokens of Gratitude）与残红（Fading Crimson）。各技能的时机回退值列于 [skill-data](skill-data.md#bamboocut-dust-definitions)。

@@ -1,3 +1,5 @@
+import { t } from "@/i18n"
+
 import type { RotationSimulationBundle } from "./rotationCalculator"
 import type { SimulationSummary } from "./simulationCalculator"
 
@@ -38,7 +40,7 @@ export function startSimulation(
       }
       if (event.data.type === "error") {
         finish()
-        reject(new Error(event.data.error || "Simulation worker failed"))
+        reject(new Error(event.data.error || t("ui.simulationTab.workerFailedError")))
         return
       }
       if (!event.data.summary) return
@@ -49,7 +51,7 @@ export function startSimulation(
     worker.addEventListener("error", event => {
       if (settled) return
       finish()
-      reject(new Error(event.message || "Simulation worker failed"))
+      reject(new Error(event.message || t("ui.simulationTab.workerFailedError")))
     })
     worker.postMessage({ id, bundle, runCount })
   })

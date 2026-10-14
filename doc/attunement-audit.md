@@ -1,75 +1,41 @@
-# PvE attunement catalog: deferred work
+# PvE 定音目录：延后工作
 
-Source: the user-supplied nine-category, 45-affix PvE catalog and subsequent
-matching clarifications. Official IDs map to stable keys through
-`data/official/affix-map.json`. New definitions use supplied names; existing
-names and older ID aliases are preserved. Source `min` and `format` are ignored.
-The existing Tier 96 armor maximum of `0.06` matches every supplied `max`.
+来源：用户提供的包含九个类别、45 条词条的 PvE 目录，以及后续关于匹配规则的澄清。官方 ID 通过 `data/official/affix-map.json` 映射到稳定键。新定义使用所提供的名称；现有名称与旧版 ID 别名均予以保留。来源中的 `min` 与 `format` 会被忽略。现有的 96 阶护甲最大值 `0.06` 与所提供的每一个 `max` 都一致。
 
-The Draught additions use IDs `279551`–`279555` for Driftcleave - Deepdaze,
-Skystrike Special, Skystrike Martial Art, Riven Light, and Riven Martial Art
-respectively. These definitions use the confirmed shared level-based armor maximum
-(`0.06` at level 96). Driftcleave requires only the `Deepdaze` skill tag,
-independent of active buffs or the skill's martial art. Its selector eligibility
-covers both Draught martial arts. The other four require the owning martial-art
-tag plus `Special`, `MartialArt`, or `Light`. Draught castable skills are
-not defined yet, so these entries support gear planning and matching future actions.
+樽的新增条目使用 ID `279551`–`279555`，依次对应悬身断水·浓醺、悬身拳法·特殊技、悬身拳法·武学技、断水双诀·轻击与断水双诀·武学技。这些定义使用已确认的、按等级确定的共享护甲最大值（96 级时为 `0.06`）。悬身断水仅要求技能带有 `Deepdaze` 技能标签，与当前生效的增益或该技能所属的武学无关。它在选择器中的可选范围覆盖樽的两种武学。其余四项要求所属武学的标签，外加 `Special`、`MartialArt` 或 `Light`。樽的可施放技能尚未定义，因此这些条目目前用于装备规划，并可匹配未来的动作。
 
-## Deferred effects and existing-definition changes
+## 延后的效果与对现有定义的变更
 
-| Official ID                                   | Attunement                              | Deferred work                                                                                                        |
-| --------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| 280201                                        | Thundercry Blade - Shield Boost         | Remains an empty, unsupported attunement. Shield strength calculation is not implemented.                            |
-| 280202–280205, 280401, 280402, 280404, 280405 | Existing Might and Deluge display names | Existing labels include `-` after the martial-art name; supplied labels omit it. Cosmetic renaming remains deferred. |
+| 官方 ID                                       | 定音                     | 延后工作                                                                         |
+| --------------------------------------------- | ------------------------ | -------------------------------------------------------------------------------- |
+| 280201                                        | 嗟夫刀法·护盾增效        | 仍是一个空的、不受支持的定音。尚未实现护盾强度计算。                             |
+| 280202–280205, 280401, 280402, 280404, 280405 | 现有威、霖流派的显示名称 | 现有标签在武学名称后带有 `-`；所提供的标签则省略了它。纯外观的重命名仍延后处理。 |
 
-Thundercry Charged Skill DMG Boost retains its confirmed `StonebreakerQuake`
-exclusion. Panacea Healing Skill Boost retains its `Heavy` classification.
+嗟夫刀法·蓄力技增伤保留其已确认的 `StonebreakerQuake` 排除规则。明川药典·治疗技增疗保留其 `Heavy` 分类。
 
-Wicked Defiance (Gauntlet VC) currently has `VariedCombo` without `Light` or
-`Heavy`. Its classification is pending user clarification, so `279753` does
-not yet match that skill. Do not guess a tag that could also change other bonuses.
+恶不义（手甲 派生）目前带有 `VariedCombo`，但没有 `Light` 或 `Heavy`。其分类尚待用户澄清，因此 `279753` 暂不匹配该技能。不要凭猜测添加标签，因为它也可能改变其他加成。
 
-## Confirmed matching and pending skill data
+## 已确认的匹配规则与待补充的技能数据
 
-Attunement damage uses the standalone multiplier. Every `effect.tags` entry
-must match; nested arrays match any one of their tags. Damage and healing use
-the same matcher, and multiple matching alternatives never duplicate a bonus.
+定音伤害使用独立乘区。`effect.tags` 中的每一项都必须匹配；嵌套数组只需匹配其中任意一个标签。伤害与治疗使用同一个匹配器，且多个备选同时匹配时绝不会重复计算加成。
 
-All six Jade entries use the shared level-96 maximum of `0.06`; minimum rolls
-are not stored in the catalog.
+全部六个玉流派条目均使用共享的 96 级最大值 `0.06`；目录中不存储最小随机值。
 
-The user confirmed these scopes:
+用户已确认以下作用范围：
 
-- `280301`: Inkwell Fan with `Charged`.
-- `280302`: Inkwell Fan with Special **or** Pursuit.
-- `280303`: Vernal Umbrella with `MartialArt`.
-- `280304` and `280305`: Vernal Umbrella with `FrequentProjectile`. Both IDs
-  remain distinct and active with the same confirmed scope; generic `Projectile`
-  or `Ballistic` tags do not qualify.
-- `280306`: Vernal Umbrella with `Light`, `Heavy`, **or** `VariedCombo`.
-  Matching multiple categories applies this bonus once.
-- `279753`: Heavenwill Gauntlets with Varied Combo and either Light or Heavy.
-- `280401`: Panacea Fan Martial Art skill healing, Fan Q and QQ including cancels.
-- `280404`: Soulshade Umbrella Martial Art skill healing, Umbrella Q.
+- `280301`：青山执笔，需带有 `Charged`。
+- `280302`：青山执笔，需为特殊技**或**追击技。
+- `280303`：九重春色，需带有 `MartialArt`。
+- `280304` 与 `280305`：九重春色，需带有 `FrequentProjectile`。两个 ID 保持彼此独立且均处于启用状态，作用范围相同且已确认；通用的 `Projectile` 或 `Ballistic` 标签不符合条件。
+- `280306`：九重春色，需带有 `Light`、`Heavy` **或** `VariedCombo`。同时匹配多个类别时，此加成只生效一次。
+- `279753`：天志垂象，需为派生技，且为轻击或重击之一。
+- `280401`：明川药典的武学技治疗，即扇Q 与扇QQ，包括其打断版本。
+- `280404`：千香引魂蛊的武学技治疗，即伞 Q。
 
-The healing skills carry singular `MartialArt`, distinct from broad
-`MartialArts`. Special and Heavy healing do not receive the Martial Art boosts.
+这些治疗技能带有单数形式的 `MartialArt`，区别于宽泛的 `MartialArts`。特殊技与重击的治疗不会获得武学技增疗加成。
 
-The newly covered arts do not yet have castable skill data. Their attunements
-are ready for matching actions but do not create rotation moves. Martial Art,
-Charged, Special, and Pursuit use `MartialArt`, `Charged`, `Special`, and
-`Pursuit` respectively. Infernal Empowered Light requires `Light` and
-`Empowered`; it does not automatically activate Flamelash. Strategic Bleeding
-requires `StrategicSword` and `Bleed`; Mortal Rodent requires `MortalRopeDart`
-and `Rodent`. Bleed/High Bleed sharing must be confirmed when those definitions
-are authored. Heavenquaker retains canonical `HeavenQuakerSpear` capitalization.
+新覆盖的武学尚无可施放的技能数据。它们的定音已可用于匹配动作，但不会生成循环招式。武学技、蓄力技、特殊技与追击技分别使用 `MartialArt`、`Charged`、`Special` 与 `Pursuit`。泥犁三垢·强效轻击要求 `Light` 与 `Empowered`；它不会自动激活嗔焰。积矩九剑·流血要求 `StrategicSword` 与 `Bleed`；粟子游尘·鼠鼠要求 `MortalRopeDart` 与 `Rodent`。流血/高额流血是否共享，须在编写这些定义时确认。九曲惊神枪保留规范的 `HeavenQuakerSpear` 大小写形式。
 
-## Verification
+## 验证
 
-`tests/attunement-import.test.ts` checks the catalog's official IDs through
-import, saved-gear validation, equipped aggregation, roll normalization, and
-calculation. It verifies level-96 maximum-roll damage, alternative matching, missing-tag rejection, single
-application when both alternatives match, inactive definitions, and healing
-scope using actual Fan/Umbrella skill and periodic healing data.
-Driftcleave checks distinguish the `Deepdaze` skill tag from the
-`InebriateDeepdaze` buff and verify both Draught martial arts.
+`tests/attunement-import.test.ts` 会让目录中的官方 ID 走完导入、已保存装备校验、已装备汇总、随机值归一化与计算的完整流程并进行检查。它验证 96 级最大随机值下的伤害、备选匹配、缺少标签时的拒绝、两个备选同时匹配时只生效一次、未启用的定义，以及使用实际扇/伞技能与周期性治疗数据的治疗作用范围。悬身断水相关检查会区分 `Deepdaze` 技能标签与 `InebriateDeepdaze` 增益，并验证樽的两种武学。

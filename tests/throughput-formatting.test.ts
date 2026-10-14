@@ -162,15 +162,14 @@ describe("the reader's locale", () => {
 
   it("leaves the grouping rule to the magnitude, which the shipped locales spell the same way", () => {
     const byLocale = Object.fromEntries(
-      ["en", "zh-Hant", "ko"].map(locale => {
+      ["en", "zh-Hans"].map(locale => {
         activeLocale.current = locale
         return [locale, [formatThroughput(1000), formatThroughput(10000), formatThroughputDelta(1614.19)]]
       }),
     )
     expect(byLocale).toEqual({
       en: ["1000.00", "10,000.00", "+1614.19"],
-      "zh-Hant": ["1000.00", "10,000.00", "+1614.19"],
-      ko: ["1000.00", "10,000.00", "+1614.19"],
+      "zh-Hans": ["1000.00", "10,000.00", "+1614.19"],
     })
   })
 })

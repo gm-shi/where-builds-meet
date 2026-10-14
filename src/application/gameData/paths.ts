@@ -33,8 +33,10 @@ export const productionWeaponIds = new Set<WeaponId>(
   ),
 )
 
+// Planner-only paths have no skill or rotation data yet, so the rotation tab stays empty, but the
+// gear planner, attunements, and Inner Ways already cover their weapons.
 export function pathRequiresDev(definition: PathDefinition) {
-  return definition.status !== "available" && definition.status !== "preview"
+  return definition.status !== "available" && definition.status !== "preview" && definition.status !== "plannerOnly"
 }
 
 export function pathStatusLabel(definition: PathDefinition) {

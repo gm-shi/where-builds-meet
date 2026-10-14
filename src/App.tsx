@@ -160,8 +160,8 @@ export default function App() {
   )
   const selectedRotationId = activeRotationIdsByPath[pathId] ?? defaultRotationIdForPath(pathId)
   const activeBuildDisplayName = activeBuild
-    ? (activeBuild.isDefault ? gameText(activeBuild.name) : activeBuild.name) || "Unnamed Build"
-    : "Unnamed Build"
+    ? (activeBuild.isDefault ? gameText(activeBuild.name) : activeBuild.name) || t("ui.buildTab.unnamedBuild")
+    : t("ui.buildTab.unnamedBuild")
   const activeBuildSetup = useMemo(() => resolveBuildSetup(activeBuild), [activeBuild])
   const [buildSetupOverrides, setBuildSetupOverrides] = useState<BuildSetupOverrides>(() =>
     loadBuildSetupOverrides(activeBuildSetup),
@@ -436,20 +436,22 @@ export default function App() {
           <div className="page-header-end">
             <div className="page-header-controls">
               <NoticeArea />
-              <label className="locale-selector">
-                <span>{t("ui.app.language")}</span>
-                <select value={locale} onChange={event => void changeLocale(event.target.value)}>
-                  {getSupportedLocales().map(supportedLocale => (
-                    <option
-                      value={supportedLocale}
-                      key={supportedLocale}
-                      disabled={!devMode && isLocaleWip(supportedLocale)}
-                    >
-                      {getLocaleDisplayName(supportedLocale)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              {getSupportedLocales().length > 1 && (
+                <label className="locale-selector">
+                  <span>{t("ui.app.language")}</span>
+                  <select value={locale} onChange={event => void changeLocale(event.target.value)}>
+                    {getSupportedLocales().map(supportedLocale => (
+                      <option
+                        value={supportedLocale}
+                        key={supportedLocale}
+                        disabled={!devMode && isLocaleWip(supportedLocale)}
+                      >
+                        {getLocaleDisplayName(supportedLocale)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <Button
                 className="dev-mode-button"
                 variant="secondary"
@@ -465,7 +467,7 @@ export default function App() {
                 <IconBrandDiscord size="1em" aria-hidden />
                 <span>{t("ui.app.discord")}</span>
               </a>
-              <a href="https://github.com/greydust/where-builds-meet" target="_blank" rel="noreferrer">
+              <a href="https://github.com/gm-shi/where-builds-meet" target="_blank" rel="noreferrer">
                 <IconBrandGithub size="1em" aria-hidden />
                 <span>{t("ui.app.github")}</span>
               </a>
@@ -614,10 +616,13 @@ export default function App() {
         )}
       </div>
       <footer className="page-footer">
-        <span>{t("ui.app.authorGreydustWwmIgnGreydustDiscord")}</span>
+        <span>
+          {t("ui.app.maintainerSignature")}
+          <small className="page-footer-credit">{t("ui.app.originalAuthorCredit")}</small>
+        </span>
         <span className="page-footer-accuracy">
           {t("ui.app.accuracyMatters")}{" "}
-          <a href="https://github.com/greydust/where-builds-meet/issues" target="_blank" rel="noreferrer">
+          <a href="https://github.com/gm-shi/where-builds-meet/issues" target="_blank" rel="noreferrer">
             {t("ui.app.reportAnyDamageDiscrepancy")}
           </a>
         </span>

@@ -1,0 +1,7 @@
+{
+  "name": "Draught Empty Rotation",
+  "martialArts": ["skystrikeGauntlets", "rivenTwinblades"],
+  "eventTimeReference": "battleStart",
+  "steps": [],
+  "ping": 40
+}

@@ -22,6 +22,7 @@ import {
   type GearRarity,
   type GearSlot,
 } from "./gear"
+import { gameText, t } from "./i18n"
 import { validateUnknown } from "./schemas/json"
 import { officialGearRoleSchema } from "./schemas/officialGear"
 import type { WeaponId } from "./types"
@@ -258,11 +259,11 @@ export function parseOfficialGearExport(value: unknown, weapons: [WeaponId, Weap
   const outer = asRecord(value)
   const role = asRecord(outer?.roleInfo) ?? asRecord(outer?.data) ?? outer
   if (!role || (outer?.source !== undefined && outer.source !== "wwm-dashboard"))
-    throw new Error("This is not a recognized official dashboard export.")
+    throw new Error(t("ui.buildTab.officialImportUnrecognizedExport"))
   const validated = validateUnknown(officialGearRoleSchema, role)
-  if (!validated.success) throw new Error("The pasted data does not contain wearEquipsDetailed gear data.")
+  if (!validated.success) throw new Error(t("ui.buildTab.officialImportMissingGearData"))
   const detailed = asRecord(role.wearEquipsDetailed)
-  if (!detailed) throw new Error("The pasted data does not contain wearEquipsDetailed gear data.")
+  if (!detailed) throw new Error(t("ui.buildTab.officialImportMissingGearData"))
 
   const warnings: string[] = []
   const rawPieces: OfficialGearPiece[] = []
@@ -273,12 +274,12 @@ export function parseOfficialGearExport(value: unknown, weapons: [WeaponId, Weap
     const exVo = asRecord(detail?.exVo)
     const rows = Array.isArray(exVo?.baseAffixes) ? exVo.baseAffixes.map(parseAffixRow) : []
     if (!detail || !exVo) {
-      warnings.push(`${gearData.slots[slot]} was skipped because its gear details are missing.`)
+      warnings.push(t("ui.buildTab.officialImportSlotDetailsMissing", { slot: gameText(gearData.slots[slot]) }))
       continue
     }
     rawPieces.push({ slot, detail, exVo, rows })
   }
-  if (!rawPieces.length) warnings.push("No supported equipped gear was found; only the supported setup was imported.")
+  if (!rawPieces.length) warnings.push(t("ui.buildTab.officialImportNoSupportedGear"))
 
   const martialArtIds = [role.kongfuMain, role.kongfuSub].map(value =>
     typeof value === "number" || typeof value === "string" ? String(value) : "",
@@ -286,9 +287,7 @@ export function parseOfficialGearExport(value: unknown, weapons: [WeaponId, Weap
   const mappedMartialArts = martialArtIds.map(id => officialProfileMap.martialArts[id])
   const unsupportedMartialArt = mappedMartialArts.find(entry => entry && !entry.weapon)
   if (unsupportedMartialArt)
-    warnings.push(
-      `${unsupportedMartialArt.name} is not supported; weapon selection was inferred from gear or kept from the current setup.`,
-    )
+    warnings.push(t("ui.buildTab.officialImportUnsupportedMartialArt", { name: gameText(unsupportedMartialArt.name) }))
   const mappedWeaponPair =
     mappedMartialArts.length === 2 && mappedMartialArts.every(entry => entry?.weapon)
       ? (mappedMartialArts.map(entry => entry.weapon) as [WeaponId, WeaponId])
@@ -340,13 +339,15 @@ export function parseOfficialGearExport(value: unknown, weapons: [WeaponId, Weap
   const parsedGearItems = parsedPieces.map((piece): GearItem | undefined => {
     const definition = gearData.gear[piece.definitionId]
     if (!definition) {
-      warnings.push(`${gearData.slots[piece.slot]} was skipped because its gear type is unsupported.`)
+      warnings.push(t("ui.buildTab.officialImportSlotUnsupportedType", { slot: gameText(gearData.slots[piece.slot]) }))
       return undefined
     }
     const level = (namedScalar(piece.exVo, /^(?:gear)?(?:tier|level)$/i) ??
       namedScalar(piece.detail, /^(?:gear)?(?:tier|level)$/i)) as GearLevel | undefined
     if (level !== undefined && !isGearLevel(level)) {
-      warnings.push(`${gearData.slots[piece.slot]} was skipped because gear level ${level} is unsupported.`)
+      warnings.push(
+        t("ui.buildTab.officialImportSlotUnsupportedLevel", { slot: gameText(gearData.slots[piece.slot]), level }),
+      )
       return undefined
     }
     const resolvedLevel = isGearLevel(level) ? level : (piece.signature?.level ?? commonLevel)
@@ -369,11 +370,20 @@ export function parseOfficialGearExport(value: unknown, weapons: [WeaponId, Weap
     const allowedBaseAffixes = affixOptionsForGearDefinition(definition, "baseAffixes", resolvedLevel, relayed)
     if (!baseEntry?.row || !baseEntry.key || !allowedBaseAffixes.includes(baseEntry.key) || baseEntry.row.value < 0) {
       warnings.push(
-        `${gearData.slots[piece.slot]} was skipped because its base affix is missing, invalid, or unsupported (ID ${baseEntry?.row?.statId ?? "unknown"}).`,
+        t("ui.buildTab.officialImportSlotInvalidBaseAffix", {
+          slot: gameText(gearData.slots[piece.slot]),
+          statId: baseEntry?.row?.statId ?? t("ui.buildTab.officialImportUnknownId"),
+        }),
       )
       return undefined
     }
-    if (!rarity) warnings.push(`${gearData.slots[piece.slot]} rarity was not exposed; Gold was used.`)
+    if (!rarity)
+      warnings.push(
+        t("ui.buildTab.officialImportSlotRarityDefaulted", {
+          slot: gameText(gearData.slots[piece.slot]),
+          rarity: gameText("Gold"),
+        }),
+      )
     const baseAffix = {
       key: baseEntry.key,
       value: normalizedStoredValue(baseEntry.key, baseEntry.row.value, gearData.affixes),
@@ -387,20 +397,31 @@ export function parseOfficialGearExport(value: unknown, weapons: [WeaponId, Weap
     const additionalKeys = new Set<string>()
     const additionalAffixes = affixRows.slice(1).flatMap(({ row, key }) => {
       if (!row || row.value < 0 || !key || !allowedAdditionalAffixes.includes(key)) {
+        const slot = gameText(gearData.slots[piece.slot])
+        const statId = row?.statId ?? t("ui.buildTab.officialImportUnknownId")
         warnings.push(
-          `${gearData.slots[piece.slot]} skipped unsupported affix ID ${row?.statId ?? "unknown"}${key ? ` (${key})` : ""}.`,
+          key
+            ? t("ui.buildTab.officialImportSlotUnsupportedAffix", { slot, statId, affix: key })
+            : t("ui.buildTab.officialImportSlotUnsupportedAffixId", { slot, statId }),
         )
         return []
       }
       if (additionalKeys.has(key) || additionalKeys.size >= 4) {
-        warnings.push(`${gearData.slots[piece.slot]} skipped duplicate or excess additional affix ID ${row.statId}.`)
+        warnings.push(
+          t("ui.buildTab.officialImportSlotExcessAffix", {
+            slot: gameText(gearData.slots[piece.slot]),
+            statId: row.statId,
+          }),
+        )
         return []
       }
       additionalKeys.add(key)
       return [{ key, value: normalizedStoredValue(key, row.value, gearData.affixes) }]
     })
     if (attunementEntry?.row && attunementEntry.row.value < 0)
-      warnings.push(`${gearData.slots[piece.slot]} skipped an invalid attunement value.`)
+      warnings.push(
+        t("ui.buildTab.officialImportSlotInvalidAttunement", { slot: gameText(gearData.slots[piece.slot]) }),
+      )
     const attunement =
       attunementEntry?.row && attunementEntry.row.value >= 0
         ? {
@@ -423,7 +444,9 @@ export function parseOfficialGearExport(value: unknown, weapons: [WeaponId, Weap
   })
 
   const roleName =
-    typeof role.roleName === "string" && role.roleName.trim() ? role.roleName.trim() : "Official Dashboard"
+    typeof role.roleName === "string" && role.roleName.trim()
+      ? role.roleName.trim()
+      : t("ui.buildTab.officialDashboard")
   const passiveSlotIds = Array.isArray(role.passiveSlots)
     ? role.passiveSlots.map(value => (typeof value === "number" || typeof value === "string" ? String(value) : ""))
     : []
@@ -472,7 +495,15 @@ export function parseOfficialGearExport(value: unknown, weapons: [WeaponId, Weap
       format: buildExportFormat,
       version: 7,
       gearItems,
-      builds: [{ id: buildId, name: `${roleName} Import`, martialArts: [...buildWeapons], equipped, setup }],
+      builds: [
+        {
+          id: buildId,
+          name: t("ui.buildTab.importedBuildName", { name: roleName }),
+          martialArts: [...buildWeapons],
+          equipped,
+          setup,
+        },
+      ],
     },
   }
 }

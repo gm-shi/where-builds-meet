@@ -1,420 +1,110 @@
-# Gear data and inventory
+# 装备数据与装备库
 
-The Build tab is driven by `data/gear.json` and `data/attunement.json`. Gear
-defines the eight gear slots, fixed base stats by level and rarity, selectable
-affixes, and attunement source tags. Attunement definitions contain their
-display names, percentage units, source tags, stat targets, and skill-match
-tags. UI code should not hard-code slot-specific option lists.
+「配装」标签页由 `data/gear.json` 和 `data/attunement.json` 驱动。装备数据定义了八个装备部位、按等级和稀有度划分的固定基础属性、可选词条以及定音来源标签。定音定义包含其显示名称、百分比单位、来源标签、属性目标和技能匹配标签。界面代码不应硬编码特定于部位的选项列表。
 
-## Definitions
+## 定义
 
-Every `affixes` object key is directly a `CharacterStats` key. Attunement IDs
-are defined in `data/attunement.json`. Equipped values remain keyed by their
-definition ID so multiple armor attunements retain their individual skill-match
-tags. Each definition's `effect.stat` maps that value to Physical Penetration,
-Formless Penetration, or the shared `attunementDMGBonus` formula input. Entries marked `percentage` are entered as percentage
-points in the UI and stored as decimal ratios: an input of `6.2` is stored as
-`0.062`.
+每个 `affixes` 对象的键直接就是一个 `CharacterStats` 键。定音 ID 在 `data/attunement.json` 中定义。已穿戴的数值仍以其定义 ID 为键，因此多个防具定音可以各自保留其技能匹配标签。每个定义的 `effect.stat` 将该数值映射到外功穿透、无相穿透，或共用的 `attunementDMGBonus` 公式输入。标记为 `percentage` 的条目在界面中以百分点输入，并以小数比例存储：输入 `6.2` 会存储为 `0.062`。
 
-An attunement whose game effect is known but not simulated remains selectable
-with an empty `effect.stat` object. This preserves the
-gear data without silently applying an invented calculation.
+游戏效果已知但尚未模拟的定音仍可选择，其 `effect.stat` 为空对象。这样既保留了装备数据，又不会悄悄套用凭空编造的计算。
 
-The supplied PvE attunement catalog maps all 45 official IDs through
-`data/official/affix-map.json` to the stable keys in `data/attunement.json`.
-Twenty definitions are added: eighteen use tagged damage bonuses,
-and two preserve only identity until their effects are clarified. The five
-Tier 96 Deluge IDs reuse existing healing definitions. Confirmed matching
-corrections cover Inkwell Special/Pursuit, Heavenwill Light/Heavy Varied Combo,
-and Panacea/Soulshade Martial Art healing. Names and older ID aliases are preserved.
-Source `min` and `format`
-are not imported; armor maximum rolls remain level-based in `data/stat.json`
-(Tier 96 uses `0.06`). See [deferred attunements](attunement-audit.md) for
-unresolved effects and proposed changes to existing definitions.
+所提供的 PvE 定音目录通过 `data/official/affix-map.json` 将全部 45 个官方 ID 映射到 `data/attunement.json` 中的稳定键。新增了二十个定义：其中十八个使用带标签的伤害加成，另外两个在效果明确之前仅保留身份标识。96 阶的五个霖 ID 复用现有的治疗定义。已确认的匹配修正涵盖青山执笔·特殊/追击技、天志垂象·轻/重击派生技，以及明川药典/千香引魂蛊·武学技治疗。名称和旧的 ID 别名均予以保留。来源中的 `min` 和 `format` 不会导入；防具的最大词条数值仍按等级记录在 `data/stat.json` 中（96 阶使用 `0.06`）。尚未解决的效果以及对现有定义的修改建议，请参阅[暂缓处理的定音](attunement-audit.md)。
 
-Each record in `gear` contains:
+`gear` 中的每条记录包含：
 
-- `name` and compatible `slots`
-- optional `weapon` mapping for weapon definitions
-- `baseStats` keyed by level and rarity
-- `baseAffixes` keyed by level
-- `additionalAffixes` keyed by level
-- `attunements` selectors, currently `Weapon` or `Armor`
+- `name` 及兼容的 `slots`
+- 武器定义可选的 `weapon` 映射
+- 以等级和稀有度为键的 `baseStats`
+- 以等级为键的 `baseAffixes`
+- 以等级为键的 `additionalAffixes`
+- `attunements` 选择器，目前为 `Weapon` 或 `Armor`
 
-`universalAdditionalAffixes` holds rolls available to every gear definition at
-a level. Body and Defense use this shared pool, avoiding repeated option lists
-while keeping their availability explicit in data. Body, Defense, Max HP, and
-Physical Defense are visible calculated fields in the Main stat grid. Equipped
-values enter the shared derived-stat pipeline, so Body affects Max HP and any
-mechanic that scales from it. Defensive affixes have `pickable: false`: imported
-or saved rolls remain supported, but the editor does not offer them as new choices.
-An existing defensive roll displays as a disabled selected option and keeps its value.
-Tier 96 also supports Max HP and Physical Defense as universal additional rolls,
-and as armor base rolls; Greaves and Bracer additionally support Body base rolls.
-Their Tier 96 maximums are 2960 HP and 39 Physical Defense from the item catalog.
+`universalAdditionalAffixes` 保存某一等级下所有装备定义都可用的词条。体和防御使用这个共用词条池，既避免了重复的选项列表，又在数据中明确标出了其可用性。体、防御、气血最大值和外功防御是主页属性网格中可见的计算字段。已穿戴的数值会进入共用的派生属性管线，因此体会影响气血最大值以及任何随其缩放的机制。防御类词条设有 `pickable: false`：导入或已保存的词条仍受支持，但编辑器不会将其作为新的选项提供。已有的防御类词条会显示为一个已禁用的选中选项，并保留其数值。96 阶还支持将气血最大值和外功防御作为通用额外词条以及防具基础词条；胫甲和腕甲还额外支持体作为基础词条。根据物品目录，它们在 96 阶的最大值分别为 2960 气血和 39 外功防御。
 
-An attunement selector is matched against each definition's `tags` in
-`data/attunement.json`. Weapons, Disc, and Pendant select `Weapon`; Helmet,
-Chestpiece, Greaves, and Bracer select `Armor`. Path and martial-art filtering
-is applied afterward by the UI, so adding a tagged attunement does not require
-copying its ID into every compatible gear record.
+定音选择器会与 `data/attunement.json` 中每个定义的 `tags` 进行匹配。武器、环和佩选择 `Weapon`；冠胄、胸甲、胫甲和腕甲选择 `Armor`。流派和武学过滤随后由界面执行，因此新增一个带标签的定音时，无需把它的 ID 复制到每条兼容的装备记录中。
 
-The current level keys are `91` and `96`; rarities are `Purple` and `Gold`.
-Helmet, Chestpiece, Greaves, and Bracer define fixed Max HP and Physical Defense
-for every supported level and rarity. Chestpiece has the doubled HP profile;
-Greaves uses the higher Physical Defense profile. These fixed values are shown
-on gear cards and summed through the same equipped-stat effect as weapon and
-accessory base attacks.
-An optional `${level}Relayed` entry adds relay-only choices to the matching
-level. A key listed there is excluded from non-relayed gear even if an older
-level list also contains it, which keeps existing preset data compatible while
-making the relay list authoritative for selection and validation. Tier 96
-weapons use `96Relayed` for min/max Bellstrike, Stonesplit, Silkbind, and
-Bamboocut Attack. These stats share the Tier 96 min/max Void Attack roll in
-`data/stat.json`. Tier 91 weapons expose min/max Bellstrike, Stonesplit,
-Silkbind, and Bamboocut Attack as ordinary additional affixes without requiring
-relay.
-Tier 96 Trial weapon IDs `9620001`–`9620014` cover the shared weapon base
-rolls and elemental relay base rolls. Weapon `96Relayed` base choices reuse
-the existing relay selection and import inference mechanism.
-All weapon definitions share the same fixed base-stat and base-affix tables.
-Their additional-affix pools also share the ordinary weapon affixes, with each
-definition including only its own weapon-family damage boost. Both Rope Dart
-definitions use `ropeDartDmgBoost`.
-Martial arts that share a physical weapon family resolve to the same gear
-definition. Snowparting Blade selects Heng Blade; Phalanxbane and Thundercry
-select Mo Blade; Nameless and Strategic select Sword; Nameless and HeavenQuaker
-select Spear; Vernal, Soulshade, and Everspring select Umbrella; Inkwell and
-Panacea select Fan; Mortal and Unfettered select Rope Dart; Heavenwill selects
-Gauntlet; and Infernal selects Dual Blades. The first configured martial art maps
-to Left Weapon and the second maps to Right Weapon. Weapon items are identified
-by this definition ID and do not store a left/right slot, so the same saved
-weapon can move between the two positions when the martial-art order changes.
+当前的等级键为 `91` 和 `96`；稀有度为 `Purple` 和 `Gold`。冠胄、胸甲、胫甲和腕甲为每个支持的等级和稀有度定义了固定的气血最大值和外功防御。胸甲采用双倍气血的配置；胫甲采用更高外功防御的配置。这些固定数值显示在装备卡片上，并通过与武器和饰品基础攻击相同的已穿戴属性效果进行累加。可选的 `${level}Relayed` 条目会为对应等级添加仅限承音的选项。列在其中的键会从非承音装备中排除，即使旧的等级列表中也包含该键；这样既能保持现有模板数据的兼容性，又让承音列表在选择和校验中具有权威性。96 阶武器通过 `96Relayed` 提供最小/最大鸣金、裂石、牵丝和破竹攻击。这些属性共用 `data/stat.json` 中 96 阶最小/最大无相攻击的词条数值。91 阶武器则将最小/最大鸣金、裂石、牵丝和破竹攻击作为普通额外词条提供，无需承音。96 阶试炼（Trial）武器 ID `9620001`–`9620014` 涵盖共用的武器基础词条和属性类承音基础词条。武器的 `96Relayed` 基础选项复用现有的承音选择与导入推断机制。所有武器定义共用同一套固定基础属性表和基础词条表。它们的额外词条池同样共用普通武器词条，每个定义只包含其自身武器类别的增伤词条。两个绳镖定义都使用 `ropeDartDmgBoost`。共用同一实体武器类别的武学会解析到同一个装备定义。斩雪刀法选择横刀；十方破阵和嗟夫刀法选择陌刀；无名剑法和积矩九剑选择剑；无名枪法和九曲惊神枪选择枪；九重春色、千香引魂蛊和醉梦游春选择伞；青山执笔和明川药典选择扇；粟子游尘和粟子行云选择绳镖；天志垂象选择手甲；泥犁三垢选择双刀。配置的第一个武学对应左武，第二个对应右武。武器物品以该定义 ID 标识，不存储左/右部位，因此当武学顺序变化时，同一件已保存的武器可以在两个位置之间移动。
 
-## Builds and persisted inventory
+## 配装与持久化的装备库
 
-Build data is stored in `localStorage` under `wwm-build-list-v1`, with the active
-build ID in `wwm-active-build-v1`. The stored payload uses schema version 8 and
-contains one shared `gearItems` array plus the build entries. Each custom build
-stores a `martialArts` eligibility list, an `equipped` map from its eight slots
-to shared item IDs, plus its gear
-sets, bow/ring set, and arsenal selection. The same
-gear item can therefore be equipped by any number of builds, while changing one
-build's loadout does not change another build's equipped choices. Only the
-active build contributes to character and rotation calculations.
+配装数据存储在 `localStorage` 的 `wwm-build-list-v1` 下，当前配装的 ID 则存储在 `wwm-active-build-v1` 中。存储的数据使用 schema 版本 8，包含一个共用的 `gearItems` 数组以及各配装条目。每个自定义配装存储一个 `martialArts` 适用武学列表、一个从其八个部位映射到共用物品 ID 的 `equipped` 映射，以及其装备套装、弓玦套装和武库选择。因此，同一件装备可以被任意数量的配装穿戴，而修改某个配装的装备组合不会改变其他配装的穿戴选择。只有当前配装会参与角色和循环计算。
 
-Each shared item stores its definition ID, level, rarity, optional `relayed`
-status, one required base affix, zero to four additional affixes, and an optional
-attunement. Non-weapon items also store their armor
-slot; weapon items leave positioning to the build's `equipped.leftWeapon` and
-`equipped.rightWeapon` references. Editing an item updates it for every build
-that equips it. Deleting an item removes it from the shared inventory and
-unequips it from every build.
+每件共用物品存储其定义 ID、等级、稀有度、可选的 `relayed` 状态、一条必需的基础词条、零至四条额外词条，以及一个可选的定音。非武器物品还会存储其防具部位；武器物品的位置则交由配装的 `equipped.leftWeapon` 和 `equipped.rightWeapon` 引用决定。编辑某件物品会在所有穿戴它的配装中同步更新。删除某件物品会将其从共用装备库中移除，并从所有配装中卸下。
 
-The loader migrates the previous array payload, where each build owned a full
-inventory, into shared gear plus per-build loadouts. All items are retained;
-colliding item IDs are remapped and their original build's equipped references
-are updated. The older `wwm-gear-inventory-v1` single-inventory value is also
-migration-only. When no build data exists and legacy gear is present, it becomes
-shared gear equipped by an active custom build named `My Build`, without
-changing or deleting the old value. Loading older slot-bound Heng Blade and Mo
-Blade records removes their `slot` field while preserving their definition,
-values, IDs, and build references. Builds from older schemas receive the former
-standalone setup selections when available, then persist those choices with
-the build. Records using the former `weapons` eligibility field are normalized
-to `martialArts`; new persistence never writes the legacy field.
+加载器会将旧的数组格式数据（其中每个配装各自拥有一份完整的装备库）迁移为共用装备加上各配装独立的装备组合。所有物品都会保留；冲突的物品 ID 会被重新映射，其原配装中的穿戴引用也会随之更新。更早的 `wwm-gear-inventory-v1` 单一装备库数据同样仅用于迁移。当不存在配装数据但存在旧版装备时，这些装备会成为共用装备，并由一个名为 `My Build` 的当前自定义配装穿戴，旧数据不会被修改或删除。加载旧版绑定部位的横刀和陌刀记录时，会移除其 `slot` 字段，同时保留其定义、数值、ID 和配装引用。来自旧 schema 的配装会在可用时获得以前独立存储的设置选择，然后将这些选择随配装一起持久化。使用旧 `weapons` 适用字段的记录会被规范化为 `martialArts`；新的持久化永远不会写入该旧字段。
 
-Load validation rejects malformed items, options that are not allowed by the
-current definition, more than four additional affixes, and duplicate additional
-affixes. Missing additional affixes and attunement are preserved as empty rather
-than filled with invented values. Changing weapon settings
-does not delete incompatible saved items; they become available again if the
-matching martial art is selected later.
+加载校验会拒绝格式错误的物品、当前定义不允许的选项、超过四条的额外词条以及重复的额外词条。缺失的额外词条和定音会保留为空，而不是用编造的数值填充。更改武器设置不会删除不兼容的已保存物品；之后若重新选择对应的武学，它们会再次可用。
 
-Duplicating a custom build creates another editable build that references the
-same shared equipped item IDs and copies its Inner Ways and setup selections.
-Duplicating a preset converts its synthetic loadout into an editable build. For
-each preset slot, an exactly matching shared item is reused when available;
-otherwise, a concrete shared item is created from the preset values. A single
-physical item is never equipped into two slots of the duplicate.
+复制自定义配装会创建另一个可编辑的配装，它引用相同的已穿戴共用物品 ID，并复制原配装的心法和设置选择。复制模板会将其合成的装备组合转换为可编辑的配装。对于模板的每个部位，若存在完全匹配的共用物品则复用；否则根据模板数值创建一件具体的共用物品。同一件实体物品绝不会被穿戴到副本的两个部位上。
 
-Saved gear can be equipped, edited in place, or deleted from the shared slot
-inventory. Editing keeps the item's ID, so it remains equipped in every build
-that uses it. Deletion is a two-step action: the first click arms a red `Confirm
-Delete` button and the second click removes the item globally.
+已保存的装备可以从共用的部位装备库中穿戴、原地编辑或删除。编辑会保留物品的 ID，因此它在所有使用它的配装中仍保持穿戴状态。删除分两步操作：第一次点击会激活一个红色的 `Confirm
+Delete` 按钮，第二次点击会全局删除该物品。
 
-Relayed items display an upward arrow on equipped and inventory cards. The gear
-editor's Max action fills every currently selected affix and attunement from
-the gear level in `data/stat.json` without changing attribute selections. Normal affixes
-use 100% of the saved max roll; relayed base and additional affixes use 94%.
-Attunements always use 100%. Max writes those concrete values into the item, so
-calculation never depends on an implicit multiplier. Manual value entry uses
-the same values as hard upper limits. Turning Relayed on immediately clamps any
-base or additional affix above its new 94% limit; turning it off preserves the
-current rolls. Attunement values remain capped at 100% in either state. Save
-also applies these limits defensively so non-UI imports cannot persist an
-over-cap roll.
+承音物品会在已穿戴卡片和装备库卡片上显示一个向上的箭头。装备编辑器的「最大值」操作会根据 `data/stat.json` 中该装备等级的数据，填充当前选中的每条词条和定音，而不改变属性选择。普通词条使用已保存最大词条数值的 100%；承音的基础词条和额外词条使用 94%。定音始终使用 100%。「最大值」会把这些具体数值写入物品，因此计算从不依赖隐式乘数。手动输入数值时也以这些数值作为硬性上限。开启「承音」后，任何超过新的 94% 上限的基础词条或额外词条会立即被截断至上限；关闭时则保留当前词条数值。无论处于哪种状态，定音数值的上限都保持为 100%。保存时也会防御性地应用这些上限，因此非界面途径的导入无法持久化超出上限的词条数值。
 
-Weapon attunement caps use their definition IDs in the `attunement` priority
-map. Every attunement definition tagged `Armor` instead shares the generic
-`attunement.armor` cap, so new path-specific armor attunements do not require a
-new priority key.
+武器定音的上限使用其在 `attunement` 优先级映射中的定义 ID。而所有带 `Armor` 标签的定音定义则共用通用的 `attunement.armor` 上限，因此新增流派专属的防具定音时无需新增优先级键。
 
-## Image import
+## 图片导入
 
-The add-gear editor can populate a draft from a selected, dropped, or
-clipboard-pasted gear details screenshot. OCR is
-performed entirely in the browser with Tesseract; its worker, English language
-model, and WebAssembly core are served from `public/ocr`, so the static GitHub
-Pages build does not depend on an OCR service or upload user images. The bundled
-Mo Blade screenshot is displayed only as a composition example.
+添加装备的编辑器可以根据选择、拖入或从剪贴板粘贴的装备详情截图填充草稿。OCR 完全在浏览器中通过 Tesseract 执行；其 worker、英文语言模型和 WebAssembly 核心均由 `public/ocr` 提供，因此静态 GitHub Pages 构建既不依赖 OCR 服务，也不会上传用户图片。内置的陌刀截图仅作为构图示例展示。
 
-OCR supplies the definition, tier, fixed base stats, relaying marker, affix rows,
-attunement, and their displayed values. Rarity is inferred by matching the fixed
-base stats against the selected gear tier; image color is not inspected. Labels
-are normalized to the existing IDs in `data/gear.json` and
-`data/attunement.json`; percentage points are converted to decimal ratios at
-this UI boundary. Sparse-layout recognition is preferred; if it misses a row,
-the importer also checks the block-layout result already produced during the same
-scan. Unclear metadata defaults to Tier 96 Gold. Unclear, duplicate, unavailable,
-or missing affix and attunement rows remain empty for manual correction instead
-of rejecting the entire image. The current editor slot supplies the gear type
-when its label is unreadable. A successful import fills the ordinary gear draft
-and still requires the user to review it and press Save.
+OCR 提供定义、等阶、固定基础属性、承音标记、词条行、定音及其显示数值。稀有度通过将固定基础属性与所选装备等阶进行匹配来推断；不会检查图片颜色。标签会被规范化为 `data/gear.json` 和 `data/attunement.json` 中的现有 ID；百分点在这一界面边界处转换为小数比例。优先使用稀疏布局识别；若它漏掉了某一行，导入器还会检查同一次扫描中已生成的块布局结果。无法辨认的元数据默认为 96 阶金色。无法辨认、重复、不可用或缺失的词条行和定音行会保留为空，供手动修正，而不会拒绝整张图片。当装备类型标签无法读取时，由编辑器当前的部位提供装备类型。导入成功后会填充普通的装备草稿，仍需用户检查并点击「保存」。
 
-## Export and import
+## 导出与导入
 
-The Build sidebar can export the complete shared gear inventory and all custom
-build records as a formatted JSON file. Export files use the
-`where-builds-meet-builds` format identifier and schema version 7. Bundled
-default builds are reconstructed from `data/build/**/*.json`, so they are omitted
-from browser persistence and exports. Versions 1 through 6 remain importable,
-with legacy `weapons` eligibility renamed to `martialArts`, slot-bound weapon
-gear normalized, and missing setup data migrated.
+「配装」侧边栏可以将完整的共用装备库和所有自定义配装记录导出为一个格式化的 JSON 文件。导出文件使用 `where-builds-meet-builds` 格式标识符和 schema 版本 7。内置的默认配装由 `data/build/**/*.json` 重建，因此不会写入浏览器持久化数据，也不会包含在导出中。版本 1 至 6 仍可导入：旧的 `weapons` 适用字段会重命名为 `martialArts`，绑定部位的武器装备会被规范化，缺失的设置数据会被迁移。
 
-Import merges into the current browser state rather than replacing it. Valid
-gear items are appended, custom builds are appended, and the current active
-build is left unchanged. Gear and build ID collisions are remapped. All imported
-build references use the remapped IDs, so a gear item shared by multiple builds
-in the export remains shared after import. Bundled default builds are skipped to
-avoid duplicating them. Importing the same file again therefore creates another
-independent copy of its custom builds and gear.
+导入会合并到当前的浏览器状态中，而不是替换它。有效的装备物品会被追加，自定义配装也会被追加，当前配装保持不变。装备和配装的 ID 冲突会被重新映射。所有导入的配装引用都使用重新映射后的 ID，因此在导出文件中被多个配装共用的装备物品在导入后仍保持共用。内置的默认配装会被跳过，以免重复。因此，再次导入同一文件会为其中的自定义配装和装备再创建一份独立的副本。
 
-### Official dashboard import
+### 官方仪表板导入
 
-`Import from Official` opens a modal containing a draggable bookmarklet and a
-link to the official Where Winds Meet dashboard. The bookmarklet runs in the
-dashboard origin, reads its cached `getAreaServer` role data or requests
-`/role/roleInfo` with the dashboard's existing login token, and copies a small
-`wwm-dashboard` JSON envelope. The login token is never included. The user
-returns to Where Builds Meet and explicitly pastes that envelope for import.
+`Import from Official` 会打开一个模态对话框，其中包含一个可拖动的书签脚本（bookmarklet）以及指向《燕云十六声》官方仪表板的链接。书签脚本在仪表板的源（origin）中运行，读取其缓存的 `getAreaServer` 角色数据，或使用仪表板现有的登录令牌请求 `/role/roleInfo`，然后复制一个小型的 `wwm-dashboard` JSON 封装数据。登录令牌永远不会包含在其中。用户回到 Where Builds Meet，并显式粘贴该封装数据以进行导入。
 
-`officialGearImport.ts` translates dashboard slot IDs and affix IDs before
-passing the result through the ordinary versioned build-import validator. Slot
-IDs 1, 2, 3, 4, 5, 8, 10, and 11 map to the site's eight gear slots; dashboard
-bow and ring records are ignored. `exVo.baseAffixes` contains the base affix,
-up to four additional affixes, and an optional final attunement. The final row
-is treated as an attunement only when its mapped ID is allowed by that gear
-definition. Percent values are converted to decimal ratios at this
-boundary. `data/official/affix-map.json` maps each supported dashboard ID
-directly to this project's canonical stat or attunement key. Base signatures
-remain in `data/official/import-map.json`. Maintain these checked-in mappings
-using this project's datamine source in `local/datamine/`; the legacy extractor
-based on the reference site has been retired.
+`officialGearImport.ts` 会先转换仪表板的部位 ID 和词条 ID，再将结果交给普通的、带版本的配装导入校验器。部位 ID 1、2、3、4、5、8、10 和 11 映射到本站的八个装备部位；仪表板中的弓和玦记录会被忽略。`exVo.baseAffixes` 包含基础词条、最多四条额外词条以及一个可选的末尾定音。只有当末行映射后的 ID 被该装备定义允许时，它才会被视为定音。百分比数值在这一边界处转换为小数比例。`data/official/affix-map.json` 将每个受支持的仪表板 ID 直接映射到本项目规范的属性键或定音键。基础属性签名仍保存在 `data/official/import-map.json` 中。请使用本项目位于 `local/datamine/` 的数据挖掘源来维护这些已提交的映射；以前基于参考网站的旧提取器已停用。
 
-The Tier 96 Kite armor-attunement family uses IDs `279751` through `279755` in
-charged/martial/third-type order for Heavenwill Gauntlets, followed by Heavy and
-Special for Skygrasp Rope Dart. Dashboard Body and Defense IDs are mapped as
-ordinary universal additional affixes rather than discarded as non-offensive data.
-The Tier 96 Art of Gauntlet additional affix uses IDs `9793031` and `9794031`.
-Art of Sword, Spear, Fan, and Dual Blades IDs also map to their existing
-weapon-specific affix keys, including the Tier 91 `9293`/`9294` and Tier 96
-`9793`/`9794` families. In particular, `9793015` is `swordDmgBoost`;
-dashboard values already expressed as decimal ratios are preserved.
-The Tier 96 item catalog is authoritative for defensive ID meanings: `9793001`
-is Body, `9793003` is Defense, and `9793006` is Max HP. The corresponding
-accessory/armor and alternate families use the same meanings. Older imported
-items retain their saved stat keys and values; their original dashboard IDs were
-not stored, so ambiguous past misidentifications cannot be migrated reliably.
+96 阶鸢系防具定音使用 ID `279751` 至 `279755`，依次为天志垂象的蓄力/武学/第三类，随后是千机索天的重击和特殊技。仪表板中的体和防御 ID 会被映射为普通的通用额外词条，而不会被当作非进攻类数据丢弃。96 阶手甲武学增伤额外词条使用 ID `9793031` 和 `9794031`。剑、枪、扇和双刀武学增伤的 ID 同样映射到各自现有的武器专属词条键，包括 91 阶的 `9293`/`9294` 系列和 96 阶的 `9793`/`9794` 系列。特别地，`9793015` 是 `swordDmgBoost`；仪表板中已以小数比例表示的数值会原样保留。96 阶物品目录是防御类 ID 含义的权威来源：`9793001` 是体，`9793003` 是防御，`9793006` 是气血最大值。对应的饰品/防具系列及其他替代系列也采用相同的含义。较早导入的物品会保留其已保存的属性键和数值；由于当时未存储其原始仪表板 ID，过去含糊不清的误识别无法可靠地迁移。
 
-The import creates a new `{character name} Import` build even when no gear can
-be imported. Missing gear details, missing or unsupported base affixes, invalid
-base-affix values, and explicitly unsupported gear levels skip only that item.
-Supported martial arts, Inner Ways, and set selections are still imported; set
-counts use the dashboard records even when their gear items are skipped.
-Malformed, unsupported, negative, duplicate, or excess additional affixes are
-skipped individually, retaining the first four distinct valid additional affixes.
-Invalid optional attunements are omitted. Malformed rows keep their original
-positions so an additional affix cannot become a missing base affix.
-Warnings describe skipped data without blocking the import. An unrecognized
-export or missing `wearEquipsDetailed` object remains an input error.
+即使没有任何装备可以导入，导入也会创建一个新的 `{character name} Import` 配装。缺少装备详情、基础词条缺失或不受支持、基础词条数值无效，以及明确不受支持的装备等级，都只会跳过该件物品。受支持的武学、心法和套装选择仍会导入；即使相应的装备物品被跳过，套装件数仍以仪表板记录为准。格式错误、不受支持、为负数、重复或超出数量的额外词条会被逐条跳过，保留前四条互不相同的有效额外词条。无效的可选定音会被省略。格式错误的行会保留其原始位置，因此额外词条不会顶替缺失的基础词条。警告会说明被跳过的数据，但不会阻止导入。无法识别的导出数据或缺少 `wearEquipsDetailed` 对象仍属于输入错误。
 
-The import adds supported gear
-to the shared inventory, and equips it without replacing existing data. Before
-adding a piece, the importer compares its definition, level, rarity, relayed
-state, base affix, available additional affixes, and optional attunement with shared gear.
-Additional-affix order is ignored. An exact match is reused by the new build;
-only unmatched gear creates a new inventory item. Weapon-specific affixes such
-as Art of Mo or Art of Heng identify the imported weapon. When the imported and
-current weapon pairs match, weapon gear is placed into the corresponding
-current slot instead of changing the global left/right order. This keeps the
-new build visible without hiding the user's other weapon-filtered builds. Gear
-level and rarity are inferred from official base-attribute signatures when
-possible. If the payload does not expose or identify rarity, the item defaults
-to Gold with a non-blocking import notice. Unmapped or slot-invalid affixes
-are skipped rather than silently assigned to a different stat. Level 96 armor signatures distinguish Gold and Purple using the
-dashboard's fixed HP and Physical Defense values. Helmet and Bracer share one
-signature, Chestpiece uses doubled HP, and Greaves uses the Helmet/Bracer HP
-with its own higher Physical Defense value.
+导入会将受支持的装备添加到共用装备库并穿戴，而不会替换现有数据。添加每件装备前，导入器会将其定义、等级、稀有度、承音状态、基础词条、现有的额外词条以及可选定音与共用装备进行比较。额外词条的顺序会被忽略。完全匹配的装备会被新配装复用；只有未匹配的装备才会创建新的装备库物品。陌刀武学增伤或横刀武学增伤等武器专属词条用于识别导入的武器。当导入的武器组合与当前武器组合一致时，武器装备会被放入当前对应的部位，而不是改变全局的左/右顺序。这样新配装能保持可见，也不会隐藏用户按武器筛选的其他配装。装备等级和稀有度会尽可能根据官方基础属性签名推断。若数据中未提供或无法识别稀有度，该物品默认为金色，并附带一条不阻断导入的提示。未映射或对该部位无效的词条会被跳过，而不会被悄悄分配给其他属性。96 级防具签名使用仪表板中固定的气血和外功防御数值来区分金色和紫色。冠胄和腕甲共用一个签名，胸甲使用双倍气血，胫甲则使用与冠胄/腕甲相同的气血以及其自身更高的外功防御数值。
 
-The official payload does not consistently expose a separate relayed flag. If
-an imported piece contains an affix listed by its definition under
-`${level}Relayed`, the importer treats the piece as relayed before validating
-its affix pool. This preserves relay-only attribute attack rows such as official
-ID `9793026` (`maxStonesplit`) instead of discarding them as unsupported normal
-gear.
+官方数据并不总是提供单独的承音标志。若导入的某件装备包含其定义在 `${level}Relayed` 下列出的词条，导入器会在校验其词条池之前将该装备视为承音装备。这样可以保留仅限承音的属性攻击词条行，例如官方 ID `9793026`（`maxStonesplit`），而不会将其当作不受支持的普通装备丢弃。
 
-Current-season weapon attribute IDs `9793003` and `9793006` represent Defense
-and Body respectively. Their order differs from the manually inferred mapping
-used before dashboard payloads exposed both rolls, so the official-ID map must
-not derive these meanings from numeric adjacency alone.
+当前赛季的武器属性 ID `9793003` 和 `9793006` 分别代表防御和体。它们的顺序与仪表板数据公开这两条词条之前手动推断的映射不同，因此官方 ID 映射不能仅凭数字相邻关系来推导这些含义。
 
-Version 2 of the bookmarklet envelope carries the complete dashboard `roleInfo`
-object for inspecting additional profile fields. Known official martial-art and
-Inner Way IDs are recorded in `data/official/profile-map.json`. Its martial-art
-map includes all 20 numeric IDs, names, and internal weapon keys from
-`local/datamine/wwm-martial-arts-normal.json`; entries do not imply that every
-martial art's combat skills and talents are already implemented. `kongfuMain`
-and `kongfuSub` identify the equipped martial-art pair and are preferred over
-affix inference when both are supported. Import first matches that unordered
-pair to a path in `data/path.json`, then uses the path's canonical left/right
-order and each imported item's physical gear definition to assign weapon slots.
-This supports dashboard exports whose main/sub order differs from the path order
-and martial arts such as Thundercry Blade that share a Mo Blade gear definition.
+书签脚本封装数据的第 2 版携带完整的仪表板 `roleInfo` 对象，以便检查更多角色信息字段。已知的官方武学 ID 和心法 ID 记录在 `data/official/profile-map.json` 中。其武学映射包含 `local/datamine/wwm-martial-arts-normal.json` 中全部 20 个数字 ID、名称和内部武器键；这些条目并不意味着每个武学的战斗技能和天赋都已实现。`kongfuMain` 和 `kongfuSub` 标识所穿戴的武学组合，当两者都受支持时，会优先于词条推断使用。导入时会先将这一无序组合匹配到 `data/path.json` 中的某个流派，然后根据该流派的规范左/右顺序以及每件导入物品的实体装备定义来分配武器部位。这样既支持主/副顺序与流派顺序不同的仪表板导出，也支持嗟夫刀法这类共用陌刀装备定义的武学。
 
-`passiveSlots` contains the four ordered Inner Way IDs. Those IDs are the Inner
-Way `id` values in `local/datamine/wwm-inner-way-normal.json`, so the Inner Way
-map covers all 57 of them, not only the ones seen in a dashboard export; only
-`651` Song of Harmony lacks an application definition and therefore an
-`innerWay` key. The payload does not expose tiers, so recognized complete
-four-slot selections import at T6 by policy. A slot holding an ID outside that
-table imports empty, which is also how a path-ineligible or unfilled (`0`) slot
-is represented; a payload without a four-entry `passiveSlots` retains the
-application's default Inner Ways.
+`passiveSlots` 包含四个有序的心法 ID。这些 ID 即 `local/datamine/wwm-inner-way-normal.json` 中心法的 `id` 值，因此心法映射涵盖全部 57 个 ID，而不仅限于在仪表板导出中见过的那些；只有 `651` 相和歌（Song of Harmony）缺少应用内定义，因而也没有 `innerWay` 键。数据中不提供重数，因此按既定规则，识别出的完整四槽选择会以 T6 导入。若某个槽位中的 ID 不在该表中，则导入为空，这也是流派不适用或未填充（`0`）槽位的表示方式；若数据中没有包含四个条目的 `passiveSlots`，则保留应用的默认心法。
 
-Bow slot 21 and ring slot 9 use suffix IDs `44`, `45`, and `46` for
-Precision, Critical, and Affinity respectively. Matching known suffixes select
-that bow/ring set; different suffixes explicitly select `None`. Missing or
-unknown suffix data retains the application's default selection. Recognized suffix IDs on
-Left Weapon, Right Weapon, Disc, and Pendant determine weapon-set piece counts:
-two recognized matching pieces select the two-piece tier and four select the
-four-piece tier. Armor slots use the same piece-count rule through the armor-set
-map. Both maps cover every official suffix ID found in
-`local/datamine/items/**/*.json`, where each item lists `sets` entries whose
-`https://wwmdb.vlt.fyi/sets/<id>` URL is that suffix ID. Every item lists only
-sets of its own category, so the suffix IDs already confirmed from dashboard
-exports label the rest of each category, and the application set names come
-from `local/datamine/wwm-item-sets-weapon.json` and
-`local/datamine/wwm-item-sets-armor.json`, whose entries are ordered by ascending
-suffix ID. The datamine spells some sets differently from the application
-(`Rainwhisper`, `Shattered Ridge`, `Agile Steps`, `Flawless Defense`,
-`Jade Embrace`, `Obsidian Armor`), so the generated map uses the application
-names. Weapon suffixes are `1` Jadeware, `3` Hawkwing, `7` RainWhisper, `9`
-SwiftGale, `11` SwayingHeights, `23` Swallowcall, `25` Mistwillow, `29`
-Ivorybloom, `34` Starweave, `50` Cleftpeak, and `56` Etherwrath. Armor suffixes
-are `2` Formbend, `4` Eaglerise, `8` Moonflare, `10` RippleStep, `12`
-FlawlessGuardian, `24` Calmwaters, `26` BeyondtheChill, `30` Whirlsnow, `35`
-Jadeclasp, and `51` Ebonward. Tiltrim, Honorbound, and Brimflow have no suffix
-ID in the snapshot. Calmwaters remains importable but has no path eligibility.
-A recognized suffix replaces the whole set selection, so an imported set never
-coexists with an application default set. Unknown weapon-set and armor-set data
-continues using the application's default setup values.
+弓部位 21 和玦部位 9 使用后缀 ID `44`、`45` 和 `46`，分别对应精准、会心和会意。弓与玦的已知后缀相同时选择对应的弓玦套装；两者后缀不同时则显式选择 `None`。缺失或未知的后缀数据会保留应用的默认选择。左武、右武、环和佩上识别出的后缀 ID 决定武器套装的件数：识别出两件一致的装备时选择两件套档位，四件则选择四件套档位。防具部位通过防具套装映射采用相同的件数规则。两个映射都涵盖了在 `local/datamine/items/**/*.json` 中找到的每个官方后缀 ID；其中每件物品都列出了 `sets` 条目，其 `https://wwmdb.vlt.fyi/sets/<id>` URL 中的 ID 即为该后缀 ID。每件物品只列出其所属类别的套装，因此已从仪表板导出中确认的后缀 ID 可以为各类别中的其余条目定标，而应用内的套装名称则来自 `local/datamine/wwm-item-sets-weapon.json` 和 `local/datamine/wwm-item-sets-armor.json`，其中的条目按后缀 ID 升序排列。数据挖掘源中部分套装的拼写与应用不同（`Rainwhisper`、`Shattered Ridge`、`Agile Steps`、`Flawless Defense`、`Jade Embrace`、`Obsidian Armor`），因此生成的映射使用应用内的名称。武器后缀为：`1` 玉斗（Jadeware）、`3` 飞隼（Hawkwing）、`7` 时雨（RainWhisper）、`9` 急风骤（SwiftGale）、`11` 岳山倾（SwayingHeights）、`23` 燕归（Swallowcall）、`25` 烟柳重重（Mistwillow）、`29` 浣花（Ivorybloom）、`34` 连星（Starweave）、`50` 断岳（Cleftpeak）和 `56` 撼天（Etherwrath）。防具后缀为：`2` 易相（Formbend）、`4` 鹰扬（Eaglerise）、`8` 桂月（Moonflare）、`10` 凌波步（RippleStep）、`12` 御无缺（FlawlessGuardian）、`24` 江凝（Calmwaters）、`26` 不知寒（BeyondtheChill）、`30` 梨雪（Whirlsnow）、`35` 玉扣（Jadeclasp）和 `51` 玄甲（Ebonward）。倾觞（Tiltrim）、尚义（Honorbound）和盈盏（Brimflow）在该快照中没有后缀 ID。江凝仍可导入，但不适用于任何流派。识别出的后缀会替换整个套装选择，因此导入的套装绝不会与应用默认套装共存。未知的武器套装和防具套装数据会继续使用应用的默认设置值。
 
-The payload identifies no arsenal, so the imported build takes the `arsenal`
-recorded on the resolved path in `data/path.json`: the arsenal covering that
-path's attribute, such as Bamboocut for every `bamboocut*` path. The Mixed
-path has no attribute and keeps the application default.
+数据中不标识武库，因此导入的配装采用 `data/path.json` 中解析出的流派上记录的 `arsenal`：即覆盖该流派属性的武库，例如所有 `bamboocut*` 流派都对应破竹武库。混搭流派没有属性，因此保留应用默认值。
 
-Tier 96 Stonesplit Might armor attunements use IDs `280201` through `280205`:
-Thundercry Blade Shield, Charged Skill DMG, and Special Skill DMG Boost followed
-by Stormbreaker Spear Charged Skill DMG and Special Skill DMG Boost. ID `280202`
-is directly observed in a dashboard export; the remaining ordering follows the
-confirmed category sequence. Stonesplit Might has no Stormbreaker Spear Martial
-Art Skill DMG Boost attunement.
+96 阶裂石·威防具定音使用 ID `280201` 至 `280205`：依次为嗟夫刀法的护盾增效、蓄力技增伤和特殊技增伤，随后是八方风雷枪的蓄力技增伤和特殊技增伤。ID `280202` 是在仪表板导出中直接观察到的；其余的顺序遵循已确认的类别序列。裂石·威没有八方风雷枪·武学技增伤定音。
 
-For Tier 91 armor, dashboard ID `9293029` is Area Mystic Skill DMG Boost and
-attunement ID `270204` is Stormbreaker Spear Charged Skill DMG Boost. These IDs
-are confirmed independently from the Tier 96 sequence and must not be inferred
-by merely replacing the tier prefix.
+对于 91 阶防具，仪表板 ID `9293029` 是群体类奇术增伤，定音 ID `270204` 是八方风雷枪·蓄力技增伤。这些 ID 是独立于 96 阶序列单独确认的，不得仅通过替换等阶前缀来推断。
 
-The observed Silkbind - Deluge profile maps martial-art IDs `10301` and `20602`
-to Panacea Fan and Soulshade Umbrella. Inner Way IDs `351`, `44`, and `82` map to
-Royal Remedy, Fury Harvest, and Seasonal Edge. Their definitions are intentionally
-effectless until their mechanics are recorded. Tier 91 affix ID `9293032` maps to Single-Target
-Mystic Skill DMG Boost. Attunement IDs `270401` and `270404` are the Panacea Fan
-and Soulshade Umbrella Martial Art Skill Healing Boosts; their values are retained
-on imported gear, but healing is not simulated.
+观察到的牵丝·霖角色信息将武学 ID `10301` 和 `20602` 分别映射到明川药典和千香引魂蛊。心法 ID `351`、`44` 和 `82` 分别映射到君臣药、怒斩马和四时无常。在其机制被记录之前，这些定义被有意设为无效果。91 阶词条 ID `9293032` 映射到单体类奇术增伤。定音 ID `270401` 和 `270404` 分别是明川药典·武学技增疗和千香引魂蛊·武学技增疗；它们的数值会保留在导入的装备上，但不会模拟治疗。
 
-Tier 96 Bamboocut Dust armor attunement ID `280601` maps to Everspring Umbrella
-Martial Art Skill DMG Boost. Together with the previously observed IDs `280602`
-through `280605`, this completes the Dust category mapping.
+96 阶破竹·尘防具定音 ID `280601` 映射到醉梦游春·武学技增伤。加上先前观察到的 ID `280602` 至 `280605`，尘类别的映射至此完整。
 
-The dashboard can report Physical Resistance as an accessory attunement. It is
-preserved on imported gear and shown in the gear editor, but is marked
-defensive and excluded from offensive character/priority controls because it
-does not affect outgoing damage.
+仪表板可能会将外功抗性报告为饰品定音。它会保留在导入的装备上并显示在装备编辑器中，但由于它不影响造成的伤害，因此被标记为防御类，并从进攻类的角色/优先级控件中排除。
 
-## Default build presets
+## 默认配装模板
 
-Default builds live in path-grouped `data/build/**/*.json` files. Vite eagerly discovers every JSON
-file beneath that root, so adding a preset does not require a TypeScript import. Presets
-are grouped by path (for example, `stonesplit-strength/` and `stonesplit-might/`), while the
-Empty Build remains at the root because it is eligible for every martial-art pair.
-Each path's `buildGroup` in `data/path.json` selects the matching directory.
-The source module path is retained as preset metadata at build time, so preset
-visibility does not depend on duplicating the path ID inside every build file.
-The optional numeric `order` field controls display order. Presets marked with
-`"test": true` are bundled in every environment and shown only while the persisted
-header-level Dev toggle is enabled. A preset contains
-its `setup` selections and exact gear choices, not persisted `GearItem` records. Missing
-slots are allowed for presets such as `Empty Build`; populated slots resolve to
-synthetic items at runtime. The UI disables gear switching and prevents removal
-of a default build. Its setup is also fixed by the preset. Its display name may
-still be changed locally. Presets declare their eligible martial-art IDs in
-`martialArts`.
+默认配装存放在按流派分组的 `data/build/**/*.json` 文件中。Vite 会以 eager 模式预先发现该根目录下的每个 JSON 文件，因此添加模板无需 TypeScript 导入。模板按流派分组（例如 `stonesplit-strength/` 和 `stonesplit-might/`），而空白配装仍位于根目录，因为它适用于所有武学组合。`data/path.json` 中每个流派的 `buildGroup` 用于选择对应的目录。源模块路径会在构建时作为模板元数据保留，因此模板的可见性不依赖于在每个配装文件中重复写入流派 ID。可选的数字字段 `order` 控制显示顺序。标记了 `"test": true` 的模板会打包进所有环境，但仅在页头持久保存的「开发模式」开关启用时显示。模板包含其 `setup` 选择和确切的装备选择，而不是持久化的 `GearItem` 记录。`Empty Build` 等模板允许缺少部位；已填充的部位会在运行时解析为合成物品。界面会对默认配装禁用装备切换，并阻止将其删除。其设置同样由模板固定。其显示名称仍可在本地修改。模板在 `martialArts` 中声明其适用的武学 ID。
 
-Preset gear records use the same value shape as editor-created gear: every base
-affix, additional affix, and attunement stores an explicit `{ "key", "value" }`
-object. A preset therefore records the exact build values and does not depend on
-the matching level in `data/stat.json` or a roll multiplier. A preset-level `relayed: true`
-marks all of its synthetic gear as relayed for display without altering those
-explicit values. Preset weapon definitions are
-fixed, but build filtering treats the two-weapon combination as an unordered
-pair. When the selected martial arts use the same pair in the opposite order,
-the equipped weapon records are aligned to the matching left and right weapon
-definitions before calculation.
+模板的装备记录使用与编辑器创建的装备相同的数值结构：每条基础词条、额外词条和定音都存储一个显式的 `{ "key", "value" }` 对象。因此，模板记录的是确切的配装数值，不依赖 `data/stat.json` 中对应的等级或词条数值乘数。模板级别的 `relayed: true` 会将其所有合成装备标记为承音以供显示，而不会改变那些显式数值。模板的武器定义是固定的，但配装筛选会将两把武器的组合视为无序组合。当所选武学以相反的顺序使用同一组合时，已穿戴的武器记录会在计算前对齐到相应的左武和右武定义。
 
-Default presets from other path build groups remain hidden in the Build tab. Custom
-builds remain listed in a dimmed state when they do not match the current pair.
-Selecting one changes to the enabled locked path for that pair, or to Mixed with
-the build's saved weapon pair when no enabled locked path is available.
+来自其他流派配装分组的默认模板在「配装」标签页中保持隐藏。自定义配装与当前组合不匹配时，仍会以变暗状态列出。选择其中一个配装会切换到该组合已启用的锁定流派；若没有可用的已启用锁定流派，则切换到混搭，并使用该配装保存的武器组合。
 
-## Calculation behavior
+## 计算行为
 
-Fixed base stats and all five affixes from the active build are summed directly
-by their saved keys into one `CharacterStats` effect and passed through the
-shared character/derived-stat pipeline. Equipped attunements are summed by
-definition ID into the centralized `AttunementStats` input. Damage calculation
-resolves each definition's stat target and requires every configured skill tag
-before applying it. The active build's gear
-sets, bow/ring set, and arsenal form the setup baseline. Main-tab changes to
-those selections are session overrides and can be reset individually or with
-the global Reset control. The Build tab does not
-calculate effective stats, rates, or DPS.
+当前配装的固定基础属性和全部五条词条会按其保存的键直接累加为一个 `CharacterStats` 效果，并传入共用的角色/派生属性管线。已穿戴的定音按定义 ID 累加到集中式的 `AttunementStats` 输入中。伤害计算会解析每个定义的属性目标，并要求满足所有已配置的技能标签后才会应用它。当前配装的装备套装、弓玦套装和武库构成设置基线。在主页标签页中对这些选择所做的修改属于会话级覆盖，可以单独重置，也可以通过全局「重置」控件重置。「配装」标签页不计算有效属性、比率或秒伤。
 
-The two Mystic affixes use existing skill tags:
+两个奇术词条使用现有的技能标签：
 
-- `singleTargetMysticDmgBoost` applies to `SingleTargetMystic`
-- `areaMysticDmgBoost` applies to `AreaMystic`
+- `singleTargetMysticDmgBoost` 作用于 `SingleTargetMystic`
+- `areaMysticDmgBoost` 作用于 `AreaMystic`
 
-Both are Category 1 damage bonuses and are stored as decimal ratios.
+两者均为类别 1 伤害加成，并以小数比例存储。

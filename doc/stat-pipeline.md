@@ -1,8 +1,8 @@
-# Stat snapshot pipeline
+# 属性快照管线
 
-This is the authoritative stat-stage specification. Timeline scheduling follows
-[rotation-event-loop.md](rotation-event-loop.md); damage and healing formulas
-follow [damage-formula.md](damage-formula.md).
+这是属性阶段的权威规范。时间轴调度遵循
+[rotation-event-loop.md](rotation-event-loop.md)；伤害与治疗公式
+遵循 [damage-formula.md](damage-formula.md)。
 
 ```text
 base inputs / solved override offsets
@@ -14,146 +14,117 @@ base inputs / solved override offsets
   -> damage / healing
 ```
 
-## Stage ownership
+## 阶段职责
 
-1. `rawStats` adds permanent character progression, gear, set stats, arsenal,
-   bow/ring, Inner Ways, martial-art flat min/max attribute bonuses, and
-   five-attribute conversions through explicit `rawStat` effects. It contains ordinary
-   stats, without effective ranges or final outcome rates.
-2. `stats` adds the remaining martial-art `stat` bonuses to ordinary fields and
-   collects `effectiveStat` bonuses, including food, as effective-only inputs.
-   This is the second martial-art pass: every talent formula reads the
-   same immutable `rawStats`, including talent amounts behind skill or combat
-   conditions. Thus all raw flat attribute bonuses are present before scaling,
-   but physical-attack talent results and food do not feed other talents.
-   Talent and food order cannot change those amounts. Effective bonuses do not
-   change ordinary fields or feed formulas that read ordinary stats. Effective
-   attack ranges and final rates are fields on this complete object, not a
-   separate runtime stat map. This is the character-sheet and worker snapshot.
-3. `buffedStats` copies `stats` and adds fixed unconditional contributions from
-   the selected global buffs/debuffs. It is the baseline for skill calculations.
-   Conditional global rules still require action context and are resolved there.
-4. `skillStats` adds stat effects whose conditions depend only on effective
-   action tags or equipped martial arts. Cache one immutable snapshot per tag
-   signature. Multi-action components can have different signatures.
-5. `actionStats` copies the skill baseline and adds the current combat-effect
-   contribution. It recalculates effective fields and final rates, then damage
-   and healing consume this snapshot through a shared resolution boundary.
+1. `rawStats` 通过显式的 `rawStat` 效果加入永久性的角色成长、装备、套装属性、武库、
+   弓玦、心法、武学提供的固定最小/最大属性加成，以及五项属性转换。它包含普通属性，
+   不含实际区间或最终结果概率。
+2. `stats` 将其余的武学 `stat` 加成加到普通字段上，并收集 `effectiveStat` 加成（包括食物）作为仅作用于实际值的输入。
+   这是第二轮武学处理：每个天赋公式都读取同一份不可变的 `rawStats`，包括受技能或战斗条件约束的天赋数值。
+   因此，所有原始固定属性加成都在缩放之前就位，但外功攻击类天赋的结果和食物不会输入其他天赋。
+   天赋与食物的顺序不会改变这些数值。实际值加成不会改变普通字段，也不会输入读取普通属性的公式。
+   实际攻击区间和最终概率是这个完整对象上的字段，而不是单独的运行时属性映射。
+   它就是角色属性面板与 worker 所用的快照。
+3. `buffedStats` 复制 `stats`，并加上所选全局增益/减益中固定的无条件贡献。它是技能计算的基线。
+   有条件的全局规则仍需要动作上下文，并在那里解析。
+4. `skillStats` 加入条件仅取决于有效动作标签或已装备武学的属性效果。每种标签签名缓存一份不可变快照。
+   多动作组件可以具有不同的签名。
+5. `actionStats` 复制技能基线，并加上当前战斗效果的贡献。它重新计算实际字段与最终概率，
+   随后伤害与治疗通过共享的解析边界使用这份快照。
 
-The `derivedStats` property retained by compatibility callers aliases the same
-complete object as `stats`. It must not become a separately maintained map.
-The complete snapshot retains additive `effectiveStatBonuses` alongside ordinary
-and derived fields. Later stages carry those inputs forward, collect their own
-effective bonuses, then derive ranges/rates from ordinary values plus the combined
-bonuses. They never add bonuses to an already-normalized attack range. Food
-therefore survives skill and temporary-buff passes without changing ordinary stats.
-For example, ordinary physical attack of `2000 / 1900` with food's `120 / 240`
-stays `2000 / 1900`, while effective attack becomes `2120 / 2140` before the
-minimum/maximum check. All effective entries in a stage resolve against the same
-ordinary snapshot before any are applied.
+为兼容旧调用方而保留的 `derivedStats` 属性是与 `stats` 同一个完整对象的别名，
+不得变成单独维护的映射。
+完整快照在普通字段与派生字段之外，还保留可累加的 `effectiveStatBonuses`。
+后续阶段沿用这些输入，收集各自的实际值加成，然后根据普通值加上合并后的加成推导区间/概率。
+它们绝不会把加成加到已经规范化的攻击区间上。因此，食物加成能在技能阶段和临时增益阶段中保留下来，
+且不改变普通属性。
+例如，普通外功攻击为 `2000 / 1900`、食物提供 `120 / 240` 时，普通值仍为 `2000 / 1900`，
+而在最小/最大值校验之前，实际攻击变为 `2120 / 2140`。
+同一阶段中的所有实际值条目都先基于同一份普通快照完成解析，然后才应用其中任何一条。
 
-`rawStat` is an unconditional character contribution, not a temporary combat
-effect. Inner Way T2/T5 bonuses, arsenal, two-piece weapon/armor sets, bow/ring
-sets, progression, gear inputs, and attribute conversions use it. Inner Way
-modifiers of temporary buffs (for example Concentration's Direct Affinity)
-remain ordinary `stat` effects on those buffs, not permanent raw contributions.
-Each effect may contain both `rawStat` and `stat`; each field is applied only in
-its own stage. Source selection is explicit: `minBamboocut` includes all raw
-bonuses but not Formless Attack, which is folded into effective attack later.
+`rawStat` 是无条件的角色贡献，而不是临时战斗效果。心法 T2/T5 加成、武库、武器/防具两件套、
+弓玦套装、成长、装备输入以及属性转换都使用它。心法对临时增益的修改（例如看破的直接会意）
+仍是这些增益上的普通 `stat` 效果，而不是永久的原始贡献。
+每个效果可以同时包含 `rawStat` 与 `stat`；每个字段只在各自的阶段中应用。
+来源选择是显式的：`minBamboocut` 包含所有原始加成，但不包含无相攻击（Formless Attack），后者稍后才并入实际攻击。
 
-## Combat contributions and expiration
+## 战斗贡献与过期
 
-The existing tracked-effect aggregate also carries finite numeric `stat` and
-`effectiveStat` contributions, flattened separately as `stat.<field>` and
-`effectiveStat.<field>`. Update these amounts
-when effects are applied, change stacks, are consumed, or expire. Damage and
-healing do not re-evaluate each unconditional rule on every action. Conditional,
-formula-valued, or content-modified rules retain contextual evaluation.
+现有的已追踪效果聚合同样携带有限数值的 `stat` 与 `effectiveStat` 贡献，
+分别展平为 `stat.<field>` 和 `effectiveStat.<field>`。
+当效果被施加、层数变化、被消耗或过期时，更新这些数值。
+伤害与治疗不会在每个动作上重新评估每条无条件规则。
+有条件的、以公式取值的或受内容修改的规则仍按上下文求值。
 
-Global stat contributions already in `buffedStats` are subtracted from the
-action aggregate before applying the remainder, preventing double application.
-Global damage multipliers retain their normal damage-effect handling.
+已计入 `buffedStats` 的全局属性贡献会先从动作聚合中减去，再应用剩余部分，以防止重复应用。
+全局伤害倍率仍按常规伤害效果处理。
 
-When a buff expires, its contribution is absent from the next aggregate. Never
-subtract a buff from the previous action's capped result: copy `skillStats`, add
-the currently active contributions, and derive the result. Equal consecutive
-contribution signatures reuse the resolved snapshot for that baseline, including
-when an attribution calculation temporarily excludes a buff. Immutable effect
-lists and aggregates prepare their stat contributions once. Resolved numerical
-signatures are stored under weak baseline keys, so releasing a calculation also
-allows its prepared stat snapshots to be released.
+增益过期后，下一次聚合中不再包含其贡献。绝不要从上一个动作已封顶的结果中减去某个增益：
+应复制 `skillStats`，加上当前生效的贡献，再推导结果。
+连续出现相同的贡献签名时，会复用该基线下已解析的快照，包括归因计算临时排除某个增益的情况。
+不可变的效果列表与聚合只准备一次其属性贡献。
+已解析的数值签名以基线作为弱引用键存储，因此释放一次计算时，其预先准备的属性快照也可以被释放。
 
-## Sequential prepared combat state
+<a id="sequential-prepared-combat-state"></a>
 
-Build the timeline once per calculation run. Its chronological event loop owns
-the evolving buffs, debuffs, resources, HP, and effect aggregate. There is no
-second buff or stat reconstruction pass over the completed timeline.
+## 顺序推进的预备战斗状态
 
-Prepare unmodified effect definitions once per name and stack count. Applying,
-refreshing, consuming, or expiring an effect publishes a new immutable snapshot;
-unchanged effects and snapshots are shared with later actions. Historical rows
-retain their original state, including source ownership and expiration times.
+每次计算运行只构建一次时间轴。其按时间顺序推进的事件循环负责管理不断变化的增益、减益、
+资源、气血和效果聚合。不会在已完成的时间轴上再进行第二轮增益或属性重建。
 
-The action resolver prepares contextual effect lists once per distinct semantic
-state: skill tag signature, effect identities/stacks/maxima/recipients,
-action modifiers, and numeric requirement outcomes. Numeric predicates include
-resource, distance, HP, and Qi comparisons, including predicates nested inside
-modified definitions. Remaining within a threshold region reuses the prepared
-list; crossing a threshold or changing effect membership selects another state.
-The preparation cache belongs to one resolver/run. Attribution excludes its buff
-before resolving requirements, so dependent buffs are handled correctly.
+未经修改的效果定义按名称和层数各准备一次。施加、刷新、消耗效果或使效果过期，
+都会发布一份新的不可变快照；未变化的效果和快照由后续动作共享。
+历史行保留其原始状态，包括来源归属和过期时间。
 
-Formula-valued contributions remain formula inputs; each damage/healing action
-still evaluates its own formula and outcomes. Reusing prepared contributions
-does not reuse damage results or skip combat events. Event-changing variants and
-Monte Carlo samples own separate live traversals and preparation caches.
+动作解析器针对每个不同的语义状态只准备一次上下文效果列表：技能标签签名、
+效果标识/层数/上限/接收者、动作修饰符以及数值条件的判定结果。
+数值谓词包括资源、距离、气血和真气的比较，也包括嵌套在被修改定义内部的谓词。
+停留在同一阈值区间内会复用已准备的列表；跨越阈值或效果成员发生变化时则选择另一个状态。
+预备缓存隶属于单个解析器/单次运行。归因会在解析条件之前排除其对应的增益，
+因此依赖该增益的其他增益能被正确处理。
 
-Active buffs/debuffs and historical snapshots are authoritative read-only maps.
-The self/target key is the effect ID; a teammate key encodes effect ID and recipient
-index. An omitted player recipient and recipient zero both identify self. There
-is one entry per identity, with no parallel ordered array or lookup index.
-Presence and stack queries use direct map lookup in amortized O(1) time.
-Lifecycle changes publish new maps while prior snapshots stay unchanged. Map
-copying and enumerating active effects remain O(n).
+以公式取值的贡献仍作为公式输入；每个伤害/治疗动作仍会计算自身的公式与结果。
+复用预先准备的贡献不会复用伤害结果，也不会跳过战斗事件。
+会改变事件的变体以及蒙特卡洛样本各自拥有独立的实时遍历和预备缓存。
 
-Map insertion order has no selection meaning. The `first` resolver traverses
-the candidate IDs declared by the skill and queries map membership. Prepared
-state identities are canonicalized independently of map insertion order.
-Workers use structured cloning, which preserves native maps. Display code can
-enumerate values at its boundary; history does not require array serialization.
-Authored initial-effect lists are converted once on entry to the live loop.
+生效中的增益/减益以及历史快照都是权威的只读映射。
+自身/目标的键为效果 ID；队友的键则编码效果 ID 与接收者索引。
+省略玩家接收者与接收者为零都表示自身。
+每个标识只对应一个条目，不存在并行的有序数组或查找索引。
+存在性与层数查询直接在映射中查找，均摊时间为 O(1)。
+生命周期变化会发布新的映射，而先前的快照保持不变。复制映射和枚举生效效果仍为 O(n)。
 
-Direct Critical Rate shares an ordinary and final field name. Complete snapshots
-therefore retain `uncappedDirectCrit` for subsequent contribution changes, while
-the visible/calculated `directCrit` remains capped at 20%. Other effective rates
-have separate field names and retain their ordinary inputs naturally.
+映射的插入顺序不具备任何选择含义。`first` 解析器遍历技能声明的候选 ID，并查询其是否存在于映射中。
+预备状态的标识经过规范化处理，与映射插入顺序无关。
+Worker 使用结构化克隆，可保留原生 Map。显示代码可以在其边界处枚举值；历史记录不需要序列化为数组。
+编写好的初始效果列表在进入实时循环时转换一次。
 
-## Comparison variants and overrides
+直接会心率的普通字段与最终字段同名。因此，完整快照会保留 `uncappedDirectCrit` 以供后续贡献变化使用，
+而显示/计算所用的 `directCrit` 仍以 20% 为上限。
+其他实际概率使用独立的字段名，自然会保留其普通输入。
 
-Comparison variants copy the resolved `stats`, apply the changed contribution
-delta separately for ordinary stats and effective bonuses, and recompute effective
-fields and final rates. They do not rerun the
-baseline unconditional stat pass. For changes to source attributes or setup
-effects, compute old/new raw and talent contribution differences before applying
-the delta. Each variant then gets its own global and skill baselines.
+## 对比变体与覆盖值
 
-Timeline reuse is independent of stat copying: reuse only when timing, triggers,
-effects, stacks, cooldowns, and DOTs cannot change. Otherwise rebuild events.
+对比变体复制已解析的 `stats`，分别针对普通属性和实际值加成应用变化的贡献差值，
+并重新计算实际字段与最终概率。它们不会重新执行基线无条件属性处理。
+对于来源属性或配置效果的变更，先计算新旧原始贡献与天赋贡献之差，再应用差值。
+随后每个变体都会获得各自的全局基线与技能基线。
 
-Persisted Main-tab overrides remain final-value overrides of the editable ordinary
-fields; food increases their effective counterparts without changing those overrides.
-The shared override
-solver determines input offsets before producing the sheet. Worker inputs carry
-the complete sheet plus raw stats and these base offsets for variant deltas.
-Legacy raw-input diagnostic bundles are normalized once at the worker boundary.
+时间轴复用与属性复制相互独立：只有当时机、触发、效果、层数、冷却和 DOT 都不可能变化时才复用。
+否则重新构建事件。
 
-## Implementation and verification
+持久化保存的“主页”标签页覆盖值仍是对可编辑普通字段最终值的覆盖；
+食物会提高其对应的实际值，而不改变这些覆盖值。
+共享的覆盖值求解器会在生成属性面板之前确定输入偏移量。
+Worker 输入携带完整的属性面板，以及原始属性和这些基础偏移量，用于计算变体差值。
+旧版原始输入诊断包会在 worker 边界处规范化一次。
 
-- `statEffects.ts`: raw/sheet stages, talent formula binding, derived fields,
-  contribution application, and override solving.
-- `rotationCalculator.ts`: variant deltas, global baseline, and skill cache.
-- `unconditionalDamageEffects.ts`: shared lifecycle contribution aggregate.
-- `actionStats.ts`: shared damage/healing action snapshot and cache.
-- `tests/stat-stages.test.ts`: observable stage boundaries, food
-  retention, raw talent sources, global application, buff expiration, comparisons,
-  healing, and uncapped-input preservation.
+## 实现与验证
+
+- `statEffects.ts`：原始/面板阶段、天赋公式绑定、派生字段、
+  贡献应用以及覆盖值求解。
+- `rotationCalculator.ts`：变体差值、全局基线与技能缓存。
+- `unconditionalDamageEffects.ts`：共享的生命周期贡献聚合。
+- `actionStats.ts`：共享的伤害/治疗动作快照及其缓存。
+- `tests/stat-stages.test.ts`：可观测的阶段边界、食物保留、原始天赋来源、
+  全局应用、增益过期、对比、治疗以及未封顶输入的保留。

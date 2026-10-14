@@ -1,179 +1,61 @@
-# DPS regression snapshots
+# 秒伤回归快照
 
-`npm run test:dps` compares every non-empty preset rotation, including WIP paths
-against `tests/snapshots/rotation-dps.json`. The release deployment workflow
-runs this guard before publishing, including manual deployments. Ordinary build,
-tests, watch mode, and PR/main CI exclude the accepted-DPS comparison while
-retaining its coverage, selector, and comparison-algorithm tests.
+`npm run test:dps` 会将每个非空的模板循环（包括开发中流派的循环）与 `tests/snapshots/rotation-dps.json` 进行比较。发布部署工作流会在发布前运行这项防护检查，手动部署也不例外。普通构建、测试、监听模式以及 PR/main CI 不执行已接受秒伤的比较，但保留其覆盖率、选择器和比较算法测试。
 
-## Fixture selection
+## 测试夹具选择
 
-`tests/helpers/dps-snapshot-fixtures.ts` discovers rotation JSON files from each
-path's existing rotation directory. Cases use stable `<pathId>/<rotationId>` keys.
-Empty planner rotations are excluded. A durable coverage test checks all
-non-empty rotation files against this catalog. The release guard compares the
-catalog with accepted baseline keys, so new or removed presets cannot silently
-escape review. A missing accepted baseline does not block ordinary builds.
+`tests/helpers/dps-snapshot-fixtures.ts` 从每个流派现有的循环目录中发现循环 JSON 文件。用例使用稳定的 `<pathId>/<rotationId>` 键。空的规划器循环会被排除。一项长期保留的覆盖率测试会将所有非空循环文件与该用例目录核对。发布防护检查会将该用例目录与已接受的基线键进行比较，因此新增或删除的模板不会悄无声息地逃过审核。缺少已接受的基线不会阻止普通构建。
 
-Each rotation uses its path's default build unless an explicit build override
-selects its corresponding variant: regular Kite uses the non-BP build, pure
-Strength uses the pure build, and Double Stab uses the double-min build. The
-remaining variants retain the path default. This covers all non-empty presets,
-not every build/rotation combination.
+每个循环使用其流派的默认配装，除非有显式的配装覆盖选择了对应的变体：普通鸢使用非断石之构配装，纯唐钧使用纯唐配装，双刺使用小外小属配装。其余变体保留流派默认配装。这覆盖了所有非空模板，而非每一种配装/循环组合。
 
-Current calculations use breakthrough 17, each rotation's saved ping (40 ms
-by default; 30 ms for Might), Simmering Fish Slices,
-Fire Divinecraft, no Script, and no global or skill overrides. The rotation
-supplies its martial arts and encounter flags; the build supplies its gear,
-Inner Ways, and sets. Fixtures are passed to `src/application/graduation.ts`'s
-`buildPresetRotationBundle` and `calculateRotationBaseline`, the production
-calculation pipeline. No browser preferences or duplicate damage formulas enter
-the check.
+当前计算使用破阵 17、每个循环保存的延迟（默认 40 ms；威为 30 ms）、涮鱼、天工·火、无帖，且不使用全局或技能覆盖值。循环提供其武学和战斗场景标记；配装提供其装备、心法和套装。测试夹具会传入 `src/application/graduation.ts` 的 `buildPresetRotationBundle` 和 `calculateRotationBaseline`，即生产环境所用的计算流水线。检查中不会引入任何浏览器偏好设置或重复的伤害公式。
 
-## Accepted values and review gate
+## 已接受数值与审核关卡
 
-The October 2026 Umbra release uses the user-approved current damage for all
-presets. This includes the new WIP Umbra rotation, weapon-specific Deflect timing,
-Endurance recovery before combat, and the approved Splendor Qi and Might Defense
-alignment repairs. The snapshot JSON records the exact accepted values.
+2026 年 10 月的影版本发布对所有模板采用经用户批准的当前伤害。其中包括新的开发中影循环、按武器区分的卸势时机、战斗前的耐力恢复，以及已批准的虹真气与威防御对齐修复。快照 JSON 记录了确切的已接受数值。
 
-Schema version 2 replaces the old one-case-per-path file. Each case records its
-fixture, DPS, total damage, and duration. The gate fails on:
+Schema 版本 2 取代了旧的每个流派一个用例的文件。每个用例记录其测试夹具、秒伤、总伤害和持续时间。出现以下情况时，关卡检查失败：
 
-- Any change beyond 4 units in the last place in DPS, total damage, or duration,
-  independently for each rotation and in either direction.
-- Missing or removed rotation coverage.
-- A changed build, rotation, martial-art pair, or fixed environment.
-- Non-finite, zero, or negative DPS, damage, or duration.
+- 秒伤、总伤害或持续时间出现超过 4 个末位单位的任何变化，每个循环独立判断，增减两个方向均计。
+- 循环覆盖缺失或被移除。
+- 配装、循环、武学组合或固定环境发生变化。
+- 秒伤、伤害或持续时间为非有限值、零或负数。
 
-The budget is counted in ULPs rather than a percentage because the damage
-pipeline is bit-deterministic: it uses only exactly specified IEEE-754
-operations, accumulates in a fixed single-threaded order, and takes no
-locale-, time-, or random-dependent input. The same inputs must therefore
-reproduce the same bits. Four ULPs absorbs a single-representation shift from a
-summation reassociation or an engine change and rejects every real change; a 1%
-band was roughly 8x10^11 ULPs wide and silently accepted unreviewed edits. All
-three stored numbers are compared, and changes accumulate against the last
-accepted value, not the previous test run.
+容差以 ULP（末位单位）而非百分比计算，因为伤害流水线是逐位确定的：它只使用精确定义的 IEEE-754 运算，以固定的单线程顺序累加，且不接受任何依赖区域设置、时间或随机数的输入。因此，相同的输入必须重现完全相同的位。4 个 ULP 足以吸收求和重结合或引擎变化带来的一次表示偏移，同时会拒绝每一个真实的变化；而 1% 的容差带宽约为 8x10^11 个 ULP，曾悄无声息地接受了未经审核的修改。三个存储的数值都会参与比较，且变化是相对于最近一次已接受的数值累积计算，而不是相对于上一次测试运行。
 
-At the user's request, expanded non-Deluge baselines preserve the values from
-before this session's ping, timing, and preset changes. They were reconstructed
-using rotation and skill data from revision
-`f13eee3e2c6bc5b1a547a54bff7679110418fdf9` with zero ping. The production
-calculator reproduced the existing Kite, Might, and Strength accepted baselines
-exactly before seeding their additional rotations. Their fixture ping is
-explicitly 0; comparison with the current 40 ms environment intentionally flags
-an environment change until each new result is reviewed.
+应用户要求，扩展的非霖基线保留了本次会话中延迟、时机和模板改动之前的数值。它们是使用修订版本 `f13eee3e2c6bc5b1a547a54bff7679110418fdf9` 中的循环和技能数据、在零延迟下重建的。在为鸢、威和钧补充更多循环之前，生产计算器已精确重现了它们现有的已接受基线。这些测试夹具的延迟被显式设为 0；与当前 40 ms 的环境比较时会有意标记为环境变化，直到每个新结果都经过审核。
 
-All four Deluge rotations instead use the user-approved current data and 40 ms
-ping. WTS Team's prior accepted value was reproduced exactly. These values cover
-the Poet timing changes, aligned Deflects, revised Mystic timing, and opening WTS
-delays where present. The existing Deluge acceptance is preserved.
+四个霖循环则全部使用经用户批准的当前数据和 40 ms 延迟。「万物组队」先前的已接受数值被精确重现。这些数值涵盖了太白的时机变化、对齐后的卸势、修订后的奇术时机，以及（如有）起手时的万物为锋等待时间。现有的霖验收结果得以保留。
 
-Both Kite presets now use the user-approved current data and 40 ms ping:
-regular Kite is 54,487.60 DPS and Kite BP is 60,168.91 DPS. These supersede
-their pre-ping baselines and include the revised skill timings and damage,
-VC readiness, defensive attack alignment, BP Qi-break anchor, and the updated
-Light Attack Falcon coefficients.
+两个鸢模板现在都使用经用户批准的当前数据和 40 ms 延迟：普通鸢为 54,487.60 秒伤，鸢·断石之构为 60,168.91 秒伤。它们取代了引入延迟之前的基线，并包含修订后的技能时机与伤害、派生技（VC）就绪、防御类攻击对齐、断石之构的真气击破锚点，以及更新后的「轻击鹰隼」系数。
 
-Strength's Mixed Dummy 1 Min now uses its user-approved current result at 40 ms
-ping: 65,625.29 DPS, replacing the previous 65,165.49 DPS snapshot (+0.71%).
-Removing ping from Burning Heart's second and third charge stages accounts for
-442.42 DPS of the increase; shortening Grave Frost's cast from 1.832 to 1.605
-seconds accounts for the remaining 17.38 DPS. The General's Bane opener and
-0.33-second delay before the later Legion Summon remain included.
+钧的「双切木桩1分钟」现在使用其在 40 ms 延迟下经用户批准的当前结果：65,625.29 秒伤，取代先前的 65,165.49 秒伤快照（+0.71%）。移除焚此心第 2、3 段蓄力的延迟贡献了其中 442.42 秒伤的增长；将冢上霜的施放时间从 1.832 秒缩短到 1.605 秒贡献了剩余的 17.38 秒伤。白刃杀将起手以及后一次唤千军之前 0.33 秒的等待仍然保留。
 
-Strength's Mixed Dummy Infinite Vitality 1 Min now uses its user-approved result
-at 40 ms ping: 66,557.16 DPS, replacing 66,827.33 DPS at zero ping (-0.40%).
-This includes the Burning Heart ping exemptions, paired dummy attacks, and the
-combat-start anchor on the final hit of the first Fleeting Trace. Its dodge
-activates Mystery DMG Boost on the 11.5-second dummy attack. The accepted value
-was later raised to 66,557.16 DPS when the Heng Blade Varied Combo base damage
-bonus was modelled explicitly instead of folded into its coefficient.
+钧的「双切木桩1分钟无限精元」现在使用其在 40 ms 延迟下经用户批准的结果：66,557.16 秒伤，取代零延迟下的 66,827.33 秒伤（-0.40%）。其中包括焚此心的延迟豁免、成对的木桩攻击，以及锚定在第一次飞鸿踏雪最后一击上的战斗开始锚点。其闪避会在 11.5 秒的木桩攻击上触发迷踪增伤。后来，当横刀派生技的基础伤害加成改为显式建模、不再并入其系数时，已接受数值被上调至 66,557.16 秒伤。
 
-Strength's Mixed Dummy Smolder Poet 1 Min now uses its user-approved result at
-40 ms ping with Infinite Vitality enabled: 66,371.50 DPS, replacing 63,485.87 DPS
-at zero ping with finite Vitality (+4.55%). Infinite Vitality removes the previous
-Mystic damage scaling from available Vitality. The current skill timings and
-60-second cutoff remain, including the final Flute tick falling outside combat.
+钧的「双切木桩1分钟暗灼太白」现在使用其在 40 ms 延迟且启用无限精元时经用户批准的结果：66,371.50 秒伤，取代零延迟且精元有限时的 63,485.87 秒伤（+4.55%）。无限精元消除了此前奇术伤害随可用精元缩放的效果。当前的技能时机和 60 秒截止点保持不变，包括最后一跳箫落在战斗之外。
 
-Strength's Pure Dummy 1 Min now uses its user-approved result at 40 ms ping:
-63,888.11 DPS, replacing 64,359.42 DPS at zero ping (-0.73%). This includes
-the 1.605-second base Heng LC cast (0.955 seconds with Forgetfulness),
-the revised fillers that avoid immediate VC-to-Tab transitions, and the
-additional LC/VC pair. All 13 LC casts are fast and land all four hits.
-Might's Dummy 1 Min now uses its user-approved result at 30 ms ping:
-77,276.26 DPS, replacing 76,333.79 DPS at zero ping (+1.23%). It includes the
-current Avalanche timing and damage, first-hit battle-start anchor, revised
-Cleave sequence, and attack-driven Defense holds. The added final Cleave lands
-its first hit at 59.734 seconds for 68,063.54 damage; its Quake at 60.022 seconds
-falls outside the 60-second combat window. This adds 1,134.39 DPS compared with
-the preceding 76,141.87 DPS rotation.
+钧的「纯唐木桩1分钟」现在使用其在 40 ms 延迟下经用户批准的结果：63,888.11 秒伤，取代零延迟下的 64,359.42 秒伤（-0.73%）。其中包括 1.605 秒的冢上霜（Heng LC）基础施放时间（忘机下为 0.955 秒）、避免拨雪（VC）直接衔接横刀易武（Tab）的修订版填充技能，以及额外的一组冢上霜/拨雪（LC/VC）。全部 13 次冢上霜（LC）施放均为快速施放，且四击全部命中。威的「木桩1分钟」现在使用其在 30 ms 延迟下经用户批准的结果：77,276.26 秒伤，取代零延迟下的 76,333.79 秒伤（+1.23%）。其中包括当前山崩地裂的时机与伤害、第一击战斗开始锚点、修订后的破石穿岩劈序列，以及由攻击驱动的防御保持。新增的最后一次破石穿岩劈在 59.734 秒打出第一击，造成 68,063.54 伤害；其破石穿岩震位于 60.022 秒，落在 60 秒战斗窗口之外。与之前 76,141.87 秒伤的循环相比，这增加了 1,134.39 秒伤。
 
-Strength's Mixed Double Stab now uses its user-approved result at 40 ms ping:
-65,564.25 DPS, replacing 65,244.22 DPS at zero ping (+0.51%). This includes
-the revised opener and skill sequence, Burning Heart charge/slam ping exemptions,
-and the later Heng LC timing update. Its accepted value was likewise raised from
-65,563.95 DPS by the same Heng Blade Varied Combo rescaling. All current preset
-snapshots have now completed the ping-transition review.
+钧的「双切木桩1分钟双刺」现在使用其在 40 ms 延迟下经用户批准的结果：65,564.25 秒伤，取代零延迟下的 65,244.22 秒伤（+0.51%）。其中包括修订后的起手和技能序列、焚此心蓄力/砸击的延迟豁免，以及之后的冢上霜（LC）时机更新。其已接受数值同样因横刀派生技的同一次重新缩放，从 65,563.95 秒伤上调。当前所有模板快照现已完成延迟过渡审核。
 
-Wind's Dummy 1 Min Infinite Vitality uses the user-approved current rotation and
-`wind-fully-relayed-min` build at 40 ms ping: 67,931.14 DPS over 60 seconds,
-with 4,075,868.36 total damage. This user-approved refresh replaces the initial
-67,575.85 DPS baseline after correcting Flamelash's judgment-bypassing critical
-bonus and updating Wind's weapon affixes. It includes the current Hellfire,
-Enhanced Rodent Rampage, delayed Rodent hits, and authored rotation adjustments.
+风的「木桩1分钟无限精元」使用经用户批准的当前循环和 `wind-fully-relayed-min` 配装，延迟为 40 ms：60 秒内 67,931.14 秒伤，总伤害 4,075,868.36。在修正嗔焰绕过判定的会心加成并更新风的武器词条之后，这次经用户批准的刷新取代了最初的 67,575.85 秒伤基线。其中包括当前的业火、强化鼠鼠生威、延后的鼠鼠命中，以及手动编写的循环调整。
 
-Might's latest approved refresh is 78,121.61 DPS, replacing 77,276.26 DPS
-(+1.09%). It includes Thundercry's restored Physical Attack Up talent and all
-four added HP/defense enhancement entries in system progression. The added HP
-also feeds Thundercry's charged/varied-combo talent scaling; the preset remains
-at 30 ms ping with the same combat duration.
+威最新批准的刷新为 78,121.61 秒伤，取代 77,276.26 秒伤（+1.09%）。其中包括嗟夫刀法恢复的「外功攻击提升」天赋，以及系统养成中新增的全部四项气血/防御强化条目。新增的气血也会作用于嗟夫刀法的蓄力技/派生技天赋缩放；该模板仍为 30 ms 延迟，战斗时长不变。
 
-Dust's Dummy 1 Min keeps the 58,334.43 DPS baseline accepted with its
-implementation, at the rotation's own 20 ms ping, with 3,500,065.96 total damage.
-It is the path's only preset rotation, so promoting Dust from WIP to available
-changed no snapshot.
+尘的「木桩1分钟」保留随其实现一同接受的 58,334.43 秒伤基线，使用该循环自身的 20 ms 延迟，总伤害 3,500,065.96。它是该流派唯一的模板循环，因此将尘从开发中提升为可用并未改变任何快照。
 
-Dust's Dummy 1 Min now uses its user-approved result at the rotation's own 35 ms
-ping: 57,947.14 DPS, replacing 58,402.80 DPS (-0.78%), with 3,476,828.22 total
-damage. Piercing Dart's seven sweep coefficients were corrected against the
-`20702104` `timings.hitCoefficients` curves at level 100, which lowers the
-seven-hit coefficient total from 9.5782 to 3.62181; the old values repeated one
-coefficient across hits 4-7. The measured seven-hit marker series and the
-four-hit release's cast time were also corrected, and the rotation's Qi steps
-re-anchored so the exhaust stays on the second Scarlet Spin's sixth forward hit.
-Timing and coefficients account for +0.085% and -0.843% respectively. Because
-Piercing Dart is a small share of this rotation's damage, a 62% coefficient
-correction moves total DPS by under 1%.
+尘的「木桩1分钟」现在使用其在该循环自身 35 ms 延迟下经用户批准的结果：57,947.14 秒伤，取代 58,402.80 秒伤（-0.78%），总伤害 3,476,828.22。镖鸣彻野的七段横扫系数已依据 `20702104` 在 100 级时的 `timings.hitCoefficients` 曲线进行修正，使七击系数总和从 9.5782 降至 3.62181；旧数值在第 4-7 击上重复使用了同一个系数。实测的七击标记序列和四击释放的施放时间也得到修正，循环的真气步骤也重新锚定，使气竭仍落在第二次红消香断的第六次前向命中上。时机与系数分别贡献 +0.085% 和 -0.843%。由于镖鸣彻野在该循环伤害中占比很小，62% 的系数修正对总秒伤的影响不到 1%。
 
-Dust's second rotation, `dust-dummy-1-min-100pc`, is the path default and uses its
-user-approved result at its own 40 ms ping: 58,915.82 DPS with 3,534,949.26 total
-damage over 60 seconds. It anchors battle start on the four-hit release's first
-hit, which depends on the anchored action's own resolved time rather than its
-position in the action array, so the release's own Soul Loss applications land in
-combat and the opener breaks Soul Loss. Its whole sequence fits the window, so
-unlike the first rotation it has no unreachable trailing step. Its exhaust sits on
-the fifth forward hit of the second Scarlet Spin, which covers that spin's denser
-middle instead of its tail and replaced 58,899.96 DPS (+0.027%) with the approved
-value above.
+尘的第二个循环 `dust-dummy-1-min-100pc` 是该流派的默认循环，使用其在自身 40 ms 延迟下经用户批准的结果：60 秒内 58,915.82 秒伤，总伤害 3,534,949.26。它将战斗开始锚定在四击释放的第一击上；该锚点取决于被锚定动作自身解析出的时间，而非其在动作数组中的位置，因此释放自身施加的失魂会落在战斗内，起手即可打破失魂。它的整个序列都在窗口之内，因此与第一个循环不同，它没有无法到达的尾部步骤。它的气竭落在第二次红消香断的第五次前向命中上，覆盖该次旋转较密集的中段而非尾段，并以上述批准数值取代了 58,899.96 秒伤（+0.027%）。
 
-Both Dust rotations then moved together when a Scarlet Spin throw was made to crit
-the Resonances it summons, taking Dummy 1 Min to 59,450.02 DPS (3,567,001.03 total
-damage) and the 100% Phantom Chime rotation to 59,121.24 DPS (3,547,274.56), each
-+0.35% with an unchanged 60-second duration. Every 3rd catch grants Fragrant Song
-and the throw that spends it summons two Resonances, so 12 throws per rotation
-own 24 sites and 21 of them resolve before the fight ends. See
-[skill-data.md](skill-data.md) for why the bonus needs a per-throw marker.
+随后，当红消香断的投掷被改为使其召唤的共鸣打出会心时，两个尘循环一同变化：「木桩1分钟」变为 59,450.02 秒伤（总伤害 3,567,001.03），100%幻鸣循环变为 59,121.24 秒伤（3,547,274.56），各为 +0.35%，60 秒持续时间不变。每第 3 次接回会获得芳歌，消耗它的那次投掷会召唤两个共鸣，因此每个循环的 12 次投掷拥有 24 个召唤点位，其中 21 个在战斗结束前结算。关于该加成为何需要逐次投掷的标记，请参阅 [skill-data.md](skill-data.md)。
 
-## Updating reviewed rotations
+## 更新已审核的循环
 
-Run `npm run test:dps`, explain each affected rotation's old/new result and cause,
-and obtain acceptance before updating it. `DPS_UPDATE_IDS` accepts an exact case
-ID, a path ID to select all its rotations, or `all`. Unselected baselines remain
-unchanged; unknown or overlapping selectors fail.
+运行 `npm run test:dps`，说明每个受影响循环的新旧结果及其原因，并在更新前获得认可。`DPS_UPDATE_IDS` 接受精确的用例 ID、用于选择该流派全部循环的流派 ID，或 `all`。未被选中的基线保持不变；未知或相互重叠的选择器会导致失败。
 
-In PowerShell:
+在 PowerShell 中：
 
 ```powershell
 $env:DPS_UPDATE_IDS = "bamboocutKite/dummy-1-min-iv-bp"
@@ -184,34 +66,22 @@ try {
 }
 ```
 
-In a POSIX shell:
+在 POSIX shell 中：
 
 ```sh
 DPS_UPDATE_IDS="silkbindDeluge" npm run snapshots:dps:update
 DPS_UPDATE_IDS="stonesplitStrength/pure-dummy-1-min stonesplitMight/dummy-1-min" npm run snapshots:dps:update
 ```
 
-Use `all` only after every current rotation has been accepted; it also removes
-obsolete baseline keys. Leave the variable unset during release checks. Inspect
-the resulting diff and run formatting, build, and release snapshot checks before
-publishing. Focused mechanic tests remain necessary when timing or buff changes
-can offset each other in total DPS.
+仅在每个当前循环都已被接受后才使用 `all`；它还会移除过时的基线键。发布检查期间不要设置该变量。发布前请检查生成的差异，并运行格式化、构建和发布快照检查。当时机或增益的改动可能在总秒伤中相互抵消时，仍需进行针对性的机制测试。
 
-## Accepted: 33 ms DOT timer wheel
+## 已接受：33 ms DOT 时间轮
 
-The timer-wheel data change adopts 528 ms burn intervals, 1,023 ms other DOT
-intervals and adjusted positive initial delays, plus 132 ms Hellfire drains.
-Smolder and Combustion now tick immediately; their initial lifetimes and
-extensions preserve single-cast tick totals. Slower DOT cadence changes tick
-counts and downstream trigger/resource feedback. Longer Hellfire retention
-increases Wind damage. Umbra also uses the canceled Stage 1 Slash preset
-and recalibrated Qi milestones. These results include the current working-tree changes.
+时间轮数据改动采用 528 ms 的灼烧间隔、1,023 ms 的其他 DOT 间隔和调整后的正初始延时，以及 132 ms 的业火消耗。暗灼和爆燃现在会立即跳伤；其初始持续时间和延长量保持单次施放的跳数总量不变。更慢的 DOT 节奏会改变跳数以及下游的触发/资源反馈。更长的业火保留时间提高了风的伤害。影还改用了「次二衡径数 第1段（打断）」模板以及重新校准的真气节点。这些结果包含当前工作区的改动。
 
-The user accepted all 17 preset changes on 2026-10-11, and their snapshots
-were refreshed after review. Every affected duration remains 60 seconds;
-total damage is DPS multiplied by 60. Exact DPS values follow.
+用户于 2026-10-11 接受了全部 17 项模板变化，其快照在审核后已刷新。每个受影响的持续时间仍为 60 秒；总伤害为秒伤乘以 60。确切的秒伤数值如下。
 
-| Rotation path                                            |       Previous DPS |      Accepted DPS |
+| 循环路径                                                 |           先前秒伤 |        已接受秒伤 |
 | -------------------------------------------------------- | -----------------: | ----------------: |
 | `bamboocutDust/dust-dummy-1-min-100pc`                   | 59185.751681597285 | 59162.81970722088 |
 | `bamboocutDust/dust-dummy-1-min`                         |  59450.01720629205 | 59428.59338014854 |
@@ -231,61 +101,34 @@ total damage is DPS multiplied by 60. Exact DPS values follow.
 | `stonesplitStrength/mixed-dummy-smolder-poet-1-min`      |  67675.19144487414 | 67656.17965543146 |
 | `stonesplitStrength/pure-dummy-1-min`                    |  66073.89334400739 |  66033.8658054791 |
 
-## Wings Preview and Morale Chant healing review (2026-10-12)
+## 翊预览与易水歌治疗审核（2026-10-12）
 
-The user confirmed that Morale Chant's T6 healing proc puts its damage proc on
-the same 10-second cooldown, and accepted these four Deluge changes. Healing
-also builds Yi River stacks. In WTS Team, healing takes the shared cooldown
-before all five former damage procs; the lost 41,625 damage is partly offset by
-earlier stack bonuses, producing a net loss of 38,012 damage over 60 seconds.
+用户确认，易水歌的 T6 治疗触发会使其伤害触发进入同一个 10 秒冷却，并接受了以下四项霖的变化。治疗同样会叠加易水层数。在「万物组队」中，治疗会在全部五次原有的伤害触发之前占用共享冷却；损失的 41,625 伤害被更早获得的层数加成部分抵消，最终在 60 秒内净损失 38,012 伤害。
 
-| Deluge rotation |      Previous DPS |       Accepted DPS |
-| --------------- | ----------------: | -----------------: |
-| Regular Fire    | 29803.73756241419 | 29795.703973489002 |
-| Smolder         | 36628.55379060283 | 36504.170596575765 |
-| WTS             | 35847.48213895326 | 35571.006125529166 |
-| WTS Team        | 39472.94285759795 |   38839.4023092996 |
+| 霖循环   |          先前秒伤 |         已接受秒伤 |
+| -------- | ----------------: | -----------------: |
+| 普火     | 29803.73756241419 | 29795.703973489002 |
+| 暗灼     | 36628.55379060283 | 36504.170596575765 |
+| 万物     | 35847.48213895326 | 35571.006125529166 |
+| 万物组队 | 39472.94285759795 |   38839.4023092996 |
 
-The user also accepted the initial Wings Preview snapshots: Jadebreaker at
-50343.070273433346 DPS and Dawnsun at 35943.38925113531 DPS. Both use the
-Fully Relayed Min Build and a 60-second encounter. Remaining Wings limitations
-are tracked in `wings-implementation-audit.md`. All other accepted snapshots
-remain unchanged.
+用户还接受了初始的翊预览快照：撼玉为 50343.070273433346 秒伤，昭阳为 35943.38925113531 秒伤。两者均使用全承音小外配装和 60 秒的战斗场景。翊的其余局限记录在 `wings-implementation-audit.md` 中。其他所有已接受快照保持不变。
 
-## Wings attribute multiplier correction review (2026-10-12)
+## 翊属性倍率修正审核（2026-10-12）
 
-The user accepted the corrected Wings snapshots after reviewing the duplicated
-primary-attribute multiplier. Both Wings skill files now retain equal Physical
-and attribute coefficients; the shared damage calculator applies the 1.5 primary
-Silkbind multiplier once. Flat damage, timing, and rotation sequences are unchanged.
+在审查了被重复计算的主属性倍率后，用户接受了修正后的翊快照。两个翊技能文件现在都保留相同的外功系数与属性系数；共享的伤害计算器只应用一次 1.5 倍的牵丝主属性倍率。固定伤害、时机和循环序列均未改变。
 
-At breakthrough 17 on Fully Relayed Min, Dawnsun changes from
-35,943.38925113531 to 32,612.608937578592 DPS and from 2,156,603.355068119
-to 1,956,756.5362547156 total damage. Jadebreaker changes from
-50,343.070273433346 to 45,143.906152993135 DPS and from 3,020,584.216406001
-to 2,708,634.3691795883 total damage. Both durations remain 60 seconds.
-Only these two reviewed snapshots were refreshed.
+在破阵 17、全承音小外配装下，昭阳的秒伤从 35,943.38925113531 变为 32,612.608937578592，总伤害从 2,156,603.355068119 变为 1,956,756.5362547156。撼玉的秒伤从 50,343.070273433346 变为 45,143.906152993135，总伤害从 3,020,584.216406001 变为 2,708,634.3691795883。两者的持续时间仍为 60 秒。只有这两个经过审核的快照被刷新。
 
-The corrected comparisons retain Min as the best of the four Wings layouts at
-both gear tiers. Double Min returns to Physical penetration, and Graduate uses
-the winning non-relayed Min layout at both tiers. These preset changes do not
-change the snapshot fixture, which continues to use Fully Relayed Min.
+修正后的比较结果仍然表明，在两个装备档位下，小外都是四种翊布局中最好的。小外小属回到外功穿透，毕业配装在两个档位下都使用胜出的非承音小外布局。这些模板变化不会改变快照测试夹具，后者继续使用全承音小外配装。
 
-## Wings rotation and translation review (2026-10-13)
+## 翊循环与翻译审核（2026-10-13）
 
-The user accepted the revised Wings presets after reviewing the opener, first-round
-ordering, Qi break on the second Ripple's final hit, Smolder 2-hit cancel at skill
-25, and infinite Vitality. Qi restores after ten seconds of Exhausted; the next
-59.99% and 39.99% markers repeat the original depletion rate from that recovery.
-The current first-round order retains the documented brief Cloudshear gap;
-Smolder at skill 25 adds roughly 0.56 seconds without Cloudshear before the final Ripple.
-End of Gale reapplies Driftbreeze. Skill translations and the EndOfGale and
-RhythmOfAccord ID migrations preserve saved rotations and overrides.
+在审查了起手、第一轮顺序、第二次凌波最后一击上的真气击破、第 25 个技能处的暗灼 2 击打断以及无限精元之后，用户接受了修订后的翊模板。气竭十秒后真气恢复；之后的 59.99% 和 39.99% 标记点从该次恢复起沿用原来的消耗速率。当前的第一轮顺序保留了文档中记录的短暂裁云空档；第 25 个技能处的暗灼会在最后一次凌波之前增加约 0.56 秒没有裁云的时间。煞尽东风会重新施加流风。技能翻译以及 EndOfGale 和 RhythmOfAccord 的 ID 迁移会保留已保存的循环和覆盖值。
 
-| Preset      |       Previous DPS |      Accepted DPS | Previous total damage | Accepted total damage |
-| ----------- | -----------------: | ----------------: | --------------------: | --------------------: |
-| Jadebreaker | 46137.050187336594 | 49308.01325488668 |    2768223.0112401955 |    2958480.7952932008 |
-| Dawnsun     |  33754.85510594089 | 36207.09043887357 |    2025291.3063564536 |     2172425.426332414 |
+| 模板 |           先前秒伤 |        已接受秒伤 |         先前总伤害 |       已接受总伤害 |
+| ---- | -----------------: | ----------------: | -----------------: | -----------------: |
+| 撼玉 | 46137.050187336594 | 49308.01325488668 | 2768223.0112401955 | 2958480.7952932008 |
+| 昭阳 |  33754.85510594089 | 36207.09043887357 | 2025291.3063564536 |  2172425.426332414 |
 
-Both encounters remain 60 seconds and use the existing Fully Relayed Min fixture.
-Only the two reviewed Wings snapshots were refreshed.
+两个战斗场景仍为 60 秒，并使用现有的全承音小外测试夹具。只有这两个经过审核的翊快照被刷新。

@@ -1,283 +1,98 @@
-# Incremental rotation event loop
+# 循环的增量式事件循环
 
-The rotation is authored input, not a generated timeline. It stores ordered
-skills, explicit delays and attachments, plus encounter events with timestamps.
-Generated cooldown waits are output only; legacy automatic waits are removed at
-the load/import boundary with fight-start indexes remapped.
+循环是手动编排的输入，而不是生成的时间轴。它存储有序的技能、显式延迟与附加项，以及带时间戳的遭遇事件。生成的冷却等待仅作为输出；旧版自动等待会在加载/导入边界被移除，同时重新映射开战索引。
 
-## Four collections
+## 四个集合
 
-1. Ordered input: skills and explicit delays, traversed with a cursor. Attachments
-   belong to the following eligible anchor and expand with it.
-2. Timed input: encounter events sorted once by timestamp and input order.
-3. Expanded events: a stable priority queue of currently expanded actions, triggers,
-   periodic ticks, expirations and next-ordered-item wakeups.
-4. Final timeline: resolved rows/actions and the snapshots needed for calculation.
+1. 有序输入：技能与显式延迟，通过游标遍历。附加项从属于其后第一个符合条件的锚点，并随之一同展开。
+2. 定时输入：遭遇事件，按时间戳与输入顺序一次性排序。
+3. 已展开事件：一个稳定优先队列，包含当前已展开的动作、触发、周期跳、到期，以及下一个有序项的唤醒。
+4. 最终时间轴：已解析的行/动作，以及计算所需的快照。
 
-Compare the heads of timed input and expanded events. Resolve the earliest event;
-causal ordering breaks equal-time ties, with Battle End preceding damage. Starting
-an ordered item expands only that item and schedules its successor marker at its
-resolved cast end. A queued trigger is the exception: accepting its earlier
-`queueTime` reservation moves that successor marker when the queued skill starts,
-so the owning row remains active through the queued skill's completion.
-Subaction timing can adjust that marker, not future casts. Cooldown availability
-is checked against live state. A cooldown reset wakes a waiting ordered skill
-immediately; obsolete retry events must not start it twice. The readiness check
-precedes attachment expansion so before-start effects do not run during a
-cooldown wait. Once accepted, cast-start modifiers determine the new cooldown
-window and cast duration.
+比较定时输入与已展开事件的队首。解析最早的事件；时间相同时按因果顺序决定先后，「战斗结束」先于伤害。启动一个有序项时只展开该项，并在其解析后的施放结束时刻调度其后继标记。排队触发是例外：接受其更早的 `queueTime` 预留后，会在排队技能开始时移动该后继标记，使所属行在排队技能完成之前保持活动。子动作的时机可以调整该标记，但不能调整之后的施放。冷却可用性依据实时状态检查。冷却重置会立即唤醒正在等待的有序技能；过时的重试事件不得将其启动两次。就绪检查先于附加项展开，以免开始前效果在冷却等待期间运行。一旦被接受，施放开始时的修正项将决定新的冷却窗口与施放时长。
 
-DOTs keep only one upcoming tick, regardless of duration. After the tick's actions
-and causal follow-ups resolve, a completion marker schedules its successor from
-the original application cadence and current expiry. Expected DOTs use their
-existing single tick wakeup and probability tracker. Both paths stop at the
-combat endpoint rather than expanding the remaining lifetime.
-When `resetOnRefresh` is false and the periodic definition is unchanged, a DOT
-refresh updates expiry and ownership without invoking the scheduler while a tick
-is pending. References to that tick's queued events update its causal ordering
-without scanning the whole queue. Only strictly future ticks transfer ownership;
-a refresh at the current tick boundary applies to subsequent ticks. Shortening
-expiry cancels an ineligible pending tick, honoring `tickOnExpire`. Extending an
-active DOT after its last eligible tick schedules the next cadence boundary.
-Damage and effect state are captured when the tick starts, so retaining a row
-does not freeze its buffs or stats. Cadence resets, changed periodic definitions,
-and finite/indefinite lifetime transitions rebuild the pending tick. Consumption
-invalidates the old successor chain, including across reapplication.
+DOT 无论持续时间多长，都只保留一个即将到来的跳。该跳的动作及其因果后续解析完毕后，完成标记会依据原始施加节奏与当前到期时间调度其后继。期望 DOT 使用其现有的单个跳唤醒与概率追踪器。两条路径都在战斗终点停止，而不会展开剩余的生命周期。当 `resetOnRefresh` 为 false 且周期定义未改变时，若有一个跳处于待处理状态，DOT 刷新只更新到期时间与归属，而不调用调度器。对该跳已排队事件的引用会更新其因果顺序，无需扫描整个队列。只有严格位于未来的跳才会转移归属；在当前跳边界上的刷新作用于后续各跳。缩短到期时间会取消不再符合条件的待处理跳，并遵循 `tickOnExpire`。在活动 DOT 的最后一个符合条件的跳之后延长它，会调度下一个节奏边界。伤害与效果状态在跳开始时捕获，因此保留一行并不会冻结其增益或属性。节奏重置、周期定义变化以及有限/无限生命周期之间的转换会重建待处理跳。消耗会使旧的后继链失效，包括跨越重新施加的情况。
 
-Non-DOT indefinite periodic effects retain their single-successor wakeup, while
-finite non-DOT periodic effects retain their bounded schedule. Periodic resource
-amounts can increase by a data-defined amount each tick, as used by Hellfire.
+非 DOT 的无限周期效果保留其单后继唤醒，而有限的非 DOT 周期效果保留其有界调度。周期性资源量可以在每跳按数据定义的数值递增，业火即采用此方式。
 
-## Readiness after charging
+<a id="readiness-after-charging"></a>
 
-A composite reference can set `waitForRequirement: true` after an unconditional
-`silent: true` charging prefix. Silent components cannot define actions,
-cooldowns, or attack responses and do not emit skill-start notifications.
-The weapon switches at the earliest possible cast start. Explicit start
-attachments also execute there; they are authored events, not charge emissions.
+## 蓄力后的就绪
 
-After the minimum charge duration and component ping, the release and remaining
-cast events are held outside the queue. The same live traversal continues with
-pending hits, resource changes, resets, and timed events. Between events, passive
-resource thresholds and natural effect expiry supply readiness boundaries.
-All events at a tied boundary resolve before readiness is accepted.
+复合引用可以在一个无条件的 `silent: true` 蓄力前缀之后设置 `waitForRequirement: true`。静默组件不能定义动作、冷却或攻击响应，也不会发出技能开始通知。武器切换发生在最早可能的施放开始时刻。显式的开始附加项也在该时刻执行；它们是编排的事件，而非蓄力发出的事件。
 
-When ready, shift the existing row's displayed start by the extra wait and resume
-its held events at the current clock. The charge duration stays unchanged, so
-the displayed interval ends at release. No past event is inserted or replayed.
-Rows are stable objects referenced by queued events; timestamp edits do not
-require a linked-list timeline. Generated `automatic: "requirement"` Delay rows
-describe the preceding wait. If combat ends first, no release is published. An
-unreachable release without a combat endpoint is skipped. The ordinary Vile
-Condemned fallback selection remains unchanged.
+在最短蓄力时长与组件 ping 之后，释放及剩余的施放事件被保留在队列之外。同一实时遍历继续处理待处理的命中、资源变化、重置与定时事件。在事件之间，被动资源阈值与效果的自然到期提供就绪边界。同一边界上的所有事件都解析完毕后，才会接受就绪。
 
-## Combat cutoff
+就绪时，将现有行的显示开始时间按额外等待时长后移，并在当前时钟恢复其被保留的事件。蓄力时长保持不变，因此显示区间在释放时结束。不会插入或重放任何过去的事件。行是被队列事件引用的稳定对象；修改时间戳不需要链表式时间轴。生成的 `automatic: "requirement"` 延迟行描述前面的等待。若战斗先结束，则不发布释放。没有战斗终点时，无法到达的释放会被跳过。普通的无义当诛回退选择保持不变。
 
-With Battle End, exhausted ordered input does not end combat: process remaining
-events until Battle End, excluding damage at that timestamp. Without Battle End,
-the final ordered item's completion ends combat. Actions and their causal
-follow-ups at its cast-end timestamp resolve before the completion marker. A
-trailing explicit Delay extends this endpoint. Damage after it is discarded,
-including DOTs and feedback loops. No last-damage discovery pass is needed.
+<a id="combat-cutoff"></a>
 
-## Damage and reuse
+## 战斗截止
 
-The live state also owns buff/debuff snapshots and their numeric aggregate.
-Actions share unchanged immutable snapshots and consume prepared effects/stats
-from the existing action resolver. Named effect requirements query the
-authoritative maps directly; no parallel active-effect array is maintained. See
-[stat-pipeline.md](stat-pipeline.md#sequential-prepared-combat-state) for reuse
-keys, invalidation, historical ownership, and attribution behavior.
+存在「战斗结束」时，有序输入耗尽并不会结束战斗：继续处理剩余事件直到「战斗结束」，但不包括该时间戳上的伤害。没有「战斗结束」时，最后一个有序项的完成即结束战斗。位于其施放结束时间戳上的动作及其因果后续会在完成标记之前解析。末尾的显式延迟会延长这一终点。终点之后的伤害会被丢弃，包括 DOT 与反馈循环。不需要额外查找最后一次伤害的遍历。
 
-Each baseline and event-changing variant performs one chronological combat
-traversal. A worker-local action resolver calls the shared damage/healing formulas
-inside that traversal. HP, accumulators, recording settlements, and damage-event
-listeners use each resolved result immediately. Generated replays enter the same
-queue and reference resolved source damage. Collectors retain those results for
-final aggregation; they never reconstruct or replay combat. Only event-invariant
-variants may reuse stored action snapshots. Probability trackers remain effect-local.
+## 伤害与复用
 
-Inner Way `damageOutcome` triggers require live traversal for comparisons, including
-stat and attunement changes. Battle Anthem's outcome-dependent Endurance recovery
-changes later payments and missing-Endurance bonuses; reusing the baseline meter
-while recalculating outcomes cannot reproduce that feedback.
+实时状态同样持有增益/减益快照及其数值汇总。各动作共享未改变的不可变快照，并从现有动作解析器获取预先准备好的效果/属性。具名效果需求直接查询权威映射表；不维护并行的活动效果数组。复用键、失效、历史归属与归因行为参见 [stat-pipeline.md](stat-pipeline.md#sequential-prepared-combat-state)。
 
-The internal clock begins at the first ordered item. Battle start is recorded once
-as `battleStartTime` (`-1` until detected). Detection activates battle-relative
-encounter events, passive regeneration for resources other than Endurance, the practice target's declared attack
-patterns, and shared expected DOT ticks. Precombat DOT applications remain in their trackers until clock activation.
-The worker publishes internal timestamps and battle start; the UI subtracts the
-recorded start for display. There is no anchor-convergence or duration-discovery
-pass. Auto HP is removed, so HP never depends on future rotation duration.
+每个基线及改变事件的变体都执行一次按时间顺序的战斗遍历。worker 本地的动作解析器在该遍历内调用共享的伤害/治疗公式。气血、累加器、记录结算以及伤害事件监听器会立即使用每个解析结果。生成的重放进入同一队列，并引用已解析的来源伤害。收集器保留这些结果用于最终汇总；它们从不重建或重放战斗。只有不改变事件的变体可以复用已存储的动作快照。概率追踪器仍是效果本地的。
 
-Endurance spending, continuous consumption, regeneration overrides, and passive
-recovery run from the first ordered item, including before battle start. Battle
-detection does not reset this resource clock.
+心法的 `damageOutcome` 触发需要实时遍历来进行比较，包括属性与定音的变化。威猛歌依赖结果的耐力恢复会改变之后的消耗以及按已损失耐力计算的加成；在重新计算结果时复用基线的资源计量无法重现这一反馈。
 
-The editor omits resolved actions rejected by their requirements or cooldowns.
-Action snapshots alone do not indicate acceptance: only accepted actions receive
-`combatOrder`. This keeps stack-dependent DOT damage alternatives from appearing
-as multiple hits for one tick; pending calculation previews remain visible.
+内部时钟从第一个有序项开始。开战时刻以 `battleStartTime` 记录一次（检测到之前为 `-1`）。检测到开战会激活：相对开战时间的遭遇事件、耐力以外资源的被动回复、练习目标声明的攻击模式，以及共享的期望 DOT 跳。开战前的 DOT 施加会保留在其追踪器中，直到时钟激活。worker 发布内部时间戳与开战时刻；界面减去记录的开始时刻用于显示。不存在锚点收敛或时长发现的遍历。自动气血已移除，因此气血永远不依赖未来的循环时长。
 
-A composite component can declare `{ "type": "skillStart", "time": 0 }` when
-it begins another actual cast. This action dispatches the existing skill-start
-effect triggers using that component's tags. It does not start another rotation
-row, pay another parent cost, or change cast duration. Umbra's Special follow-up
-uses it to reset its once-per-cast Endurance refund allowance.
+耐力消耗、持续消耗、回复覆盖以及被动恢复从第一个有序项开始运行，包括开战之前。开战检测不会重置这一资源时钟。
 
-## Verification
+编辑器会省略因需求或冷却而被拒绝的已解析动作。仅有动作快照并不代表已被接受：只有被接受的动作才会获得 `combatOrder`。这样可防止依赖层数的 DOT 伤害备选项在一跳中显示为多次命中；待处理的计算预览仍保持可见。
 
-### Stack-indexed periodic probability storage
+复合组件在开始另一次实际施放时，可以声明 `{ "type": "skillStart", "time": 0 }`。该动作使用该组件的标签分派现有的技能开始效果触发。它不会开始另一个循环行、不会再次支付父级消耗，也不会改变施放时长。影的特殊技后续动作用它来重置每次施放仅一次的耐力返还额度。
 
-Each temporary causal partition has an inactive-probability scalar and, per damage
-owner, a numeric Map from stack count to sorted `(expiration, probability)` lists.
-Tiny-state merging preserves each stack count.
-For a hit, visit stack counts downward. Scale each entry's failure mass in place,
-sum its success mass, then insert one destination entry at the refreshed expiration.
-Equal expirations merge. Threshold-burst mass is published only after processing
-the original application, so it cannot receive that same application again.
-Conditional follow-ups transform only their partition; release merges it back.
-Exact cadence weights and shared-grid pending-tick weights travel with the mass.
+## 验证
 
-The default storage is an indexed linked list backed by parallel JavaScript numeric
-arrays and a recycled-slot free list. Head removal, tail append and equal-tail
-merging are O(1); finding an arbitrary insertion/merge position is still O(n).
-Tiny-state merging collects released rare entries per stack across owners and
-expiration times. It removes entries that actually merge and inserts their weighted
-deadline, preserving sorted order; significant and singleton entries remain in place.
-Branch release uses a forward-only sorted merge, O(n + m), with O(1) work per
-visited node rather than O(n) insertion searches per source entry. Current-expiry
-follow-ups use the tail directly. Fixed-duration chronological applications also
-append or merge at the tail; the generic variable-duration application path retains
-one ordered traversal when its new expiration precedes the tail.
-These complexity guarantees apply to the default indexed backend; diagnostic packed
-arrays still shift elements for middle edits. Exact-cadence payload maps additionally
-require traversal of their cadence entries; shared-grid states have scalar payloads.
-Each effect retains one pending expiry wakeup selected from its list heads, not
-one wakeup for every future expiration. Due owners use the normal effect-action
-executor. A dispatched-time cursor prevents duplicate wakeups while those actions
-resolve. Tiny-state merging remains the only additional expiration approximation.
+### 按层数索引的周期概率存储
 
-`TimelineBuildInput.expectedPeriodicStorage` accepts `"indexed"` (default) or
-`"packed"` for diagnostics. Packed arrays use a head cursor and linear compaction,
-with contiguous traversal but potentially shifting middle insertions.
-`node script/probe/benchmark-periodic-state-storage.mjs 400` compares both against
-committed reference `78537e2` using the same fixture, rotating run order, discarding
-six warm-up rounds and reporting medians from six measured rounds. A local run:
+每个临时因果分区都有一个未激活概率标量，并且对每个伤害归属方，各有一个从层数映射到已排序 `(expiration, probability)` 列表的数值 Map。微小状态合并会保留每个层数。对于一次命中，按层数从高到低访问。就地缩放每个条目的失败质量，累加其成功质量，然后在刷新后的到期时间插入一个目标条目。到期时间相同的条目会合并。阈值爆发质量只在处理完原始施加后才发布，因此它不会再次接收同一次施加。条件后续只变换其所在分区；释放时将其合并回去。精确节奏权重与共享网格的待处理跳权重随质量一起传递。
 
-| Storage              | Timeline | Total baseline |
-| -------------------- | -------: | -------------: |
-| Previous state maps  |   135 ms |         151 ms |
-| Packed arrays        |    64 ms |          79 ms |
-| Indexed linked lists |    63 ms |          80 ms |
+默认存储是一个索引链表，底层为并行的 JavaScript 数值数组和一个回收槽位空闲链表。头部移除、尾部追加以及与尾部相等时的合并均为 O(1)；查找任意插入/合并位置仍为 O(n)。微小状态合并跨归属方与到期时间，按层数收集已释放的稀有条目。它移除真正发生合并的条目，并插入其加权截止时间，保持排序顺序；重要条目和单例条目保持原位。分支释放使用只向前的有序合并，复杂度为 O(n + m)，每个访问节点只做 O(1) 工作，而不是每个来源条目各做一次 O(n) 的插入查找。当前到期时间的后续直接使用尾部。固定时长的按时间顺序施加同样在尾部追加或合并；通用的可变时长施加路径在新到期时间早于尾部时，保留一次有序遍历。这些复杂度保证适用于默认的索引后端；诊断用的紧凑数组在中间编辑时仍会移动元素。精确节奏的负载映射另外需要遍历其节奏条目；共享网格状态的负载是标量。每个效果只保留一个从其各列表头部选出的待处理到期唤醒，而不是为每个未来到期时间各保留一个唤醒。到期的归属方使用常规的效果动作执行器。已分派时间游标可防止这些动作解析期间出现重复唤醒。微小状态合并仍是唯一额外的到期近似。
 
-All produced 1,342 timeline rows, 1,739 damage entries and 1,280 Piercing entries;
-total damage was 56,551.976896 with relative differences below `3e-15` for both
-total and Inner Way damage. These are machine-local timings, not latency guarantees.
-An earlier paired run measured 164 / 104 / 92 ms total respectively. Both new
-backends materially improve on the reference; their relative advantage varies
-between runs. Indexed lists remain the default with constant-time unlinking and
-slot reuse, while packed arrays remain available for comparison.
-`tests/periodic-state-storage.test.ts` compares both backends to the committed tracker
-across randomized owners, gains, refreshes, expirations, conditional follow-ups and
-exact/shared cadences, and verifies sorted insertion and recycled-slot isolation.
+`TimelineBuildInput.expectedPeriodicStorage` 接受 `"indexed"`（默认）或用于诊断的 `"packed"`。紧凑数组使用头部游标与线性压缩，遍历连续，但中间插入可能需要移动元素。`node script/probe/benchmark-periodic-state-storage.mjs 400` 使用相同的夹具，将两者与已提交的参考版本 `78537e2` 进行比较：轮换运行顺序，丢弃六轮预热，并报告六轮测量的中位数。一次本地运行的结果：
 
-### Tiny expected-state merging
+| 存储           | 时间轴 | 基线总计 |
+| -------------- | -----: | -------: |
+| 此前的状态映射 | 135 ms |   151 ms |
+| 紧凑数组       |  64 ms |    79 ms |
+| 索引链表       |  63 ms |    80 ms |
 
-Expected DOT trackers follow the shared policy in `probabilityStateMerging.ts` and
-merge released states with individual absolute probability below `1e-5` and the
-same stack count, regardless of expiration time. Stack counts remain unchanged;
-pending-tick fractions and expiration times become probability-weighted means,
-with expiration means rounded to the existing 0.0001-second clock. Different stacks
-remain separate. Source ownership
-is retained as a probability-weighted mixture. Application-relative cadence
-entries also merge by probability without time buckets, weighting their
-tick times. A singleton keeps its original values. There is no additional
-active/expired timer eligibility test; chronological execution normally consumes
-expired states before merging. Temporary causal branches enter the retained
-distribution after their linked follow-ups finish. Significant states and
-sampled simulation retain their original values.
+全部产生 1,342 行时间轴、1,739 条伤害条目和 1,280 条刺伤条目；总伤害为 56,551.976896，总伤害与心法伤害的相对差异均低于 `3e-15`。这些是本机计时，并非延迟保证。较早的一次配对运行测得的总计分别为 164 / 104 / 92 ms。两个新后端都相对参考版本有明显提升；二者之间的相对优势在不同运行之间有所变化。索引链表凭借常数时间的解链与槽位复用仍为默认，紧凑数组则保留用于比较。`tests/periodic-state-storage.test.ts` 在随机化的归属方、叠层、刷新、到期、条件后续以及精确/共享节奏上，将两个后端与已提交的追踪器进行比较，并验证有序插入与回收槽位隔离。
 
-Merging runs after ordinary applications or after conditional burst follow-ups
-release their branch. The scheduler updates the effect's earliest-expiration
-wakeup to reflect the merged lists. Probability is not
-discarded; expiration timing and its interaction with later hits are approximated.
-`TimelineBuildInput.expectedPeriodicStateMerging: false` disables this new
-approximation for comparisons, without disabling the existing shared DOT grid.
+<a id="tiny-expected-state-merging"></a>
 
-An alternating baseline benchmark on 2026-10-08 used the Wind Fully Relayed Min
-preset and Dummy 1 Min Infinite Vitality rotation with Fivefold Bleed replacing
-Morale Chant. After four warm-up pairs, six measured pairs gave median baseline
-times of 531 ms with the former time-bucket policy and 398 ms with same-stack
-merging across deadlines. Damage entries fell from 1,852 to 1,413; expiration
-Pierce entries fell from 826 to 387. Five-stack bursts stayed at 450 and DOT ticks
-at 59. Expected DPS changed from 68,113.8785 to 68,096.9623 (−0.02484%). With
-periodic merging disabled, DPS was 68,123.2593. These are fixture-specific
-approximation differences, not a universal error bound. Sampled runs with fixed
-rolls of 0.1 and 0.9 were identical under both policies.
+### 微小期望状态合并
 
-The benchmark results below are historical and do not measure the current
-same-stack policy without timing buckets.
+期望 DOT 追踪器遵循 `probabilityStateMerging.ts` 中的共享策略，将单个绝对概率低于 `1e-5` 且层数相同的已释放状态合并，不论其到期时间。层数保持不变；待处理跳的比例与到期时间变为按概率加权的均值，其中到期时间均值舍入到现有的 0.0001 秒时钟精度。不同层数保持分离。来源归属以按概率加权的混合形式保留。相对施加时刻的节奏条目同样按概率合并，不使用时间桶，并对其跳时间加权。单例保持原值。没有额外的活动/已到期计时器资格检查；按时间顺序执行通常会在合并前消耗已到期的状态。临时因果分支在其关联的后续完成后进入保留的分布。重要状态与抽样模拟保留其原始值。
 
-`node script/probe/benchmark-fivefold-state-merging.mjs 400` alternates exact and
-merged runs, discards four warm-up pairs, and reports medians of six measured
-pairs. Initial results at the former `1e-6` threshold: timeline 255 → 158 ms; total baseline 299 → 181 ms;
-rows 2,847 → 1,356; damage entries 3,244 → 1,753; Piercing Damage entries
-2,785 → 1,294. Five-stack bursts remain 396 and shared DOT rows remain 59.
-Total damage differs by about `1.8e-14` relative and Inner Way damage by
-`1.3e-13` relative on this fixture, not a universal error bound.
+合并在普通施加之后运行，或在条件爆发后续释放其分支之后运行。调度器会更新该效果的最早到期唤醒，以反映合并后的列表。概率不会被丢弃；被近似的是到期时机及其与后续命中的交互。`TimelineBuildInput.expectedPeriodicStateMerging: false` 会为比较而禁用这一新近似，但不会禁用现有的共享 DOT 网格。
 
-Raising the threshold to `1e-5` reduces rows to 1,342, damage entries to 1,739,
-and Piercing Damage entries to 1,280 (14 fewer than `1e-6`). Five-stack bursts
-and DOT rows remain unchanged. Total/Inner Way relative damage differences remain
-about `1.8e-14` / `1.3e-13`. One warmed run measured 167 ms timeline and 195 ms
-total, versus 306 / 363 ms with merging disabled in that run. Between-run timing
-variation does not establish an additional speedup over the former threshold.
+2026-10-08 的一次交替基线基准测试使用了风·全承音小外配装模板与「木桩1分钟无限精元」循环，并以极乐泣血替换易水歌。经过四对预热后，六对测量得到的基线时间中位数为：旧的时间桶策略 531 ms，跨截止时间的同层数合并 398 ms。伤害条目从 1,852 降至 1,413；到期刺伤条目从 826 降至 387。五层爆发保持 450 次，DOT 跳保持 59 次。期望秒伤从 68,113.8785 变为 68,096.9623（−0.02484%）。禁用周期合并时，秒伤为 68,123.2593。这些是特定夹具下的近似差异，并非普适的误差界。使用固定掷值 0.1 和 0.9 的抽样运行在两种策略下结果相同。
 
-### Incremental scheduling
+以下基准测试结果为历史数据，并未测量当前不使用时间桶的同层数策略。
 
-`tests/incremental-timeline.test.ts` checks live cooldown-reset wakeups,
-attachment timing, cast/Delay/Battle End cutoffs, lazy expansion, editable
-unreached steps, timed-only encounters, and legacy wait migration.
-The replay and healing probes give delayed follow-ups an explicit combat window.
-Fivefold Bleed's grid and exhaustive branch-history probes continue to verify
-probability behavior independently of the event-loop structure.
+`node script/probe/benchmark-fivefold-state-merging.mjs 400` 交替执行精确运行与合并运行，丢弃四对预热，并报告六对测量的中位数。在旧的 `1e-6` 阈值下的初始结果：时间轴 255 → 158 ms；基线总计 299 → 181 ms；行数 2,847 → 1,356；伤害条目 3,244 → 1,753；刺伤条目 2,785 → 1,294。五层爆发保持 396 次，共享 DOT 行保持 59 行。在该夹具上，总伤害的相对差异约为 `1.8e-14`，心法伤害约为 `1.3e-13`，并非普适的误差界。
 
-On the 400-hit Fivefold stress fixture, the warmed timeline-only median over the
-last four of six runs changed from about 361 ms to 306 ms on the same machine.
-Output remained 2,847 rows, including 59 DOT rows; tick checks fell from 118 to 59.
-This is a construction improvement, not a claim that probability processing is
-now cheap or that total calculation/UI latency equals timeline runtime.
+将阈值提高到 `1e-5` 会使行数降至 1,342、伤害条目降至 1,739、刺伤条目降至 1,280（比 `1e-6` 少 14 条）。五层爆发与 DOT 行保持不变。总伤害/心法伤害的相对差异仍约为 `1.8e-14` / `1.3e-13`。一次预热后的运行测得时间轴 167 ms、总计 195 ms，而同一次运行中禁用合并时为 306 / 363 ms。运行之间的计时波动不能证明相对旧阈值有额外的加速。
 
-## Incoming-attack readiness and success
+### 增量调度
 
-After cooldown readiness, an ordered skill with `attackResponse` selects the
-next unreserved manual Take Damage event or dummy attack before Battle End,
-accounting for ping before window start. The scheduler waits until attack time
-plus the configured end margin minus the resolved response duration. The window
-uses this skill's timing or its `durationFrom` reference; blocking cast duration
-remains independent. Previous casts and cooldowns remain lower bounds.
+`tests/incremental-timeline.test.ts` 检查实时冷却重置唤醒、附加项时机、施放/延迟/「战斗结束」截止、惰性展开、可编辑的未到达步骤、仅含定时事件的遭遇，以及旧版等待的迁移。重放与治疗探针为延迟的后续动作提供显式的战斗窗口。极乐泣血的网格探针与穷举分支历史探针继续独立于事件循环结构验证概率行为。
 
-Selected attacks stay fixed through the wait. Reservations group simultaneous
-hits, preventing consecutive zero-duration responses from selecting the same
-attack. No next attack means no wait. Cooldown resets wake cooldown waits only.
-Attachments expand after readiness. Response alignment can extend the ordered
-rotation, and dummy attacks remain part of that same event loop.
+在 400 次命中的极乐泣血压力测试夹具上，同一台机器上预热后、取六次运行中后四次的仅时间轴中位数从约 361 ms 变为 306 ms。输出仍为 2,847 行，其中包括 59 行 DOT；跳检查从 118 次降至 59 次。这是构建方面的改进，并不意味着概率处理现在开销很低，也不意味着计算/界面的总延迟等于时间轴运行时间。
 
-Accepted casts register response windows. An incoming hit inside a window is
-avoided and queues one causal `attackResponse` event per defensive cast, ahead
-of later outgoing events at that timestamp. A Take Damage action with zero
-resolved damage still counts as an incoming hit for this response path. A
-manually authored zero-damage Take Damage event also runs the Take Damage
-lifecycle; a positive attack reduced to zero by a defense does not count as
-damage taken. When no attack is selected, a defensive skill with
-`attackResponse.fallback` resolves its success at the skill start. The
-`PerfectDodge` variants and `DeflectSuccessful` use this fallback; `Dodge` does
-not. A defensive skill's fallback response is disabled when response alignment
-selected a following attack, so that attack remains the sole success trigger.
-Additional incoming hits remain avoided without duplicate success events. Setup talent hooks run on success; the configured success skill uses
-the existing triggered-action executor.
-A per-row response context preserves originating weapon and attribution through
-success descendants without mutating the active weapon. Cancel windows remain
-active while subsequent skills execute. Forecast replays use the same mechanism
-with isolated windows, reservations, and contexts.
+<a id="incoming-attack-readiness-and-success"></a>
+
+## 来袭攻击的就绪与成功
+
+冷却就绪之后，带有 `attackResponse` 的有序技能会选择「战斗结束」之前下一个未被预留的手动「承受伤害」事件或木桩攻击，并计入窗口开始前的 ping。调度器会等待到攻击时间加上配置的结束余量、再减去解析后的响应时长。窗口使用该技能的时机或其 `durationFrom` 引用；阻塞的施放时长保持独立。之前的施放与冷却仍作为下限。
+
+所选攻击在等待期间保持固定。预留会将同时发生的命中归为一组，防止连续的零时长响应选中同一次攻击。没有下一次攻击则不等待。冷却重置只唤醒冷却等待。附加项在就绪之后展开。响应对齐可能会延长有序循环，而木桩攻击仍属于同一个事件循环。
+
+被接受的施放会注册响应窗口。落在窗口内的来袭命中会被规避，并为每次防御性施放排入一个因果 `attackResponse` 事件，排在该时间戳上之后的己方出手事件之前。解析伤害为零的「承受伤害」动作在这条响应路径上仍算作一次来袭命中。手动编写的零伤害「承受伤害」事件同样会运行「承受伤害」的生命周期；而被防御降为零的正值攻击不算作受到伤害。未选中任何攻击时，带有 `attackResponse.fallback` 的防御技能会在技能开始时解析其成功。`PerfectDodge` 各变体与 `DeflectSuccessful` 使用此回退；`Dodge` 不使用。当响应对齐选中了后续攻击时，防御技能的回退响应会被禁用，从而使该攻击保持为唯一的成功触发。额外的来袭命中仍会被规避，但不会产生重复的成功事件。配装设置中的天赋钩子在成功时运行；配置的成功技能使用现有的触发动作执行器。按行的响应上下文会在成功的后代动作中保留来源武器与归因，而不改变当前活动武器。取消窗口在后续技能执行期间保持活动。预测重放使用相同机制，但窗口、预留与上下文相互隔离。

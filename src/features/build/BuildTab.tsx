@@ -53,7 +53,7 @@ import {
   type GearSlot,
 } from "@/gear"
 import { dataText, gameText, t } from "@/i18n"
-import { publishNotice, dismissNotice } from "@/notices"
+import { dismissNotice, errorNoticeMessage, publishNotice } from "@/notices"
 import { createOfficialGearBookmarklet } from "@/officialGearBookmarklet"
 import { useGearStore } from "@/stores/gearStore"
 import type { WeaponId } from "@/types"
@@ -82,7 +82,7 @@ function gearSlotLabel(slot: GearSlot) {
 }
 
 function buildEntryDisplayName(entry: Pick<BuildEntry, "name" | "isDefault">) {
-  return (entry.isDefault ? gameText(entry.name) : entry.name) || "Unnamed Build"
+  return (entry.isDefault ? gameText(entry.name) : entry.name) || t("ui.buildTab.unnamedBuild")
 }
 
 function createBuildId() {
@@ -391,7 +391,7 @@ export default function BuildTab({
       publishNotice({
         id: "build-import",
         error: true,
-        message: error instanceof Error ? error.message : t("ui.notices.buildImportError"),
+        message: errorNoticeMessage(error, t("ui.notices.buildImportError")),
       })
     }
   }
@@ -419,7 +419,7 @@ export default function BuildTab({
       publishNotice({
         id: "official-import",
         error: true,
-        message: error instanceof Error ? error.message : t("ui.buildTab.dashboardImportError"),
+        message: errorNoticeMessage(error, t("ui.buildTab.dashboardImportError")),
       })
     }
   }

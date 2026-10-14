@@ -1,4 +1,5 @@
 import type { TimelineRow } from "./calculations/rotationTimeline"
+import { t } from "./i18n"
 
 const formatHalfSecond = (value: number) => (Number.isInteger(value) ? String(value) : value.toFixed(1))
 
@@ -39,13 +40,16 @@ export function readableRotationText(
         const hitNumber = row.actions
           .slice(0, startAnchor.actionIndex + 1)
           .filter(action => action.type === "damage").length
-        if (hitNumber > 0) return `${name} (start at hit ${hitNumber})`
+        if (hitNumber > 0) return t("ui.app.readableRotationStartAtHit", { name, hit: hitNumber })
       }
-      return `${name} (start)`
+      return t("ui.app.readableRotationStart", { name })
     }
-    if (breakRows.has(row.id)) return `${name} (break)`
+    if (breakRows.has(row.id)) return t("ui.app.readableRotationBreak", { name })
     if (row.startTime < anchorTime - 1e-6)
-      return `${name} at ${formatHalfSecond(Math.round((anchorTime - row.startTime) * 2) / 2)}`
+      return t("ui.app.readableRotationAt", {
+        name,
+        seconds: formatHalfSecond(Math.round((anchorTime - row.startTime) * 2) / 2),
+      })
     return name
   })
   const groups = entries.reduce<Array<{ text: string; count: number }>>((result, text) => {
@@ -54,5 +58,7 @@ export function readableRotationText(
     else result.push({ text, count: 1 })
     return result
   }, [])
-  return groups.map(({ text, count }) => (count > 1 ? `${text} x${count}` : text)).join(" > ")
+  return groups
+    .map(({ text, count }) => (count > 1 ? t("ui.app.readableRotationRepeat", { text, count }) : text))
+    .join(" > ")
 }

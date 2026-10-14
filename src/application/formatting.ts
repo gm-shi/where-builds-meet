@@ -1,31 +1,42 @@
 import type { SkillRecord } from "@/calculations/rotationTimeline"
-import { dataText, gameText, getLocale } from "@/i18n"
-import type { EditorCategory } from "@/skillOverrides"
+import { dataText, gameText, getLocale, t } from "@/i18n"
+import type { EditorCategory, SkillCategory } from "@/skillOverrides"
+import type { WeaponId } from "@/types"
 
-import { allSkillDefinitions, dotDefinitions, skillDataNamespaceById } from "./gameData/skills"
+import { martialArtDefinitions } from "./gameData/martialArts"
+import {
+  allSkillDefinitions,
+  dotDefinitions,
+  effectDefinitions,
+  skillCategoryByWeapon,
+  skillDataNamespaceById,
+} from "./gameData/skills"
 
+const weaponBySkillCategory = new Map(
+  (Object.entries(skillCategoryByWeapon) as Array<[WeaponId, SkillCategory]>).map(([weapon, category]) => [
+    category,
+    weapon,
+  ]),
+)
+
+// A weapon category is labelled with its martial art's translated name; the remaining
+// categories are interface copy.
 export function skillCategoryLabel(category: EditorCategory) {
+  const weapon = weaponBySkillCategory.get(category as SkillCategory)
+  if (weapon) return gameText(martialArtDefinitions[weapon].name)
   switch (category) {
-    case "Snowparting":
-      return "Snowparting Blade"
-    case "Phalanxbane":
-      return "Phalanxbane Blade"
-    case "Infernal":
-      return "Infernal Twinblades"
-    case "Everspring":
-      return "Everspring Umbrella"
-    case "Unfettered":
-      return "Unfettered Rope Dart"
-    case "Mortal":
-      return "Mortal Rope Dart"
-    case "Soulshade":
-      return "Soulshade Umbrella"
-    case "Panacea":
-      return "Panacea Fan"
-    case "StrategicSword":
-      return "Strategic Sword"
-    case "HeavenQuakerSpear":
-      return "Heavenquaker Spear"
+    case "Mystic":
+      return gameText("Mystic")
+    case "Buff":
+      return t("ui.app.buff")
+    case "Debuff":
+      return t("ui.app.debuff")
+    case "General":
+      return t("ui.app.skillCategoryGeneral")
+    case "Mechanism":
+      return t("ui.app.skillCategoryMechanism")
+    case "DOT":
+      return t("ui.app.skillCategoryDot")
     default:
       return category
   }
@@ -123,7 +134,9 @@ export function skillFieldText(skillId: string, skill: SkillRecord | undefined, 
   if (!value) return field === "name" ? skillId : ""
   const namespace = skillDataNamespaceById.get(skillId)
   const defaultValue = allSkillDefinitions[skillId]?.[field]?.trim()
-  if (!namespace && value === dotDefinitions[skillId]?.[field]?.trim()) return gameText(value)
+  const effectDefinition = effectDefinitions[skillId] as { name?: string; shortName?: string } | undefined
+  if (!namespace && (value === dotDefinitions[skillId]?.[field]?.trim() || value === effectDefinition?.[field]?.trim()))
+    return gameText(value)
   return namespace && value === defaultValue ? dataText(`data.skill.${namespace}.${skillId}.${field}`, value) : value
 }
 

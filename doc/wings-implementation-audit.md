@@ -1,84 +1,74 @@
-# Wings implementation audit
+# 翊实现审计
 
-Scope: the six inner ways available to Wings and the two Wings martial arts.
-Rechecked against the local Inner Way, martial art, skill, item-set, and raw buff
-exports on 2026-10-12.
+范围：翊可用的六种心法，以及翊的两门武学。
+已于 2026-10-12 对照本地的心法、武学、技能、套装及原始增益导出数据重新核查。
 
-## Implemented with existing mechanisms
+## 已用现有机制实现
 
-- 相和歌: T3 ordinary and T6 enhanced Jadebreaker bonuses require 爍鼓; cast-time T1 damage
-  reduction; Dawnsun's T3/T6 shield-active state and T6 damage reduction;
-  exhaustion cooldown/resource reset and Dawnsun duration extension.
-- 風知意: 墨韻 applies after Perception's final hit, including additional-dash
-  delays. T4 adds another 5% to the original 5%, retains Fan/Drum Series scope,
-  lasts 18 seconds, and reduces incoming damage by 10% while the modeled attacker
-  has 墨韻 (5% before T4). Each executed dash attempts 30 雅意 recovery, using two
-  shared cooldown uses in a 15-second window.
-- 弦墨篇: strict above-50% HP before T4, unrestricted HP from T4; T6 replaces
-  earlier penetration instead of stacking with it. T6 gives 8 Physical/Formless
-  Penetration, with another 12 only for Drum Series. 扶風, 爍鼓, Floating Grace,
-  and Floating Grace's Deluge variant qualify.
-- 寸草心: eligible-hit stacks, thresholds, durations, tier bonuses and T2/T5
-  stats. The export's explicit drum attack is 鼓樂和; broad Drum Series matching
-  previously allowed Drum Specials and is now removed from this Inner Way.
-- Morale Chant: healing grants Yi River stacks; stack healing bonuses are
-  represented; Physical Penetration starts at T1. The base tier's damage bonus
-  is Physical-only. T6 healing uses the registered proc's unit Physical/Silkbind
-  coefficients and shares the attack proc's ten-second cooldown.
-- Envigorated Warrior: 5% damage/healing at T0, 8% from T4; five-second disable
-  after incoming hits; Cage's five-second 5%/3% vulnerability; T3 five-second
-  escape after outgoing attacks; T6 five-second target mark preventing disable.
-- 裁雲·翊: 6% all-type damage and healing, one stack, fifteen seconds. It no
-  longer substitutes attack-range bonuses for damage bonuses.
-- Martial arts: rank 0–14 stat formulas, caps, raw attribute bonuses, and
-  rank-specific offensive talent upgrades are populated from exported ranks.
-- 凌波·繁音: draft three-wave damage and the T6 field's four callback ticks.
-  Cast-relative rhythm timings remain zero where unresolved; field callbacks
-  use the exported offsets relative to the enhanced wave (0.45–1.95 seconds).
+- 相和歌：T3 普通与 T6 强化的撼玉加成需要烁鼓；施放期间的 T1 减伤；
+  昭阳的 T3/T6 护盾生效状态与 T6 减伤；耗尽时的冷却/资源重置，以及昭阳持续时间延长。
+- 风知意：墨韵在感知技的最后一击之后施加，包括额外冲刺带来的延迟。
+  T4 在原有 5% 的基础上再增加 5%，保留扇武学/击鼓系列的适用范围，
+  持续 18 秒，并在被建模的攻击者带有墨韵时使受到的伤害降低 10%（T4 之前为 5%）。
+  每次执行的冲刺都会尝试回复 30 点雅意，在 15 秒窗口内共用两次冷却次数。
+- 弦墨篇：T4 之前严格要求气血高于 50%，T4 起不限气血；T6 会替换之前的穿透，
+  而非与之叠加。T6 提供 8 点外功/无相穿透，仅击鼓系列额外再获得 12 点。
+  扶风、烁鼓、一念浮生，以及一念浮生的霖变体均符合条件。
+- 寸草心：适用命中的层数、阈值、持续时间、各重加成以及 T2/T5 属性。
+  导出数据中明确列出的鼓类攻击是鼓乐和；此前宽泛的击鼓系列匹配曾使鼓特殊技也被计入，
+  该匹配现已从此心法中移除。
+- 易水歌：治疗会获得易水层数；已体现各层的治疗加成；外功穿透自 T1 起生效。
+  基础重数的伤害加成仅限外功。T6 治疗使用已注册触发效果的单位外功/牵丝系数，
+  并与攻击触发效果共用 10 秒冷却。
+- 征人归：T0 时伤害/治疗提高 5%，T4 起为 8%；受到攻击后失效 5 秒；
+  牢笼带来 5 秒的 5%/3% 易伤；T3 在发起攻击后获得 5 秒的脱离牢笼效果；
+  T6 的 5 秒目标标记可防止失效。
+- 裁云·翊：全类型伤害与治疗提高 6%，1 层，持续 15 秒。
+  它不再以攻击范围加成代替伤害加成。
+- 武学：0–14 级的属性公式、上限、原始属性加成，以及各等级特有的进攻天赋升级，
+  均根据导出的等级数据填充。
+- 凌波·繁音：暂定的三段音波伤害，以及 T6 音阵的四次回调结算。
+  相对于施放时刻的节奏时间点在尚未确定处仍为零；音阵回调使用导出数据中
+  相对于强化音波的偏移（0.45–1.95 秒）。
 
-Effect modifications append rules: 墨韻 T4 therefore adds 5%, rather than
-appending a second 10% bonus. Existing action indexes remain stable for saved
-rotation anchors and attached events.
+效果修改以追加规则的方式生效：因此墨韵 T4 是增加 5%，而不是再追加一个 10% 的加成。
+现有的动作索引保持稳定，以兼容已保存的循环锚点与附加事件。
 
-## Remaining mechanism gaps
+## 尚缺的机制
 
-| Area                    | Required mechanism                                                                                                                                                                                                                                                                                                    |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 相和歌 and martial arts | Party buff recipients and movement speed; Tenacity and interruption resistance; interruption-triggered T4 refund; silence, root, knockdown and slow with target immunities.                                                                                                                                           |
-| Dawnsun shields         | Shield absorption amounts based on recipient maximum HP, expiry/depletion, and incoming damage absorption. The existing Shield marker is modeled, not its 5%/15% HP capacity.                                                                                                                                         |
-| 弦墨篇                  | General damage-based lifesteal with its 2.5%-maximum-HP-per-second cap, including T1/T4 upgrades.                                                                                                                                                                                                                     |
-| 寸草心                  | Per-target simultaneous-hit tracking, rather than the editor's enemy-count proxy; player targets, endurance-cost modifiers, outgoing-damage reduction, root and immunity timers.                                                                                                                                      |
-| Morale Chant            | Correlated random self-buff stacks and proc attempts: below T4 the 80% chance is still approximated as guaranteed. Existing expected probability tracking supports target debuffs, not Yi River's self-state and downstream procs. Healing-target Controlled state is also needed for the conditional second T6 heal. |
-| Lower martial art ranks | The shared primary-attribute 1.5 damage multiplier is not disabled below rank 3. Wings skill coefficients exclude that multiplier to avoid applying the rank-3 attribute talent twice.                                                                                                                                |
+| 领域           | 所需机制                                                                                                                                                                                      |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 相和歌与武学   | 团队增益的接收者与移动速度；韧性（Tenacity）与抗打断；被打断时触发的 T4 返还；沉默、定身、击倒、减速，以及目标对这些效果的免疫。                                                              |
+| 昭阳护盾       | 基于接收者最大气血的护盾吸收量、到期/耗尽，以及对受到伤害的吸收。现有的护盾标记已建模，但其 5%/15% 气血的容量尚未建模。                                                                       |
+| 弦墨篇         | 通用的按伤害计算的吸血机制，及其每秒 2.5% 最大气血的上限，包括 T1/T4 升级。                                                                                                                   |
+| 寸草心         | 按目标追踪同时命中，而不是使用编辑器以敌人数量代替的近似；玩家目标、耐力消耗修正、造成伤害降低、定身及免疫计时器。                                                                            |
+| 易水歌         | 相关联的随机自身增益层数与触发尝试：T4 以下的 80% 概率仍被近似为必定触发。现有的期望概率追踪支持目标减益，但不支持易水的自身状态及其后续触发。T6 有条件的第二次治疗还需要治疗目标的控制状态。 |
+| 较低的武学等级 | 共用的主属性 1.5 倍伤害乘数在 3 级以下并未禁用。翊的技能系数不含该乘数，以避免 3 级属性天赋被重复计算。                                                                                       |
 
-Skill eligibility enforcement remains deliberately outside scope, per the user:
-cooldowns are enforced, while Perception/流風 prerequisite windows are not.
-These are an intentional editor policy rather than missing combat mechanisms.
+按用户要求，技能可用性校验有意不纳入范围：
+冷却会强制执行，而感知技/流风的前置窗口不会。
+这些是编辑器有意采取的策略，而非缺失的战斗机制。
 
-Incoming attacks currently belong to the one modeled target. 墨韻 reduction and
-the Warrior mark use that target's debuffs; independently attributed attackers
-would require a multi-target combat-state mechanism.
+受到的攻击目前都归属于唯一被建模的目标。墨韵减伤与征人归的标记使用该目标的减益；
+若要独立归属各个攻击者，则需要多目标战斗状态机制。
 
-Both dummies count as bosses in this simulator. 羅纏's 20% bonus therefore
-already covers every supported practice target correctly; a `targetType: Boss`
-gate would incorrectly exclude dummies.
+在本模拟器中，两种木桩都算作首领。因此罗缠的 20% 加成已正确覆盖所有受支持的练习目标；
+若加上 `targetType: Boss` 判定，则会错误地排除木桩。
 
-## Data and timing limitations
+## 数据与时序限制
 
-Flourishing Notes' selection/rhythm handoff is not resolved on the cast clock.
-Its draft zero timings are not a measured rotation. Field callbacks are imported
-from the route; survival after cancellation remains unverified. The field's
-three-second slow and skill invincibility are not simulated as control states.
+繁音的选择/节奏衔接尚未在施放时钟上确定。
+其暂定的零时间点并非实测循环。音阵回调从路线数据中导入；
+取消后音阵能否继续存在尚未验证。音阵的 3 秒减速与技能无敌未作为控制状态模拟。
 
-The game caps Dawnsun's four-second 爍鼓 extension at ten seconds remaining.
-That cap is documented but intentionally not enforced at the user's request.
+游戏将昭阳的 4 秒烁鼓延长限制在剩余时间不超过 10 秒。
+该上限已记录在案，但应用户要求有意不予强制执行。
 
-## Why 寸草心 is weak against one target
+## 为什么寸草心对单一目标较弱
 
-T0 requires simultaneous eligible hits on at least three enemies. T4 lowers
-the threshold to two, and grants two stacks at three targets. A one-target
-rotation cannot gain stacks, so only T2 Void Attack and T5 Formless Penetration
-contribute. Drum Specials are outside the export's explicit eligible list.
+T0 要求适用攻击同时命中至少三名敌人。T4 将阈值降为两名，并在命中三名目标时叠加两层。
+单目标循环无法获得层数，因此只有 T2 的无相攻击与 T5 的无相穿透能发挥作用。
+鼓特殊技不在导出数据明确列出的适用列表中。
 
-Earlier diagnostic DPS figures are superseded by the corrected offensive rules;
-they are not accepted snapshots or universal Inner Way bonuses.
+早先的诊断秒伤数据已被修正后的进攻规则取代；
+它们既不是已认可的快照，也不是通用的心法加成。

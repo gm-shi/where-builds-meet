@@ -7,6 +7,7 @@ import {
   type GearRarity,
   type GearValue,
 } from "./gear"
+import { t } from "./i18n"
 
 export type GearOcrResult = {
   definitionId: string
@@ -69,7 +70,7 @@ function definitionFromText(text: string, fallbackDefinitionId?: string) {
   const matches = Object.entries(aliases).filter(([, values]) => values.some(value => normalized.includes(value)))
   if (matches.length !== 1) {
     if (fallbackDefinitionId && gearData.gear[fallbackDefinitionId]) return fallbackDefinitionId
-    throw new Error("Could not identify exactly one supported gear type from the image.")
+    throw new Error(t("ui.buildTab.imageGearTypeUnknownError"))
   }
   return matches[0][0]
 }
@@ -143,10 +144,10 @@ export function parseGearOcrTsv(
   fallbackDefinitionId?: string,
 ): GearOcrResult {
   const words = parseWords(tsv)
-  if (words.length === 0) throw new Error("No readable text was found in the image.")
+  if (words.length === 0) throw new Error(t("ui.buildTab.imageNoReadableTextError"))
   const definitionId = definitionFromText(rawText, fallbackDefinitionId)
   const definition = gearData.gear[definitionId]
-  if (!definition) throw new Error("The recognized gear type is not supported.")
+  if (!definition) throw new Error(t("ui.buildTab.imageGearTypeUnsupportedError"))
   const normalizedText = normalize(rawText)
   const { level, rarity } = inferGearLevelAndRarity(definitionId, rawText)
   const relayed = /\brelay(?:ing|ed)?\b/.test(normalizedText)
@@ -255,12 +256,30 @@ async function imageDimensions(file: File) {
   }
 }
 
+// tesseract.js reports its stages in English; the ones it emits map to interface copy.
+function ocrStatusText(status: string | undefined) {
+  switch (status) {
+    case "loading tesseract core":
+      return t("ui.buildTab.ocrStatusLoadingCore")
+    case "initializing tesseract":
+      return t("ui.buildTab.ocrStatusInitializing")
+    case "loading language traineddata":
+      return t("ui.buildTab.ocrStatusLoadingLanguage")
+    case "initializing api":
+      return t("ui.buildTab.ocrStatusInitializingApi")
+    case "recognizing text":
+      return t("ui.buildTab.ocrStatusRecognizing")
+    default:
+      return t("ui.buildTab.readingImage")
+  }
+}
+
 export async function recognizeGearImage(
   file: File,
   onProgress?: (progress: number, status: string) => void,
   fallbackDefinitionId?: string,
 ) {
-  if (!file.type.startsWith("image/")) throw new Error("Choose a PNG, JPEG, or WebP image file.")
+  if (!file.type.startsWith("image/")) throw new Error(t("ui.buildTab.imageFileTypeError"))
   const dimensions = await imageDimensions(file)
   const { createWorker, OEM, PSM } = await import("tesseract.js")
   const assetRoot = `${import.meta.env.BASE_URL}ocr`
@@ -271,7 +290,7 @@ export async function recognizeGearImage(
     corePath: `${assetRoot}/tesseract-core-lstm.wasm.js`,
     logger: message => {
       const passProgress = typeof message.progress === "number" ? message.progress : 0
-      onProgress?.((recognitionPass + passProgress) / 2, message.status ?? "Reading image")
+      onProgress?.((recognitionPass + passProgress) / 2, ocrStatusText(message.status))
     },
   })
   try {
@@ -280,7 +299,7 @@ export async function recognizeGearImage(
     recognitionPass = 1
     await worker.setParameters({ tessedit_pageseg_mode: PSM.SPARSE_TEXT, preserve_interword_spaces: "1" })
     const positionedResult = await worker.recognize(file, {}, { text: true, tsv: true })
-    if (!positionedResult.data.tsv) throw new Error("OCR did not return positioned text.")
+    if (!positionedResult.data.tsv) throw new Error(t("ui.buildTab.ocrNoPositionedTextError"))
     const rawText = `${metadataResult.data.text}\n${positionedResult.data.text}`
     try {
       return parseGearOcrTsv(

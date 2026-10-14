@@ -2,6 +2,7 @@ import * as v from "valibot"
 
 export const localeManifestSchema = v.object({
   default: v.string(),
+  source: v.optional(v.string()),
   locales: v.array(v.string()),
   completion: v.optional(v.record(v.string(), v.pipe(v.number(), v.finite()))),
 })

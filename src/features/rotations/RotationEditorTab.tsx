@@ -97,7 +97,7 @@ import {
 } from "@/calculations/rotationTimeline"
 import { sameEditorRevision, type EditorRevision } from "@/editorTimelinePreview"
 import { gameText, t } from "@/i18n"
-import { publishNotice, dismissNotice } from "@/notices"
+import { dismissNotice, errorNoticeMessage, publishNotice } from "@/notices"
 import { displayEntryKey, visibleTimelineEffects } from "@/rotationDisplay"
 import {
   attachedEventPhase,
@@ -125,7 +125,7 @@ import { Button } from "@/ui/Button"
 import { CalculationStatus } from "@/ui/CalculationStatus"
 
 function rotationEntryDisplayName(entry: RotationEntry) {
-  const name = entry.rotation.name || "Unnamed Rotation"
+  const name = entry.rotation.name || t("ui.app.unnamedRotation")
   return entry.isDefault ? gameText(name) : name
 }
 import { Chip } from "@/ui/Chip"
@@ -312,7 +312,8 @@ export function RotationEditorTab({
     resolvedActiveRotationIdRef.current = activeRotationId
   }, [activeRotationId])
   const rotationLocked = editingEntry?.isDefault === true
-  const editingRotationDisplayName = (rotationLocked ? gameText(rotation.name) : rotation.name) || "Unnamed Rotation"
+  const editingRotationDisplayName =
+    (rotationLocked ? gameText(rotation.name) : rotation.name) || t("ui.app.unnamedRotation")
   const {
     food: currentFood,
     enduranceFood: currentEnduranceFood,
@@ -1004,7 +1005,10 @@ export function RotationEditorTab({
     const id = createRotationId()
     const source = migrateRotation(rotation)
     const duplicate: RotationRecord = JSON.parse(
-      JSON.stringify({ ...source, name: `${source.name || "Rotation"} Copy` }),
+      JSON.stringify({
+        ...source,
+        name: t("ui.app.copyOfNamedRotation", { name: source.name || t("ui.app.rotation") }),
+      }),
     ) as RotationRecord
     const sourceEntry = rotationEntries.find(entry => entry.id === editingRotationId)
     const nextEntries = [
@@ -1125,7 +1129,7 @@ export function RotationEditorTab({
     } catch (error) {
       publishNotice({
         id: "rotation-transfer",
-        message: error instanceof Error ? error.message : t("ui.app.rotationImportError"),
+        message: errorNoticeMessage(error, t("ui.app.rotationImportError")),
         error: true,
       })
     }
@@ -2791,7 +2795,7 @@ export function RotationEditorTab({
                               {isManualEvent && step.event === "Buff" ? (
                                 rotationLocked ? (
                                   <span>
-                                    {calculationDefinitions.effectDefinitions[step.buff]?.name ?? step.buff}
+                                    {gameText(calculationDefinitions.effectDefinitions[step.buff]?.name ?? step.buff)}
                                     {(step.stack ?? 1) > 1 ? ` ×${step.stack}` : ""}
                                   </span>
                                 ) : (
@@ -2849,7 +2853,9 @@ export function RotationEditorTab({
                               {isManualEvent && step.event === "Debuff" ? (
                                 rotationLocked ? (
                                   <span>
-                                    {calculationDefinitions.effectDefinitions[step.debuff]?.name ?? step.debuff}
+                                    {gameText(
+                                      calculationDefinitions.effectDefinitions[step.debuff]?.name ?? step.debuff,
+                                    )}
                                     {(step.stack ?? 1) > 1 ? ` ×${step.stack}` : ""}
                                   </span>
                                 ) : (

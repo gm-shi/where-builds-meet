@@ -349,6 +349,11 @@
     color: var(--text-muted);
   }
 
+  .page-footer-credit {
+    display: block;
+    color: var(--text-dim);
+  }
+
   .page-footer-accuracy {
     margin-inline-start: auto;
     text-align: end;

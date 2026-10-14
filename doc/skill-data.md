@@ -1,1577 +1,914 @@
-# Skill and combat-effect data
+# 技能与战斗效果数据
 
-This document keeps authoring constraints, source exceptions, and unresolved
-mechanics. The JSON is authoritative for implemented skill values, timing,
-tier effects, and preset sequences. Do not repeat those records here or append
-completed implementation history. Remove WIP notes when resolved; retain a
-short explanation only when it prevents a likely misinterpretation.
+本文档记录数据编写约束、来源例外以及尚未解决的机制。已实现的技能数值、时机、
+重数效果和模板序列均以 JSON 为准。不要在此重复这些记录，也不要追加已完成的
+实现历史。WIP 说明在问题解决后应删除；仅当一段简短解释能够避免可能出现的误解时
+才予以保留。
 
-## Source of truth
+## 权威数据来源
 
-| Information                                           | Location                         |
-| ----------------------------------------------------- | -------------------------------- |
-| Castable, component, and triggered skills             | `data/skill/`                    |
-| Periodic damage definitions                           | `data/dot/`                      |
-| Player effects and target states                      | `data/buff/`, `data/debuff/`     |
-| Cumulative Inner Way tiers                            | `data/innerway/`                 |
-| Complete talent selection at each rank                | `data/martial-art/`              |
-| Resource defaults, caps, and universal event gains    | `data/system.json`               |
-| Cast-scoped resource rate overrides                   | `endurance` on the skill record  |
-| Preset sequences, attachments, and encounter settings | `data/rotation/`                 |
-| Practice target names, types, and attack patterns     | `data/boss.json`                 |
-| Martial-art numeric IDs and persisted weapon IDs      | `data/official/profile-map.json` |
-| Solo Level and talent rank selection                  | `data/breakthrough.json`         |
+| 信息                                 | 位置                             |
+| ------------------------------------ | -------------------------------- |
+| 可施放技能、组件技能与触发技能       | `data/skill/`                    |
+| 周期伤害定义                         | `data/dot/`                      |
+| 玩家效果与目标状态                   | `data/buff/`、`data/debuff/`     |
+| 累积式心法重数                       | `data/innerway/`                 |
+| 各阶的完整天赋选择                   | `data/martial-art/`              |
+| 资源默认值、上限与通用事件获取量     | `data/system.json`               |
+| 按单次施放生效的资源速率覆盖         | 技能记录上的 `endurance`         |
+| 模板序列、附加项与战斗场景设置       | `data/rotation/`                 |
+| 练习目标的名称、类型与攻击模式       | `data/boss.json`                 |
+| 武学数字 ID 与持久化的武器 ID        | `data/official/profile-map.json` |
+| 单人等级（Solo Level）与天赋阶数选择 | `data/breakthrough.json`         |
 
-For formulas and runtime implementation, use the existing references:
+公式与运行时实现请参阅现有文档：
 
-- [Damage and healing formulas](damage-formula.md).
-- [Stat stages and snapshots](stat-pipeline.md).
-- [Event ordering, readiness, cutoff, and expected-state scheduling](rotation-event-loop.md).
-- [Data registration and worker integration](system-architecture.md#adding-data).
-- [Talent exceptions and deferred mechanics](martial-art-talent-audit.md).
-- [Attunement scope](attunement-audit.md) and [weapon-set coverage](weapon-set-four-piece.md).
-- [Preset DPS review gate](dps-snapshots.md) and [localization](localization.md).
+- [伤害与治疗公式](damage-formula.md)。
+- [属性阶段与快照](stat-pipeline.md)。
+- [事件排序、就绪判定、截止与期望状态调度](rotation-event-loop.md)。
+- [数据注册与 worker 集成](system-architecture.md#adding-data)。
+- [天赋例外与延后实现的机制](martial-art-talent-audit.md)。
+- [定音范围](attunement-audit.md)与[武器套装覆盖情况](weapon-set-four-piece.md)。
+- [模板秒伤审查关卡](dps-snapshots.md)与[本地化](localization.md)。
 
-The live `SkillRecord`, `EffectDefinition`, `RotationRecord`, and `RotationStep`
-contracts are in [rotationTimeline.ts](../src/calculations/rotationTimeline.ts).
-Use them instead of maintaining a second TypeScript schema in this document.
+当前生效的 `SkillRecord`、`EffectDefinition`、`RotationRecord` 和 `RotationStep`
+契约位于 [rotationTimeline.ts](../src/calculations/rotationTimeline.ts)。
+请直接以它们为准，不要在本文档中另行维护第二份 TypeScript schema。
 
-The Skills editor displays a read-only combined cast time from the shared subaction
-expansion alongside the editable wrapper duration. Conditional combinations
-select their base route against an empty combat state rather than summing mutually
-exclusive branches, and are marked as combat-dependent. The Rotation editor displays
-the resolved worker timeline duration. Composite rotation rows always show that
-resolved total rather than offering an editable wrapper-duration field. Stored
-step duration overrides remain intact; wrapper editing stays in the Skills editor.
-Base totals exclude ping.
+技能编辑器会在可编辑的包装时长旁，显示一个由共享子动作展开得出的只读合计施放时间。
+条件组合会基于空的战斗状态选择其基础路线，而不是将互斥分支相加，并会被标记为
+依赖战斗状态。循环编辑器显示 worker 解析得到的时间轴时长。组合循环行始终显示该
+解析后的总时长，而不提供可编辑的包装时长字段。已保存的步骤时长覆盖值保持不变；
+包装时长仍在技能编辑器中编辑。基础合计不含延迟（ping）。
 
-## Datamine interpretation
+## 解包数据解读
 
-Local references are under `local/datamine/`: `wwm-skills-normal-all.json`,
-`wwm-skills-mystic-skills-offensive.json`, `wwm-skills-mechanism-all.json`,
-`wwm-inner-way-normal.json`, and
-`wwm-martial-arts-normal.json`. Prefer interpreted normal-variant fields;
-ignore `versions` subtrees. Do not infer missing timing, route selection,
-resource units, or mode-specific behavior from a damage baseline alone.
+本地参考文件位于 `local/datamine/`：`wwm-skills-normal-all.json`、
+`wwm-skills-mystic-skills-offensive.json`、`wwm-skills-mechanism-all.json`、
+`wwm-inner-way-normal.json` 和
+`wwm-martial-arts-normal.json`。优先使用已解读的普通变体字段；
+忽略 `versions` 子树。不要仅凭伤害基准值推断缺失的时机、路线选择、
+资源单位或特定模式下的行为。
 
-- Skill `byLevel` arrays use **level minus one**, including leading nulls.
-  `aggregated` contains level-independent values. Implemented offensive
-  Mystics use level 71; Smolder, Dragon Head - Tide, and Ghostly Step - Umbra
-  use `enlightenmentCurves`. Martial-art coefficients resolve from the normal
-  curve's `SKILL_POWER_PRO_ATK` / `SKILL_POWER_PRO_HEAL`, with
-  `SKILL_ADD_W_ATK` as `phyBonus` and `SKILL_ADD_WX_PRO_ATK` as `attrBonus`,
-  read at **level 100** (array index 99) unless the value is `aggregated`.
-  Derive physical coefficient, attribute coefficient,
-  and flat physical bonus independently. Preserve source precision, retaining
-  derived values to 12 decimal places rather than tooltip rounding.
-- Runtime Inner Way `bySoloLevel` arrays use **the actual Solo Level**; slot 0
-  is unused. Prepend that slot when importing source arrays. Null means no
-  bonus, with no interpolation or talent-rank fallback. Resolve through
-  `innerWayDefinitionForSoloLevel` without mutating the catalog.
-- Find a martial-art source rank by `talents.ranks[].unlockLevel`, not array
-  position or world level. Its `talentIds` are a complete selection, not
-  additions to prior ranks. Resolve them against `talents.definitions`.
-  Runtime `talent[rank]` is likewise a complete independent array; missing or
-  empty ranks contribute nothing. Solo Level and talent rank are separate.
-- Rank-14 Additional Attack uses `effect.flatAttackBonus` to scale `phyBonus`
-  and `attrBonus`, scoped by the martial-art skill tag. The normal Strategic
-  Sword, Heavenwill, and Skystrike definitions also use
-  `effect.coefficientBonusWithoutFlatAttack` when both flat terms are zero.
-  Other arts do not inherit this coefficient exception.
-- Preserve internal IDs used by saved data. Display names and translations do
-  not change identifiers. Renaming persisted fields requires migration.
+- 技能的 `byLevel` 数组以**等级减一**为索引，包括开头的 null 值。
+  `aggregated` 包含与等级无关的数值。已实现的攻击型奇术使用 71 级；
+  暗灼、叶龙骧首·叠浪和阴阳迷踪步·影使用 `enlightenmentCurves`。
+  武学系数取自普通曲线的 `SKILL_POWER_PRO_ATK` / `SKILL_POWER_PRO_HEAL`，
+  并以 `SKILL_ADD_W_ATK` 作为 `phyBonus`、`SKILL_ADD_WX_PRO_ATK` 作为 `attrBonus`；
+  除非该值位于 `aggregated` 中，否则按 **100 级**（数组索引 99）读取。
+  外功系数、属性系数和固定外功加成应分别独立推导。保留来源精度，
+  派生值保留到小数点后 12 位，而不是采用技能说明中四舍五入后的数值。
+- 运行时心法的 `bySoloLevel` 数组以**实际单人等级**为索引；第 0 位不使用。
+  导入来源数组时需在开头补上这一位。null 表示没有加成，既不插值，
+  也不回退到天赋阶数。通过 `innerWayDefinitionForSoloLevel` 解析，且不得修改目录数据。
+- 通过 `talents.ranks[].unlockLevel` 查找武学的来源阶数，而不是依据数组位置或
+  世界等级。其 `talentIds` 是一份完整的选择，而非在之前各阶基础上的追加。
+  应依据 `talents.definitions` 解析它们。运行时的 `talent[rank]` 同样是完整且
+  相互独立的数组；缺失或为空的阶数不提供任何效果。单人等级与天赋阶数相互独立。
+- 第 14 阶的追加攻击（Additional Attack）使用 `effect.flatAttackBonus` 缩放 `phyBonus`
+  和 `attrBonus`，作用范围由武学技能标签限定。积矩九剑、天志垂象和悬身拳法的
+  普通定义在两个固定加成项均为零时，还会使用
+  `effect.coefficientBonusWithoutFlatAttack`。其他武学不沿用此系数例外。
+- 保留存档数据所使用的内部 ID。显示名称和翻译不会改变标识符。
+  重命名持久化字段需要进行迁移。
 
-### Deliberate source exceptions
+### 有意保留的来源例外
 
-These are reasons to preserve existing data when refreshing from the datamine,
-not a second catalog of current values:
+以下内容是根据解包数据刷新时保留现有数据的理由，而不是另一份当前数值目录：
 
-- Smolder's tick factor remains **0.0532**, confirmed by observed damage;
-  the exported **0.045** conflicts with that evidence. DOT flat bonuses remain
-  inactive under the current damage formula.
-- Dragon Head - Tide uses the confirmed pre-multiplier physical/attribute
-  coefficient **16.3591422641509** and physical bonus **2483.50943396226**,
-  followed by its upgrade/enlightenment factors. Do not replace that baseline
-  with a conflicting export without new evidence.
-- Panacea's extra **Mystic Precision Enhancement** talent is intentional despite
-  its absence from the rank-13 source list; see the talent audit.
-- Echoes of Oblivion's Karma reduction is **10 flat Bamboocut Resistance** at
-  every tier. The conflicting T6 wording does not turn it into a percentage
-  or add a second reduction.
-- Vendetta's stated duration increases mean **total durations**, not seconds
-  added to the base. Rodent Hunt uses the confirmed **20-second** window despite
-  text mentioning 15 seconds. Vendetta Mark means the same caster-specific Vendetta Token
-  target debuff, not an additional status. Saved manual Buff events migrate to
-  Debuff events, and saved Token overrides retain their values in the Debuff
-  category with self-targeted Token actions and conditions retargeted.
-- Mortal Rope Dart Tokens of Gratitude are intentionally ignored at the user's
-  request. Rodent's Resilience uses the requested **1.5-second hold**, not the
-  export's animation interrupt. Do not silently introduce token costs.
-- Rodent uses the confirmed **nonmatching PvE route**; matching routes are PvP.
-  The raw export-distance to editor-meter mapping is still unverified.
-- Attr. Attack DMG Up is already represented by attribute channels and the
-  primary-path multiplier. Its empty talent effect must not add that bonus again.
-- Rising Momentum is buff `1055004`: a successful deflection adds 2% HP damage
-  for `buff_maxtime` 5 seconds, capped at `buff_sameadd_max` 10 stacks. It is a
-  general buff with no weapon lock, and its application is gated on a boss
-  target through the `targetType` requirement rather than a skill condition.
-- Yaksha Rush authors only the two base-animation hits, `230006101` at 0.2x and
-  `230006102` at 0.8x. The base route also lists a simultaneous `230006105` at
-  0.8x for its defense-break reward, which matches neither that reward's 0.5x
-  skill text nor an unambiguous layer rule; the text value is left unimplemented
-  rather than guessed. Its Vitality cost and cooldown come from the community
-  wiki, not the export, which carries no resource-cost or cooldown fields. It
-  uses a plain `cooldown` because it is currently the only Mystic carrying the
-  Break Defense tag; add a `cooldownGroup` when a second one appears.
-- Summon Lightning (`75120051`) applies Thunder Summoning at 0.403 seconds and
-  ends at 1.591 seconds. Both values come from the export route rather than a
-  measured schedule, and the export carries no cooldown or resource cost. Its
-  30% is the source's independent DMG Bonus (`calc_cause_change` cause 50), so
-  it belongs to the Mechanism damage category and not to DMG Bonus Category 1.
-  The export's `buffremove_add_buff` grant of `1500232` is a client-side usage
-  lock with no combat effect.
+- 暗灼的每跳系数保持为 **0.0532**，该数值已由实测伤害确认；
+  导出数据中的 **0.045** 与这一证据相矛盾。在当前伤害公式下，DOT 的固定加成
+  仍不生效。
+- 叶龙骧首·叠浪使用已确认的乘数前外功/属性系数 **16.3591422641509**
+  和外功加成 **2483.50943396226**，之后再应用其升级/领悟系数。在没有新证据的
+  情况下，不要用相矛盾的导出数据替换该基准值。
+- 明川药典额外的**奇术精准强化**（Mystic Precision Enhancement）天赋是有意保留的，
+  尽管它不在第 13 阶的来源列表中；参见天赋审查文档。
+- 忘川绝响的苦果减抗在每一重均为**固定 10 点破竹抗性**。T6 描述中相矛盾的措辞
+  既不会使其变为百分比，也不会追加第二次削减。
+- 心弥泥鱼所述的持续时间提升指的是**总持续时间**，而不是在基础时长上增加的秒数。
+  鼠鼠追命采用已确认的 **20 秒**窗口，尽管文本中提到的是 15 秒。仇杀印记（Vendetta Mark）
+  指的就是同一个按施放者区分的仇杀令目标减益，而不是额外的状态。已保存的手动增益事件
+  会迁移为减益事件；已保存的仇杀令覆盖值会在减益分类中保留其数值，原本以自身为目标的
+  仇杀令动作和条件会被改为指向目标。
+- 应用户要求，粟子游尘的谢礼（Tokens of Gratitude）被有意忽略。伏鼠之缚按要求采用
+  **1.5 秒按住蓄力**，而不是导出数据中的动画打断。不要擅自引入谢礼消耗。
+- 鼠鼠采用已确认的**非匹配 PvE 路线**；匹配路线属于 PvP。
+  导出数据中的原始距离与编辑器中米数之间的换算关系仍未验证。
+- 属性攻击增伤（Attr. Attack DMG Up）已通过属性通道和主路径乘数体现。
+  其空的天赋效果不得再次添加该加成。
+- 乘势是增益 `1055004`：成功卸势后增加 2% 气血伤害，持续 `buff_maxtime` 5 秒，
+  上限为 `buff_sameadd_max` 10 层。它是不限武器的通用增益，其施加通过
+  `targetType` 需求限定为首领目标，而不是通过技能条件。
+- 药叉破魔只编写了两段基础动画命中：0.2 倍的 `230006101` 和 0.8 倍的
+  `230006102`。基础路线中还列出了一个同时发生的 0.8 倍 `230006105`，
+  对应其破防奖励，但它既不符合该奖励技能文本中的 0.5 倍，也不符合任何明确的
+  分层规则；因此文本中的数值暂不实现，而不是去猜测。其精元消耗和冷却时间来自
+  社区 wiki 而非导出数据，导出数据中没有资源消耗或冷却字段。它使用普通的
+  `cooldown`，因为它目前是唯一带有破防（Break Defense）标签的奇术；
+  出现第二个时再添加 `cooldownGroup`。
+- 召雷（`75120051`）在 0.403 秒施加召雷（Thunder Summoning）效果，并在
+  1.591 秒结束。这两个数值均取自导出路线，而非实测的时间表；导出数据中也没有
+  冷却或资源消耗。其 30% 是来源数据中的独立增伤（`calc_cause_change` cause 50），
+  因此属于机关伤害类别，而不属于增伤类别 1。
+  导出数据中通过 `buffremove_add_buff` 授予的 `1500232` 是客户端使用锁，
+  不产生任何战斗效果。
 
-## Authoring rules
+## 编写规则
 
-Use existing data mechanisms before extending the engine. Prefer explicit tags,
-requirements, actions, and definition modifiers over skill-ID conditionals.
-Percentages are decimal ratios unless a runtime parameter explicitly uses
-percentage points. Keep IDs stable and references resolvable.
+在扩展引擎之前，先使用现有的数据机制。优先使用显式的标签、
+需求、动作和定义修正项，而不是基于技能 ID 的条件判断。
+除非某个运行时参数明确使用百分点，否则百分比一律以小数比率表示。
+保持 ID 稳定，并确保引用可以解析。
 
-### Timing and state
+### 时机与状态
 
-1. Modifiers snapshot when the owning skill/component starts. Use them for
-   timing and cast-wide state, not bonuses that must inspect each hit.
-2. Actions resolve chronologically. An action snapshots state before its own
-   changes, so on-hit applications affect later hits, not the triggering hit.
-3. Buff/debuff effects and ordinary requirements inspect action-time state.
-   A requirement `{ "resolveAt": "skillStart", "operand": [...] }` instead
-   freezes its result at the owning component's start.
+1. 修正项在所属技能/组件开始时进行快照。将其用于时机和贯穿整次施放的状态，
+   而不是用于需要逐次检查每次命中的加成。
+2. 动作按时间顺序结算。动作会在自身变更生效之前对状态进行快照，
+   因此命中时施加的效果影响的是之后的命中，而不是触发它的那次命中。
+3. 增益/减益效果和普通需求检查的是动作发生时的状态。
+   而需求 `{ "resolveAt": "skillStart", "operand": [...] }` 则会在所属组件开始时
+   冻结其结果。
 
-Normal action `time` is seconds from cast start. Keep action arrays in
-nondecreasing time order; array order resolves ties. Actions may occur after
-cast completion. Effect actions may use `time: "expire"`; refresh invalidates
-old expiry actions, and consumption does not count as natural expiration.
+普通动作的 `time` 是自施放开始起计算的秒数。动作数组应按时间非递减的顺序排列；
+时间相同时按数组顺序处理。动作可以发生在施放完成之后。效果动作可以使用
+`time: "expire"`；刷新会使旧的到期动作失效，而被消耗不算作自然到期。
 
-Cast time excludes ping. `ignorePing: true` suppresses latency for that skill.
-`triggerPing: true` opts a triggered skill into paying the rotation ping when
-it is dispatched; ordinary triggered effects remain latency-free unless they
-declare it. Composite parents and components must declare exemptions
-deliberately to avoid charging latency twice. Component selection happens
-before its ping gap; modifiers and start-bound requirements resolve at the
-actual delayed start.
+施放时间不含延迟。`ignorePing: true` 会为该技能免除延迟。
+`triggerPing: true` 让被触发的技能在派发时选择承担循环设置的延迟；
+普通触发效果除非声明该项，否则不计延迟。组合父技能与其组件必须有意识地
+声明豁免，以免重复计入延迟。组件的选择发生在其延迟间隔之前；修正项和
+绑定到开始时刻的需求则在实际延迟后的开始时刻解析。
 
-A trigger action with `queueTime` is accepted at that earlier local time and
-executes at its normal `time`. `sourceEffect` and `queueRequirement` are
-checked when the input is accepted, so a queued execution may occur after the
-tracked source state expires. A queued trigger extends the owning ordered
-row's effective cast through the queued skill's delayed start and completion;
-its `time` is the execution marker, not the queue-acceptance marker.
+带有 `queueTime` 的触发动作会在该较早的本地时间被接受，并在其正常的 `time`
+执行。`sourceEffect` 和 `queueRequirement` 在输入被接受时检查，因此排队的执行
+可能发生在所追踪的来源状态到期之后。排队的触发会将其所属有序行的有效施放
+延长至被排队技能经延迟的开始与完成；其 `time` 是执行标记，而不是排队受理标记。
 
-### Tags and martial-art context
+### 标签与武学上下文
 
-- `DirectDamage` and `DOT` distinguish direct hits from periodic damage.
-- `Triggered` and `SubAction` hide internal skills from the castable selector.
-- `MartialArts` is the broad All Martial Arts scope. Singular `MartialArt` is
-  a narrower attunement tag; they are not interchangeable.
-- `MartialArtEffect` identifies secondary martial-art effects. Such effects can
-  also carry `MartialArts`; use the actual intended bonus scopes.
-- Use `VariedCombo` consistently. Tags are exact and case-sensitive.
-- Every castable `MartialArts` skill declares canonical `martialArt` and physical
-  `weapon`. Triggered components omit them to inherit context without switching
-  the active weapon. General and Mystic skills do not switch martial arts.
+- `DirectDamage` 与 `DOT` 用于区分直接命中与周期伤害。
+- `Triggered` 与 `SubAction` 会将内部技能从可施放技能选择器中隐藏。
+- `MartialArts` 是宽泛的全武学增效（All Martial Arts）范围。单数形式的 `MartialArt`
+  是范围更窄的定音标签；两者不可互换。
+- `MartialArtEffect` 标识次级武学效果。此类效果也可以带有
+  `MartialArts`；请按实际预期的加成范围使用。
+- 统一使用 `VariedCombo`。标签需精确匹配且区分大小写。
+- 每个可施放的 `MartialArts` 技能都要声明规范的 `martialArt` 以及对应实体武器的
+  `weapon`。触发组件省略这两项，从而在不切换当前武器的情况下继承上下文。
+  通用技能和奇术技能不会切换武学。
 
-`martialArt` requirements match the canonical martial-art tag on the action.
-`equippedMartialArt` checks an ID in either equipped slot. `currentMartialArt`
-and `currentWeapon` inspect active timeline state; these are distinct questions.
+`martialArt` 需求匹配动作上的规范武学标签。
+`equippedMartialArt` 检查任一装备槽位中的 ID。`currentMartialArt`
+和 `currentWeapon` 检查时间轴上的当前状态；它们回答的是不同的问题。
 
-Attunement `tags` are ANDed; a nested array is an OR group. `excludeTags` rejects
-matching actions. Use the shared matcher for damage and healing.
+定音的 `tags` 之间为 AND 关系；嵌套数组构成一个 OR 组。`excludeTags` 会排除
+匹配的动作。伤害与治疗均使用共享的匹配器。
 
-A castable skill may hand its damage to `Triggered` component skills, and matching
-runs against the component that actually deals the hit. A component that continues
-its parent's hits must therefore repeat the parent's skill-category tags
-(`Charged`, `Special`, `MartialArt`, `Light`, `Heavy`, `VariedCombo`, `Pursuit`).
-Piercing Dart's seven `PiercingDartSweepN` hits repeat `Heavy` and `Charged` for this
-reason. `MartialArtEffect` marks a separate summoned attack rather than a
-continuation, so it is deliberately exempt. Trigger actions do not inherit parent
-tags. `tests/attunement.test.ts` checks explicitly authored component categories.
+可施放技能可以将其伤害交给 `Triggered` 组件技能，而匹配针对的是实际造成该次命中的
+组件。因此，延续父技能命中的组件必须重复父技能的技能类别标签
+（`Charged`、`Special`、`MartialArt`、`Light`、`Heavy`、`VariedCombo`、`Pursuit`）。
+正因如此，镖鸣彻野的七段 `PiercingDartSweepN` 命中都重复带有 `Heavy` 和 `Charged`。
+`MartialArtEffect` 标记的是独立的召唤攻击而非延续，因此被有意豁免。
+触发动作不会继承父技能的标签。`tests/attunement.test.ts` 会检查显式编写的组件类别。
 
-Scarlet Spin Resonance uses `MartialArt`, including lower-tier cadence summons.
-Dreamwrought Bubbles Resonance uses `Heavy` and `Charged`. Both also carry `Umbrella`
-and `ReturningUmbrella` for weapon and returning-umbrella bonuses, without parent
-identity tags. They share `skillBreakdownCategory: "Resonance"`.
-Saved skill overrides migrate the former shared Resonance and summon definitions
-to both routes, preserving customized damage and summon actions.
+红消香断的共鸣使用 `MartialArt`，包括较低重数下按节奏触发的召唤。
+玲珑泡影的共鸣使用 `Heavy` 和 `Charged`。两者还都带有 `Umbrella`
+和 `ReturningUmbrella`，以获得武器加成和回旋伞加成，但不带父技能的身份标签。
+它们共用 `skillBreakdownCategory: "Resonance"`。
+已保存的技能覆盖值会将原先共享的共鸣与召唤定义迁移到两条路线上，
+并保留自定义的伤害和召唤动作。
 
-A Scarlet Spin throw that spends Fragrant Song also crits the Resonances that throw
-summons, both the returning umbrella and its perfect catch. A throw spends the buff
-at its own start and the next throw starts on the same instant its catch fires, so
-neither "Fragrant Song is up" nor "the newest throw" identifies the owning throw:
-a nested trigger reports the cast as its source, and the spent buff is already
-gone. The throw therefore clears and re-primes the hidden `FragrantSongResonance`
-marker at its own start, gated on Fragrant Song at skill start, and `Resonance`
-carries the crit as a modifier on that marker. The clear scopes the bonus to one
-throw, so its duration only has to outlive that throw's own Resonances. It is
-causal, not timestamp-based: the catch trigger precedes the next throw's trigger in
-the action array, so the catch's Resonance resolves before the next throw clears
-the marker.
+消耗了芳歌的红消香断投掷，也会使该次投掷召唤的共鸣会心，包括回旋伞及其完美接伞。
+一次投掷在自身开始时消耗该增益，而下一次投掷恰好在其接伞触发的同一时刻开始，
+因此“芳歌仍在”与“最新的一次投掷”都无法确定所属的投掷：
+嵌套触发会将该次施放报告为其来源，而已消耗的增益早已消失。
+因此，每次投掷都会在自身开始时清除并重新挂上隐藏的 `FragrantSongResonance`
+标记（以技能开始时存在芳歌为前提），而 `Resonance` 以该标记上的修正项形式获得会心。
+清除操作将加成限定在单次投掷内，因此其持续时间只需长于该次投掷自身的共鸣即可。
+这一机制基于因果顺序，而非时间戳：在动作数组中，接伞触发位于下一次投掷的触发之前，
+因此接伞的共鸣会在下一次投掷清除标记之前结算。
 
-Attack categories are independent, not exclusive. A charged attack carries `Charged`
-plus the attack it charges: `Charged` and `Heavy` for Avalanche, Burning Heart, and
-Piercing Dart; `Charged` and `Light` for Snowparting's charged light. `Charged` alone
-is for a dedicated charged move that is neither, such as Vile Condemned.
-Grave Frost is a charged light attack, not a Varied Combo: it carries `Charged`
-and `Light`, without `VariedCombo`, so Varied Combo bonuses do not apply. Gate an
-effect on the combination when it should only cover one of them, as Exquisite
-Scenery's T6 does with `Heavy` and `Charged`.
+攻击类别相互独立，而非互斥。蓄力攻击带有 `Charged`
+以及其所蓄力的攻击类型：山崩地裂、焚此心和镖鸣彻野为 `Charged` 和 `Heavy`；
+斩雪刀法的蓄力轻击为 `Charged` 和 `Light`。仅带 `Charged` 的
+是两者皆非的专门蓄力招式，例如无义当诛。
+冢上霜是蓄力轻击而非派生技：它带有 `Charged`
+和 `Light`，但不带 `VariedCombo`，因此派生技加成不适用。
+当效果只应覆盖其中某一种时，应以标签组合作为限定条件，
+例如山河绝韵的 T6 就以 `Heavy` 和 `Charged` 的组合作为限定。
 
-### Requirements and dynamic values
+### 需求与动态值
 
-Requirement arrays are AND groups. `operator: "or"` supplies alternatives,
-including nested AND arrays. `operator: "not"` takes exactly one operand.
-`self` checks buffs or active tier/setup conditions; `target` checks debuffs.
-`skillTag` checks the action's tags. `targetType` matches the rotation's
-`targetType` practice target. Both dummies count as a boss, so the boss role is
-implicit: do not gate a mechanic on `targetType: "Boss"` when its source says it
-works against a boss, because that would exclude `Dummy` and `DummyAttack`.
-Express those unconditionally, as `vsBossDmg` is. Tracked-effect `stack` means at
-least that many stacks; `"max"` means its resolved maximum.
+需求数组是 AND 组。`operator: "or"` 提供备选项，可包含嵌套的 AND 数组。
+`operator: "not"` 只接受一个操作数。
+`self` 检查增益或当前生效的重数/配置条件；`target` 检查减益。
+`skillTag` 检查动作的标签。`targetType` 匹配循环的
+`targetType` 练习目标。两种木桩都算作首领，因此首领身份是隐含的：
+当来源说明某机制对首领生效时，不要以 `targetType: "Boss"` 作为限定条件，
+因为这会排除 `Dummy` 和 `DummyAttack`。
+应像 `vsBossDmg` 那样无条件地表达这类机制。所追踪效果的 `stack` 表示
+至少达到该层数；`"max"` 表示其解析后的最大层数。
 
-`battleStarted` is true only at or after the fight-start anchor, so a rule can
-exclude prepull. Target debuffs and DOTs are already rejected during prepull; use
-this for a self effect that should only accumulate in-combat, such as a hit
-counter. An action-level anchor opens the fight on its own resolved time, so an
-action sharing that instant with the anchored hit is already in combat.
-The requirement reads the event loop's live battle flag, independently of damage
-ownership. Delayed follow-ups from prepull casts can apply target effects and
-satisfy `battleStarted` once the anchor has opened combat.
+`battleStarted` 仅在开战锚点及之后为真，因此规则可以借此排除
+开战前（prepull）阶段。开战前阶段已经会拒绝目标减益和 DOT；此项用于
+只应在战斗中累积的自身效果，例如命中计数器。动作级锚点会在其自身解析出的
+时间开启战斗，因此与锚定命中处于同一时刻的动作已经处于战斗中。
+该需求读取的是事件循环中实时的战斗标志，与伤害归属无关。
+一旦锚点开启了战斗，开战前施放所产生的延迟后续动作就可以施加目标效果，
+并满足 `battleStarted`。
 
-Numeric targets include `resource`, `distance`, `enemyCount`, `selfHPPercentage`,
-`targetHPPercentage`, `targetQiPercentage`, and `endurancePercentage`.
-Comparisons support `>=`, `>`, `<=`, `<`, `==`, and `!=`. Use `amount` for a
-constant or `compareTo` for another numeric runtime state. HP/Qi percentage
-parameters use percentage points, whereas stored HP/Qi ratios use 0–1.
-`endurancePercentage` is current Endurance against its own maximum; it is absent
-while Endurance has no tracked maximum, and an absent value never satisfies a
-comparison.
+数值目标包括 `resource`、`distance`、`enemyCount`、`selfHPPercentage`、
+`targetHPPercentage`、`targetQiPercentage` 和 `endurancePercentage`。
+比较运算支持 `>=`、`>`、`<=`、`<`、`==` 和 `!=`。常量使用 `amount`，
+与另一个运行时数值状态比较则使用 `compareTo`。气血/真气百分比
+参数使用百分点，而存储的气血/真气比率使用 0–1。
+`endurancePercentage` 是当前耐力占其自身上限的比例；当耐力没有被追踪的上限时，
+该值不存在，而不存在的值永远不满足任何比较。
 
-Supported dynamic-value contracts include:
+支持的动态值契约包括：
 
-| Function                     | Contract                                                                                                                                                                                                |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `segment`                    | `param1` is the input, `param2` the ordered thresholds, `param3` the results; results have one more entry than thresholds.                                                                              |
-| `switch`                     | `param1` selects a key in `param2`; `fallback` covers initial expansion or an unmatched key. Tier/setup conditions can supply boolean keys.                                                             |
-| `multiply`                   | Multiply parameter `param1` by scalar `param2`; numeric strings are accepted.                                                                                                                           |
-| `byStack`                    | `param1` names the tracked effect, `param2` is the per-stack amount, and `target` defaults to `self`. In a modifier, the value is frozen for the cast.                                                  |
-| `segment` on `enduranceLost` | `enduranceLost` is Endurance **currently below its maximum**, snapshotted per damage action: at 50 of 120 it reads 70. Recovered Endurance counts as un-lost again. It is not a running total of spend. |
+| 函数                           | 契约                                                                                                                                                    |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `segment`                      | `param1` 为输入，`param2` 为有序阈值，`param3` 为结果；结果比阈值多一项。                                                                               |
+| `switch`                       | `param1` 选择 `param2` 中的一个键；`fallback` 用于初始展开或未匹配到键的情况。重数/配置条件可以提供布尔键。                                             |
+| `multiply`                     | 将参数 `param1` 乘以标量 `param2`；接受数字字符串。                                                                                                     |
+| `byStack`                      | `param1` 指定所追踪的效果，`param2` 为每层数值，`target` 默认为 `self`。在修正项中，该值在本次施放内被冻结。                                            |
+| `enduranceLost` 上的 `segment` | `enduranceLost` 是耐力**当前低于其上限的部分**，按每个伤害动作进行快照：耐力为 50/120 时读数为 70。已恢复的耐力重新算作未损失。它不是消耗量的累计总和。 |
 
-`segment.mode` is `LowerBoundInclusive` by default: equality enters the next
-interval (`[lower, upper)`). `UpperBoundInclusive` keeps equality in the preceding
-interval (`(lower, upper]`). Unknown modes do not resolve. Omitting the mode
-preserves version-3 overrides and existing migration behavior. For example:
+`segment.mode` 默认为 `LowerBoundInclusive`：等于阈值时进入下一个
+区间（`[lower, upper)`）。`UpperBoundInclusive` 则让等于阈值的情况保留在前一个
+区间（`(lower, upper]`）。未知模式无法解析。省略该模式
+可保留版本 3 的覆盖值和现有的迁移行为。例如：
 
 ```json
 { "function": "segment", "param1": "distance", "param2": [2, 3], "param3": [0.02, 0.03, 0.04] }
 ```
 
-The default selects 0.03 at exactly 2 and 0.04 at exactly 3. Do not change
-boundary semantics while simplifying a definition. `actionTime` refers to the
-original cast/action time, allowing a segmented modifier to move different hits
-by different offsets. Timing resolves as
-`max(0, originalTime + sum(castTimeModifier)) × product(castTimeMultiplier)`.
-A switched cast time is locked at cast start. Switched action values can also
-use `resolveAt: "skillStart"`.
+默认模式下，恰好为 2 时选择 0.03，恰好为 3 时选择 0.04。简化定义时不要改变
+边界语义。`actionTime` 指原始的施放/动作时间，使分段修正项能够
+以不同的偏移量移动不同的命中。时机按
+`max(0, originalTime + sum(castTimeModifier)) × product(castTimeMultiplier)` 解析。
+通过 switch 选择的施放时间在施放开始时锁定。通过 switch 选择的动作数值也可以
+使用 `resolveAt: "skillStart"`。
 
-### Actions
+### 动作
 
-| Type                                            | Important semantics                                                                                                                                                                                                                                                                        |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `damage`                                        | Independent `phyCoef` and `attrCoef`; omitted coefficients are zero. `attrBonus` applies only to the primary attribute. `rateRoute` selects the outcome set and `averageAttack` pins the attack to the range average; see [damage formula](damage-formula.md#per-outcome-damage).          |
-| `heal`                                          | Uses `phyCoef` and `silkbindCoef`; restores Self HP and reports excess as overhealing. Always resolves at the average of each attack range and rolls the healing route. `HOT` identifies healing over time.                                                                                |
-| `apply`                                         | `value` is an effect ID; `target` is `self`, `target`, or `player`. Default stack is one, capped by the definition. Action duration overrides definition duration. A `target` application before the fight-start anchor is rejected.                                                       |
-| `consume`                                       | Removes one stack by default, or all with `stack: "all"`. `value: { operator: "first", operand: [...] }` selects the first available effect.                                                                                                                                               |
-| `extend`                                        | Adds `duration` to an existing expiry; missing, expired, or permanent states are unchanged. Use `duration`, not `extension`.                                                                                                                                                               |
-| `trigger`                                       | Starts another skill at the event time without spending sequential cast time. The triggered skill's cooldown still applies. `sourceEffect` names a self effect whose application source must match the trigger row's source, preventing a delayed chain from attaching to a later refresh. |
-| `clearCD`                                       | Resets the named skill/application cooldown. Optional positive integer `charges` restores only that many spent skill uses; `seconds` instead reduces pending recovery timestamps by that duration, clamped to the current time. Do not combine `seconds` and `charges`.                    |
-| `setResource`, `addResource`, `consumeResource` | Replace, add, or subtract numeric resource `amount`; consumption accepts `"all"`. A consumption that actually reduces a resource with a `resourceSpendRegenDelay` also suppresses its regeneration for that delay.                                                                         |
-| `setHP`, `takeDamage`                           | Set absolute Self HP or subtract absolute incoming damage.                                                                                                                                                                                                                                 |
-| `setTargetHP`, `setQi`                          | Set target ratios. Qi reaching zero applies Exhausted; its expiry restores Qi through data.                                                                                                                                                                                                |
-| `emitEvent`                                     | Dispatches a named targeted accumulator check, not a general combat-event broadcast.                                                                                                                                                                                                       |
-| `replay`                                        | Multiplies recorded final damage by `coef`, bypassing the formula and damage events. Requires a `Replayed` skill.                                                                                                                                                                          |
-| `resolveRecording`                              | Effect expiry action that settles the matching recording activation.                                                                                                                                                                                                                       |
+| 类型                                            | 重要语义                                                                                                                                                                                                   |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `damage`                                        | 相互独立的 `phyCoef` 与 `attrCoef`；省略的系数视为零。`attrBonus` 仅作用于主属性。`rateRoute` 选择结果集合，`averageAttack` 将攻击固定为区间平均值；参见[伤害公式](damage-formula.md#per-outcome-damage)。 |
+| `heal`                                          | 使用 `phyCoef` 和 `silkbindCoef`；恢复自身气血，超出部分记为溢出治疗。始终按各攻击区间的平均值结算，并对治疗路线进行判定。`HOT` 标识持续治疗。                                                             |
+| `apply`                                         | `value` 为效果 ID；`target` 为 `self`、`target` 或 `player`。默认层数为 1，上限由定义决定。动作中的持续时间会覆盖定义中的持续时间。在开战锚点之前对 `target` 的施加会被拒绝。                              |
+| `consume`                                       | 默认移除一层，使用 `stack: "all"` 时移除全部。`value: { operator: "first", operand: [...] }` 选择第一个可用的效果。                                                                                        |
+| `extend`                                        | 在现有到期时间上增加 `duration`；不存在、已到期或永久的状态不受影响。使用 `duration`，而不是 `extension`。                                                                                                 |
+| `trigger`                                       | 在事件时刻启动另一个技能，且不占用顺序施放时间。被触发技能的冷却仍然适用。`sourceEffect` 指定一个自身效果，其施加来源必须与触发行的来源一致，以防止延迟的链条挂接到之后的刷新上。                          |
+| `clearCD`                                       | 重置指定技能/施加的冷却。可选的正整数 `charges` 仅恢复相应数量的已用技能次数；`seconds` 则将待恢复的时间戳提前相应时长，但不早于当前时间。不要同时使用 `seconds` 和 `charges`。                            |
+| `setResource`、`addResource`、`consumeResource` | 替换、增加或扣除数值资源的 `amount`；消耗可接受 `"all"`。若某次消耗确实减少了带有 `resourceSpendRegenDelay` 的资源，还会在该延迟内抑制其回复。                                                             |
+| `setHP`、`takeDamage`                           | 设置自身气血的绝对值，或扣除绝对数值的受到伤害。                                                                                                                                                           |
+| `setTargetHP`、`setQi`                          | 设置目标的比率。真气降至零时施加气竭；气竭到期后通过数据恢复真气。                                                                                                                                         |
+| `emitEvent`                                     | 派发一个具名的定向累积器检查，而不是通用的战斗事件广播。                                                                                                                                                   |
+| `replay`                                        | 将记录下的最终伤害乘以 `coef`，绕过公式和伤害事件。需要一个 `Replayed` 技能。                                                                                                                              |
+| `resolveRecording`                              | 效果到期动作，用于结算对应的记录激活。                                                                                                                                                                     |
 
-`reapply: false` leaves an active effect untouched. Otherwise applications add
-stacks; definition `refresh` decides whether expiry resets. An application
-cooldown can reject the attempt. Trigger applications may add conditional
-`additionalStack`. `player` applications fill self then teammates up to
-`groupSize`, then replace the earliest-expiring recipient copy.
+`reapply: false` 会让已生效的效果保持不变。否则，施加会叠加
+层数；定义中的 `refresh` 决定到期时间是否重置。施加
+冷却可能拒绝本次尝试。触发施加可以附加有条件的
+`additionalStack`。`player` 施加会先给自身、再给队友，直到达到
+`groupSize` 人数，之后替换最早到期的那个接收者副本。
 
-For `consume` with `first`, `resolveAt: "skillStart"` remembers the selected
-effect. If it expires before consumption, do not fall through to another one.
+对于使用 `first` 的 `consume`，`resolveAt: "skillStart"` 会记住所选的
+效果。如果该效果在消耗前到期，不要转而选择另一个效果。
 
-### Cooldowns, components, and attack responses
+### 冷却、组件与攻击响应
 
-An `extend` action may set `maxRemaining` in seconds. The extension cannot
-raise remaining lifetime above that cap, and never shortens an existing longer
-lifetime. Tracked expiry and periodic scheduling use the same capped result.
+`extend` 动作可以设置以秒为单位的 `maxRemaining`。延长不能使剩余存续时间
+超过该上限，也绝不会缩短已有的更长存续时间。
+所追踪的到期时间和周期调度使用同一个经上限约束后的结果。
 
-`cooldownGroup` shares readiness across skill definitions; otherwise the skill ID
-is the key. `cooldownUses` with default `cooldownRecovery: "window"` grants uses
-within one window. `"independent"` gives each spent charge its own recovery.
-Shared definitions must agree on capacity and recovery mode. Modifier changes
-do not move already-pending recoveries. Explicit casts wait; unavailable triggers
-are rejected. Generated waits are output only, not saved rotation steps.
+`cooldownGroup` 让多个技能定义共享就绪状态；否则以技能 ID
+作为键。`cooldownUses` 在默认的 `cooldownRecovery: "window"` 下会在
+一个窗口内授予可用次数。`"independent"` 则让每一次已消耗的充能各自独立恢复。
+共享的定义必须在容量和恢复模式上保持一致。修正项的变化
+不会移动已在等待中的恢复。显式施放会等待；不可用的触发
+会被拒绝。生成的等待仅用于输出，不会保存为循环步骤。
 
-`subAction` is an ordered list of `{ value, requirement?, fallback? }` references.
-The parent runs first. Each component spends cast time but retains parent
-attribution. Select primary/fallback at dispatch and lock that selection.
-Equal-length value/fallback arrays lock the whole sequence from one check.
-Conditional candidates must be leaf components; unconditional nesting is allowed.
-Reserved action slots keep attachments stable when alternatives differ, and
-attachments to unselected actions are skipped.
+`subAction` 是由 `{ value, requirement?, fallback? }` 引用组成的有序列表。
+父技能先执行。每个组件都会占用施放时间，但仍保留父技能的
+归属。在派发时选择主选项或回退项，并锁定该选择。
+长度相等的 value/fallback 数组会通过一次检查锁定整个序列。
+条件候选项必须是叶子组件；无条件嵌套是允许的。
+当备选项不同时，预留的动作槽位可使附加项保持稳定，而
+附加到未被选中动作上的附加项会被跳过。
 
-`silent: true` components have no actions, cooldowns, attack responses, or
-skill-start notifications. `waitForRequirement: true` requires a silent,
-unconditional prefix; see [readiness after charging](rotation-event-loop.md#readiness-after-charging).
+`silent: true` 组件没有动作、冷却、攻击响应或
+技能开始通知。`waitForRequirement: true` 需要一个静默且
+无条件的前缀；参见[蓄力后的就绪判定](rotation-event-loop.md#readiness-after-charging)。
 
-`attackResponse` declares `onSuccess`, optional `endMargin`, `durationFrom`, and
-`perAttack`. An incoming hit within the window is avoided and triggers success
-at impact, preserving the defensive cast's attribution/context. Default success
-is once per cast; `perAttack` permits every positive incoming hit. No incoming
-attack means no success reward. `durationFrom` shares a response window without
-forcing the same blocking cast duration. Full alignment rules are in the
-[event-loop reference](rotation-event-loop.md#incoming-attack-readiness-and-success).
+`attackResponse` 声明 `onSuccess`，以及可选的 `endMargin`、`durationFrom` 和
+`perAttack`。窗口内的来袭命中会被规避，并在命中时刻触发成功，
+同时保留防御性施放的归属/上下文。默认每次施放只成功
+一次；`perAttack` 允许每一次伤害为正的来袭命中都触发成功。没有来袭
+攻击就没有成功奖励。`durationFrom` 可共享响应窗口，而无需
+强制使用相同的阻塞施放时长。完整的对齐规则见
+[事件循环参考文档](rotation-event-loop.md#incoming-attack-readiness-and-success)。
 
-## Effects and Inner Ways
+## 效果与心法
 
-Skills carry no `description`. Source record ids and the reasoning behind a skill
-belong in this document and the per-path draft notes, not in the data the app
-loads. Buff and debuff definitions do keep a `description`, because the timeline
-shows it as a tooltip, and those describe how the effect behaves rather than
-citing a source id.
+技能不带 `description`。来源记录 id 以及技能背后的推理
+应写在本文档和各流派的草稿笔记中，而不是放在应用加载的数据里。
+增益和减益定义则会保留 `description`，因为时间轴会将其
+显示为提示信息，而这些描述说明的是效果的行为，而不是
+引用来源 id。
 
-`badgeColor: "red"` selects the red timeline effect badge independently of the
-definition's source file. Omit it for the default badge; DOT styling takes precedence.
+`badgeColor: "red"` 选择红色的时间轴效果徽标，与
+定义所在的源文件无关。省略该项则使用默认徽标；DOT 样式优先。
 
-`duration`, `maxStack`, `cooldown`, and `refresh` control tracked-effect lifetime
-and application. `effect` supplies action-time rules. `stackEffects[n - 1]`
-replaces `effect` at stack n and must contain the **complete cumulative value**,
-not an increment. Provide entries for every reachable stack count.
+`duration`、`maxStack`、`cooldown` 和 `refresh` 控制所追踪效果的存续时间
+与施加。`effect` 提供动作发生时的规则。`stackEffects[n - 1]`
+在第 n 层时替换 `effect`，且必须包含**完整的累计值**，
+而不是增量。需为每一个可达到的层数提供条目。
 
-`global: true` contributes always-active setup rules without a tracked buff.
-`shared` identifies party-shared debuffs; `showCoverage` requests coverage output.
-`hidden: true` marks an internal bookkeeping effect that drives the simulation but
-has no counterpart the player reads, so the timeline omits it. Use it for counters
-such as the Stonesplit Strength `Cadence` and the Dust Phantom Umbrella summon
-cadence, which would otherwise appear as meaningless buff plates. The effect still
-resolves normally; only its display is suppressed.
-Internal self-buff counters may declare `parentEffect: "BuffId"` to follow that
-buff's lifetime and source attribution. Parent refreshes preserve the counter's
-stacks while updating its expiry/source; parent removal, expiry, or replacement
-removes its counter. Use `onMaxStack` for count-based threshold triggers rather
-than a damage/healing accumulator. Wind uses separate counters for ordinary and
-Enhanced Rodent Rampage so progress cannot transfer between activations.
-Permanent seeded effects are not consumed and merge with later applications.
-Canonical conditional rules use `{ requirement: [...], effect: {...} }`.
+`global: true` 提供始终生效的配置规则，而无需被追踪的增益。
+`shared` 标识队伍共享的减益；`showCoverage` 请求输出覆盖率。
+`hidden: true` 标记一个内部记账效果：它驱动模拟，但
+在玩家可见的界面中没有对应项，因此时间轴会将其省略。可将其用于计数器，
+例如裂石·钧的 `Cadence` 和尘流派的幻影伞召唤
+节奏，否则它们会显示为毫无意义的增益条。该效果仍会
+正常解析；只是不再显示。
+内部的自身增益计数器可以声明 `parentEffect: "BuffId"`，以跟随该
+增益的存续时间和来源归属。父效果刷新时会保留计数器的
+层数，同时更新其到期时间/来源；父效果被移除、到期或被替换时，
+其计数器也会被移除。基于计数的阈值触发应使用 `onMaxStack`，而不是
+伤害/治疗累积器。风流派对普通鼠鼠生威和
+强化鼠鼠生威使用各自独立的计数器，因此进度无法在不同激活之间转移。
+永久的预置效果不会被消耗，并会与之后的施加合并。
+规范的条件规则使用 `{ requirement: [...], effect: {...} }`。
 
-`{ target: "EffectId", modify: {...} }` modifies a definition. Scalar fields
-override; `modify.effect` appends to the existing effect array. Requirements gate
-the modification. Setup `buffDurationBonus` scales resolved self/player buff
-duration and uses the applying skill's context, including indirect applications.
+`{ target: "EffectId", modify: {...} }` 用于修改一个定义。标量字段
+直接覆盖；`modify.effect` 会追加到现有的效果数组中。需求决定
+是否进行修改。配置中的 `buffDurationBonus` 会按比例调整已解析的自身/玩家增益
+持续时间，并使用施加该增益的技能的上下文，包括间接施加。
 
-Inner Way tier selection is cumulative from T0 through the selected tier.
-Entries contain `effect`, reactive `trigger`, or final-damage `listen` rules.
-Damage triggers run in tier order, so a later rule may observe a stack applied
-by an earlier rule on the same hit. `tags` control path eligibility; unassigned
-Inner Ways remain usable in Mixed.
+心法重数的选择是累积式的，从 T0 一直到所选重数。
+条目包含 `effect`、响应式的 `trigger` 或最终伤害 `listen` 规则。
+伤害触发按重数顺序执行，因此在同一次命中中，较后的规则可能观察到
+较早规则施加的层数。`tags` 控制流派适用性；未分配流派的
+心法在混搭中仍可使用。
 
-Every Inner Way and set declares `altersTimeline`. Keep it true whenever timing,
-triggers, resources, stacks, effects, healing, cooldowns, or DOTs can change.
-Only event-invariant damage/stat changes may reuse a baseline timeline. Script
-and other setup comparisons must follow the same rule.
+每个心法和套装都要声明 `altersTimeline`。只要时机、
+触发、资源、层数、效果、治疗、冷却或 DOT 可能发生变化，就应将其保持为 true。
+只有不改变事件的伤害/属性变化才可以复用基准时间轴。脚本
+及其他配置对比也必须遵循同一规则。
 
-### Stat effects
+### 属性效果
 
-Use `rawStat` for permanent progression/gear/Inner Way bonuses and flat talent
-attribute attack, before talent scaling. Temporary conditional buffs stay in
-their ordinary stat stage. `stat` changes ordinary stats; `effectiveStat` changes
-derived contributions. Do not duplicate calculations in UI components.
+永久性的养成/装备/心法加成以及天赋提供的固定
+属性攻击应使用 `rawStat`，在天赋缩放之前生效。临时性的条件增益仍保留在
+其普通属性阶段。`stat` 修改普通属性；`effectiveStat` 修改
+派生贡献。不要在 UI 组件中重复计算。
 
-Talent formulas read immutable raw stats, including flat attribute talents but
-excluding later talent/food bonuses. Use raw source names for these conversions.
-A formula source may be a stat name or `{ "max": ["body", "power"] }` to select the higher source value from the same stat snapshot. All named sources must be finite numbers. Formula values compute `source × multiplier + offset`, with optional `min`,
-`max`, and explicitly justified `round`. See the [stat pipeline](stat-pipeline.md)
-for effective-source resolution and final-value overrides.
+天赋公式读取不可变的原始属性，其中包括固定属性类天赋，但
+不包括之后的天赋/食物加成。这些换算应使用原始来源名称。
+公式来源可以是属性名，也可以是 `{ "max": ["body", "power"] }`，用于从同一属性快照中选取较高的来源值。所有具名来源都必须是有限数值。公式值按 `source × multiplier + offset` 计算，可选 `min`、
+`max`，以及需明确说明理由的 `round`。有效来源的解析与最终值覆盖请参阅
+[属性流水线](stat-pipeline.md)。
 
-Damage categories such as `dmgBonus`, `baseDMGBonus`, the Mechanism category's
-`globalDmgBonus`, `dotDamage`, and per-channel bonuses are not interchangeable;
-use [damage-formula.md](damage-formula.md) for their order and scope.
+`dmgBonus`、`baseDMGBonus`、机关类别的
+`globalDmgBonus`、`dotDamage` 以及各通道加成等伤害类别不可互换；
+它们的顺序与作用范围请参阅 [damage-formula.md](damage-formula.md)。
 
-### Triggers, accumulators, and recording
+### 触发、累积器与记录
 
-Ordinary Inner Way triggers default to `damage`; supported event-specific setup
-rules include `heal`, `takeDamage`, `skillStart`, and `attackResponse`.
-Skill-start triggers run after cast acceptance but before timed actions, including
-empty and triggered skills, excluding silent components and periodic rows.
-Use `attackResponse` for successful defense rewards, not attempted cast start. The
-`PerfectDodge` variants and `DeflectSuccessful` set `attackResponse.fallback`, so
-their response rewards resolve at cast start when no incoming attack is selected.
-`Dodge` keeps the same response window but has no fallback, so it requires an
-incoming attack. When a following attack is available, the normal attack-aligned
-response is preserved.
+普通心法触发默认为 `damage`；支持的特定事件配置
+规则包括 `heal`、`takeDamage`、`skillStart` 和 `attackResponse`。
+技能开始触发在施放被接受之后、定时动作之前执行，适用于
+空技能和被触发的技能，但不包括静默组件和周期行。
+成功防御的奖励应使用 `attackResponse`，而不是在尝试防御的施放开始时给予。
+`PerfectDodge` 各变体和 `DeflectSuccessful` 设置了 `attackResponse.fallback`，因此
+在没有选定来袭攻击时，它们的响应奖励会在施放开始时结算。
+`Dodge` 保留相同的响应窗口但没有回退项，因此需要有
+来袭攻击。当存在后续攻击时，会保留正常的与攻击对齐的
+响应。
 
-A trigger's `cooldown` is independent of the cooldown of its actions. A setup
-effect's `trigger` may be a single rule or an array of rules that each react to
-their own event; each rule keeps its own cooldown. An active self-buff may
-declare `trigger` with the same event and requirement contract as a setup trigger.
+触发的 `cooldown` 与其动作的冷却相互独立。配置
+效果的 `trigger` 可以是单条规则，也可以是规则数组，每条规则各自响应
+自己的事件；每条规则保留各自的冷却。生效中的自身增益可以
+声明 `trigger`，其事件与需求契约与配置触发相同。
 
-A trigger's `action` may be one action or an ordered array. Array actions run in
-order within the single pass that fires the trigger, so a `consume` placed before
-a `trigger` completes before the triggered row is queued. Timestamp ordering
-cannot express this: two damage actions sharing a timestamp both resolve before
-either queued row runs, so a buff consumed inside the triggered skill would still
-be present for the second action. The cooldown is stamped once after the whole
-pass. `DivinecraftSolidFoundation` uses this to spend the buff on the hit that
-unleashes it, so a multi-hit skill cannot trigger it twice. Buff triggers run after the ordinary
-Inner Way triggers on damage/heal/take-damage events. `oncePerSkill: true` on a
-setup or buff trigger accepts only the first damage action of each stage,
-including composite components; it excludes probability-weighted expected proc
-rows. It does not treat a later hit as the first when the buff appears mid-stage.
-Rodent uses this with `additionalStack` to count Infernal/Mortal stages twice.
-`hitWindow: { count, seconds }` counts eligible damage timestamps, includes the
-lower time boundary, and keeps receiving hits during cooldown. Expected rows
-carrying `hitProbability` do not count, even at probability one; sampled actual
-hits do. Heal and non-damage actions never count.
+触发的 `action` 可以是单个动作，也可以是有序数组。数组中的动作在
+触发该触发器的同一轮处理中按顺序执行，因此放在 `trigger` 之前的 `consume`
+会在被触发行排队之前完成。时间戳顺序无法
+表达这一点：共享同一时间戳的两个伤害动作都会在任一
+排队行执行之前结算，因此在被触发技能内部消耗的增益，对第二个动作而言
+仍然存在。冷却在整轮处理结束后只记录一次。
+`DivinecraftSolidFoundation` 借此在释放该增益的那次命中上消耗它，
+从而避免多段技能将其触发两次。在伤害/治疗/受到伤害事件上，增益触发在普通
+心法触发之后执行。配置触发或增益触发上的 `oncePerSkill: true`
+只接受每个阶段的第一个伤害动作（包括组合组件）；
+它不包括按概率加权的期望触发行。当增益在阶段中途出现时，它不会把之后的命中
+当作第一次命中。鼠鼠将其与 `additionalStack` 配合使用，使泥犁三垢/粟子游尘的阶段计数两次。
+`hitWindow: { count, seconds }` 统计符合条件的伤害时间戳，包含
+时间下界，并在冷却期间继续接收命中。带有
+`hitProbability` 的期望行即使概率为 1 也不计入；抽样得到的实际
+命中则计入。治疗和非伤害动作永远不计入。
 
-`damageOutcome` rules run after the resolved outcome and affect later hits.
-Insightful Strike restarts its configured decayDelay (seconds) on each eligible
-Affinity outcome; failed outcomes leave that deadline unchanged.
-They can use a decaying outcome resource with `gain`, `decayRate`, `threshold`,
-and required `resetTo: 0`. Expected and sampled tracking are separate. Retain
-correlated expected states except for the shared tiny-state rule: individual
-probability below `1e-5` and matching 0.1-second timing buckets merge with every
-numeric state field probability-weighted, including Focus and stacks. Insightful
-Strike instead merges all tiny resulting branches within each Concentration
-activity category without timing buckets, favoring calculation speed. Sampled
-states remain concrete. Specialized random-outcome and
-accumulator contracts are documented in [system architecture](system-architecture.md).
+`damageOutcome` 规则在结果解析之后执行，并影响之后的命中。
+凝神章在每次符合条件的会意结果时重新开始其配置的 decayDelay（秒）；
+未出现会意的结果不会改变该截止时间。
+它们可以使用一种会衰减的结果资源，带有 `gain`、`decayRate`、`threshold`，
+以及必填的 `resetTo: 0`。期望追踪与抽样追踪相互独立。保留
+相关联的期望状态，但共享的微小状态规则除外：单个
+概率低于 `1e-5` 且处于同一 0.1 秒时间桶的状态会被合并，所有
+数值状态字段（包括凝神值和层数）均按概率加权。凝神章
+则在每个看破活动类别内合并所有产生的微小分支，
+不使用时间桶，以优先保证计算速度。抽样
+状态保持为具体值。专门的随机结果与
+累积器契约记录在[系统架构](system-architecture.md)中。
 
-Buff accumulators can listen for damage or overheal, perform named checks,
-limit successful triggers, and snapshot attack-based thresholds on application.
-Each recipient's overhealing contributes separately. A finite listener budget
-stops new triggers without ending the buff; refresh/reset semantics belong in
-the definition. `group: true` heals use party recipients, not enemy count.
+增益累积器可以监听伤害或溢出治疗、执行具名检查、
+限制成功触发的次数，并在施加时对基于攻击的阈值进行快照。
+每个接收者的溢出治疗分别计入。有限的监听预算
+会停止新的触发，但不会结束该增益；刷新/重置语义应在
+定义中规定。`group: true` 的治疗以队伍成员为接收者，而不是按敌人数量计算。
 
-A final-damage listener supplies `parameter: { damage: "event.damage" }` to a
-`Replayed` skill. Requirements use that hit's tags/state; the listener cooldown
-starts only after it successfully spawns the skill.
+最终伤害监听器会向 `Replayed` 技能提供 `parameter: { damage: "event.damage" }`。
+需求使用该次命中的标签/状态；监听器的冷却
+仅在其成功生成该技能之后才开始。
 
-A timed effect can instead declare `recording: { event: "damage", requirement?,
-action: { type: "trigger", value: "ReplaySkillId" } }` and an expiry
-`resolveRecording` action. Expiry or reapplication closes the old window before
-spawning its replay. Hits exactly at expiry are excluded; empty windows produce
-nothing. Replay coefficients apply to final source damage and cannot recurse.
-Recording windows are not extended with ordinary `extend` actions.
+定时效果也可以改为声明 `recording: { event: "damage", requirement?,
+action: { type: "trigger", value: "ReplaySkillId" } }` 以及一个到期时的
+`resolveRecording` 动作。到期或重新施加会先关闭旧窗口，再
+生成其复现。恰好在到期时刻的命中不计入；空窗口不产生
+任何结果。复现系数作用于最终来源伤害，且不能递归。
+记录窗口不会被普通的 `extend` 动作延长。
 
-`damageGroup: { id, name }` assigns Inner Way damage to a runtime breakdown
-owner instead of an explicit cast. `collectBoostDamage` names the enabling
-buff for counterfactual attribution; delayed applications use
-`boostDamageSource` to retain that cast's ownership. Neither changes persisted
-rotation steps or the damage formula.
+`damageGroup: { id, name }` 将心法伤害归入运行时伤害明细中的某个
+归属项，而不是某次显式施放。`collectBoostDamage` 指定用于反事实归因的
+启用增益；延迟施加使用
+`boostDamageSource` 来保留该次施放的归属。两者都不会改变已持久化的
+循环步骤或伤害公式。
 
-Replay-only effects use numeric replayDmgBonus, evaluated after source damage
-and the replay coefficient. Wildstride (Draught) is its sole authored source.
-Ordinary damage and healing ignore this field; normal damage bonuses are not
-reapplied to replays.
+仅作用于复现的效果使用数值型的 replayDmgBonus，在来源伤害
+和复现系数之后计算。步乱（樽）是唯一编写了该字段的来源。
+普通伤害和治疗会忽略此字段；常规伤害加成不会
+再次应用于复现。
 
-### Periodic and chance-applied effects
+### 周期效果与概率施加效果
 
-`periodic` separates cadence from lifetime. `interval` must be positive;
-`firstTick` defaults to it and may be zero. `resetOnRefresh: false` preserves
-cadence; true restarts it. `tickOnExpire: false` excludes the exact expiry tick;
-the default endpoint is inclusive. No duration means ticking until removal or
-combat cutoff. Resource `amountPerTick` adds to `amount` by zero-based tick index.
+`periodic` 将跳动节奏与存续时间分开。`interval` 必须为正数；
+`firstTick` 默认与其相同，也可以为零。`resetOnRefresh: false` 保留
+跳动节奏；为 true 时则重新开始节奏。`tickOnExpire: false` 排除恰好在到期时刻的那一跳；
+默认包含终点。未设置持续时间表示一直跳动，直到被移除或
+战斗截止。资源的 `amountPerTick` 按从零开始的跳数索引累加到 `amount` 上。
 
-Authored DOT timings store effective wakeup delays, already adjusted for the
-33 ms native timer wheel and Lua deadline retry. For the adopted aligned-clock,
-timely-polling model, a request rounds down to a wheel slot; an early wakeup
-retries with the 34 ms Lua minimum, which rounds to 33 ms. Thus 500 ms becomes
-528 ms, 1,000 ms becomes 1,023 ms, and Hellfire's 100 ms drain becomes 132 ms.
-Apply this to positive initial delays as well as intervals; do not quantize
-these effective values again in the scheduler. This model comes from the CN
-client implementation; identical live Global server behavior is not established.
+编写的 DOT 时机存储的是有效唤醒延迟，已针对
+33 ms 的原生时间轮和 Lua 截止时间重试进行了调整。在所采用的时钟对齐、
+及时轮询模型中，请求会向下取整到时间轮槽位；过早唤醒时
+会以 Lua 的 34 ms 最小值重试，而该值会取整为 33 ms。因此 500 ms 变为
+528 ms，1,000 ms 变为 1,023 ms，业火的 100 ms 消耗周期变为 132 ms。
+此规则既适用于间隔，也适用于为正数的初始延迟；不要在调度器中
+再次对这些有效值进行量化。该模型来自国服
+客户端的实现；尚未确认国际服线上的行为与之相同。
 
-Smolder and Combustion tick immediately, then every 528 ms. Their inclusive
-initial lifetimes end at the last retained tick: Smolder uses 3.696 seconds
-(8 ticks), Combustion 7.92 seconds (16 ticks). Burn extensions scale by
-528/500: 1.5 seconds becomes 1.584, 3 becomes 3.168, 4 becomes 4.224,
-and 7.5 becomes 7.92. The full Dragon's Breath casts retain 23 Smolder or
-22 Combustion ticks. Expected battle-aligned DOTs use the authored effective
-interval for their shared clock too.
+暗灼和爆燃会立即跳一次，之后每 528 ms 跳一次。它们包含终点的
+初始存续时间在最后一个保留的跳点结束：暗灼为 3.696 秒
+（8 跳），爆燃为 7.92 秒（16 跳）。燃烧的延长时间按
+528/500 缩放：1.5 秒变为 1.584，3 变为 3.168，4 变为 4.224，
+7.5 变为 7.92。完整施放的神龙吐火保留 23 跳暗灼或
+22 跳爆燃。按战斗时钟对齐的期望 DOT 同样使用编写的有效
+间隔作为其共享时钟。
 
-Consuming/removing the last stack cancels future periodic actions. A DOT deals
-one copy per active tick, independent of stack count, and ignores flat bonuses.
-Use ordinary expiry actions for delayed non-DOT attacks. Future ticks inherit
-the cast that refreshes or extends the effect. A DOT row still counts as a
-`damage` event for `trigger` rules, so a rule that reapplies the same DOT must
-require a non-`DOT` hit; `data/dot/divinecraft.json` does this so its burns
-cannot sustain themselves.
+消耗/移除最后一层会取消之后的周期动作。DOT 在每次生效的跳动中
+造成一份伤害，与层数无关，并忽略固定加成。
+延迟的非 DOT 攻击应使用普通的到期动作。之后的跳动继承
+刷新或延长该效果的那次施放。对 `trigger` 规则而言，DOT 行仍算作
+`damage` 事件，因此重新施加同一 DOT 的规则必须
+要求非 `DOT` 命中；`data/dot/divinecraft.json` 就是这样做的，从而使其燃烧
+无法自我维持。
 
 `onMaxStack: { consume: "all", trigger: "SkillId", triggerTags?: [...] }`
-consumes the effect and cancels pending ticks before spawning the threshold
-skill. Overflow produces one burst; later actions cannot see the threshold
-stack. `triggerTags` affect only that spawned instance.
+会在生成阈值技能之前消耗该效果并取消待执行的跳动。
+溢出只产生一次爆发；之后的动作看不到达到阈值的
+层数。`triggerTags` 只影响该次生成的实例。
 
-Reactive `addResource` actions also accept `chance`: expected timelines multiply
-the resource gain by its probability, while sampled timelines roll the gain once.
-Threshold requirements still read the resulting resource value, so this does not
-represent a distribution of downstream buff outcomes.
+响应式的 `addResource` 动作也接受 `chance`：期望时间轴会将
+资源获取量乘以其概率，而抽样时间轴则对获取进行一次随机判定。
+阈值需求仍读取得到的资源值，因此这并不
+表示下游增益结果的分布。
 
-Action `chance` accepts a number or supported dynamic value; finite results are
-clamped to 0–1, invalid results rejected. The supported expected periodic case
-is a refreshing target DOT applied by non-DOT damage with preserved cadence;
-expected threshold payloads are damage-only triggered skills without cooldowns.
-Trigger `apply` actions may use an array of effect IDs to share one proc roll.
-Bitter Seasons uses this for its five-second Poison and ten-second defense debuff:
-applications add and refresh each effect's own stacks; Poison always deals one
-0.02-coefficient tick regardless of stack count. T3 incoming-hit procs retain
-10% chance even when T4 raises outgoing-hit chance to 15%.
+动作的 `chance` 接受数字或受支持的动态值；有限的结果会被
+限制在 0–1 之间，无效结果会被拒绝。受支持的期望周期情形，
+是由非 DOT 伤害施加、可刷新且保留跳动节奏的目标 DOT；
+期望阈值的效果载荷则是只造成伤害且没有冷却的触发技能。
+触发中的 `apply` 动作可以使用效果 ID 数组来共享一次触发判定。
+所恨年年将此用于其 5 秒的中毒和 10 秒的防御减益：
+每次施加都会增加并刷新各效果自身的层数；无论层数多少，中毒每跳始终造成一份
+系数为 0.02 的伤害。即使 T4 将造成命中时的触发几率提高到 15%，
+T3 的受击触发几率仍保持 10%。
 
-Chance-applied nonperiodic target debuffs support unconditional damage effects.
-They reuse the periodic tracker's stack/expiration distribution. Damage resolves
-at each possible stack count before weighting, rather than applying average
-stacks to a nonlinear formula. For a grouped DOT/debuff application,
-tick damage uses the debuff distribution conditional on that tick occurring;
-the shorter DOT lifetime can restart its cadence while debuff stacks persist.
-Poison uses the same expected battle-clock alignment as Weeping Blood, limiting
-it to one probability-weighted tick per 1.023-second battle-clock boundary. Its linked defense-debuff
-distribution uses the same clock; sampled simulation retains exact application
-cadence. This approximates Poison tick timing, not its application chance.
-As with other shared-clock DOTs, this can change damage-triggered cooldown and
-resource feedback. In particular, many tiny exact-cadence tick weights can occupy
-the shared Vitality cooldown; grouping them changes expected Vitality and can
-therefore change the Mystic damage penalty even when raw Poison damage barely changes.
-This is not joint tracking of unrelated chance systems. Keep this support
-boundary when extending data.
+按概率施加的非周期目标减益支持无条件的伤害效果。
+它们复用周期追踪器的层数/到期分布。伤害会在每种
+可能的层数下分别结算后再加权，而不是将平均
+层数代入非线性公式。对于成组的 DOT/减益施加，
+跳动伤害使用以该次跳动发生为条件的减益分布；
+较短的 DOT 存续时间可以重新开始其跳动节奏，而减益层数仍然保留。
+中毒使用与泣血相同的期望战斗时钟对齐方式，即
+在每个 1.023 秒的战斗时钟边界上最多一次按概率加权的跳动。与之关联的防御减益
+分布使用同一时钟；抽样模拟则保留精确的施加
+节奏。这近似的是中毒的跳动时机，而不是其施加几率。
+与其他共享时钟的 DOT 一样，这可能会改变由伤害触发的冷却和
+资源反馈。特别是，大量按精确节奏产生的微小跳动权重可能会占用
+共享的精元冷却；将它们合并会改变期望精元，因此
+即使中毒的原始伤害几乎不变，也可能改变奇术的伤害惩罚。
+这并不是对互不相关的几率系统进行联合追踪。扩展数据时请保持这一
+支持边界。
 
-`reductionGroup` in a damage effect groups party-shared defense and Physical
-Resistance reductions. Each field takes its strongest reduction within the group.
-Bitter Seasons' existing global T1/T6 controls therefore supply permanent maximum
-stacks without adding a second defense reduction to local Poison procs; a local
-T6 debuff can still supply its five-stack resistance reduction alongside global T1.
-Existing saved global-debuff IDs remain unchanged. Bitter Seasons tiers opt into
-`showCoverage`: reported average stacks use marginal expected stacks at output
-actions, and Max Stack Coverage integrates the probability of being at maximum
-stacks between applications and expiry,
-clipped to the combat window. Coverage never fabricates a guaranteed tracked debuff
-or reuses Poison's shorter lifetime. Permanent global copies at maximum stacks report 100% Max Stack Coverage.
+伤害效果中的 `reductionGroup` 用于将队伍共享的防御削减与外功
+抗性削减归为一组。每个字段取组内最强的削减。
+因此，所恨年年现有的全局 T1/T6 控件提供永久的满层效果，
+而不会给本地的中毒触发再叠加第二份防御削减；本地的
+T6 减益仍可与全局 T1 同时提供其 5 层的抗性削减。
+已保存的现有全局减益 ID 保持不变。所恨年年的各重数启用了
+`showCoverage`：报告的平均层数使用输出
+动作处的边际期望层数，而满层覆盖率则对从施加到到期之间
+处于满层的概率进行积分，
+并裁剪到战斗窗口内。覆盖率绝不会凭空生成一个必然存在的被追踪减益，
+也不会复用中毒较短的存续时间。处于满层的永久全局副本报告 100% 的满层覆盖率。
 
-`expectedTickAlignment: "battle"` deliberately approximates expected DOT timing
-on shared battle-clock boundaries, with no partial ticks; an application waits
-for the next strictly later boundary. Simulation retains concrete cadence and
-ignores expected-state merging. Runtime `damageScale` and `hitProbability` are
-not authored fields. See the [event-loop reference](rotation-event-loop.md)
-for probability storage, correlation, and cutoff behavior.
+`expectedTickAlignment: "battle"` 有意将期望 DOT 的时机
+近似到共享的战斗时钟边界上，不存在部分跳动；一次施加会等待
+下一个严格晚于它的边界。模拟保留具体的跳动节奏，并
+忽略期望状态合并。运行时的 `damageScale` 和 `hitProbability`
+不是编写字段。概率存储、相关性和截止行为请参阅
+[事件循环参考文档](rotation-event-loop.md)。
 
-## Resources and rotation records
+## 资源与循环记录
 
-Resources default to zero unless initialized. Actions clamp to the named maximum
-when supplied; Vitality may go negative to expose deficits. Regeneration starts
-at battle start, not prepull. `infiniteResources` skips gains, costs, and regen
-for those resources. Universal gains belong in `system.json.resourceEvents`.
-Apply direct Mystic costs once; triggered follow-ups must not pay them again.
+除非进行了初始化，资源默认为零。若提供了具名上限，动作会将资源
+限制在该上限内；精元可以变为负数，以暴露亏空。回复从
+开战时开始，而不是从开战前开始。`infiniteResources` 会跳过这些资源的获取、消耗和
+回复。通用获取应放在 `system.json.resourceEvents` 中。
+奇术的直接消耗只扣一次；触发的后续动作不得再次支付。
 
-Vitality and Endurance both seed from their own maximum stat at full, in the
-preset bundle and the rotation editor. Endurance is therefore always present as
-a resource, so `endurancePercentage` and `enduranceLost` resolve for every
-character. No authored skill currently spends Endurance, so `enduranceLost`
-reads 0 and low-Endurance conditions are inactive until costs exist.
+在模板包和循环编辑器中，精元和耐力都以各自的上限属性为初始值，
+从满值开始。因此耐力始终作为一种资源存在，
+`endurancePercentage` 和 `enduranceLost` 对每个角色都能解析。
+目前没有任何已编写的技能消耗耐力，因此在出现消耗之前，`enduranceLost`
+读数为 0，低耐力条件也不会生效。
 
-Endurance also regenerates at 10/s and can be spent. Regeneration and
-consumption are separate rates held over cast-relative windows, and a direct
-spend suppresses regeneration for `system.json.resourceSpendRegenDelay`. See
-[Endurance rates](#endurance-rates).
+耐力还会以 10/s 的速度回复，并且可以被消耗。回复与
+消耗是两种独立的速率，各自在相对于施放的时间窗口内保持，而直接
+消耗会在 `system.json.resourceSpendRegenDelay` 时长内抑制回复。参见
+[耐力速率](#endurance-rates)。
 
-`enduranceLost` is a net measure, not an accumulator. Cumulative spending has no
-general parameter: `row.resourceConsumption` is per-cast, and the final
-`timelineResourceSummary` carries gross totals. A mechanic that needs its own
-running threshold, such as Wildfire Spark T3's "after consuming a total of 50
-Endurance", needs a dedicated accumulator rather than either of those.
+`enduranceLost` 是净值度量，而不是累积器。累计消耗没有
+通用参数：`row.resourceConsumption` 按单次施放计算，而最终的
+`timelineResourceSummary` 记录的是总量。需要自身
+累计阈值的机制，例如燎原星火 T3 的“累计消耗 50 点
+耐力后”，需要专门的累积器，而不能使用上述两者中的任何一个。
 
-Skill steps and explicit Delays are sequential. Attached events are stored
-immediately before their anchor and reference zero-based action indexes or
-`"start"`; optional `trigger` selects the declared trigger-action ordinal.
-A Martial Art event is start-only. Timed encounter events consume no cast time;
-`eventTimeReference: "battleStart"` makes their times fight-relative. In the
-editor, entering a start time on an event makes that event explicitly
-battle-time-anchored; the editor retains its prior action target only as
-navigation metadata and the runtime gives `startTime` precedence. Moving a
-fixed-time event with the previous/next controls removes the explicit time and
-reattaches it to the selected action. `Switch Martial Art` and explicit `Delay`
-remain in the editor's Action category and retain their existing action/sequential
-semantics. Legacy attached Take Damage records without an explicit battle-start
-reference are converted to fixed time during migration; battle-start records
-preserve explicit attachments so reattachment round-trips through the editor.
-`editableCastTime: true` permits a step duration override before timing modifiers.
-`editableCastTime: { effect, max, required? }` makes a step duration the authoritative held
-cast duration and mirrors it onto the named self effect. The cap is applied
-before anchor timing, editor display, and the sequential scheduler. An omitted
-duration uses the configured maximum; `required: true` additionally prevents
-an authored/imported step from omitting that duration.
+技能步骤和显式延迟（Delay）按顺序执行。附加事件存储在
+其锚点之前紧邻的位置，并引用从零开始的动作索引或
+`"start"`；可选的 `trigger` 用于选择所声明触发动作的序号。
+武学事件只能附加在开始处。定时的战斗场景事件不占用施放时间；
+`eventTimeReference: "battleStart"` 让它们的时间相对于开战计算。在
+编辑器中，为事件输入开始时间会使该事件显式
+锚定到战斗时间；编辑器仅将其先前的动作目标保留为
+导航元数据，而运行时以 `startTime` 为准。使用上一个/下一个控件移动
+固定时间事件时，会移除显式时间，并将其
+重新附加到所选动作上。`Switch Martial Art` 和显式的 `Delay`
+仍归属编辑器的动作分类，并保留其现有的动作/顺序
+语义。没有显式开战参照的旧版附加承受伤害记录，
+会在迁移时转换为固定时间；以开战为参照的记录
+则保留显式附加，从而使重新附加能够在编辑器中往返保持一致。
+`editableCastTime: true` 允许在时机修正项之前覆盖步骤时长。
+`editableCastTime: { effect, max, required? }` 会让步骤时长成为权威的按住
+施放时长，并将其同步到指定的自身效果上。该上限在
+锚点计时、编辑器显示和顺序调度器之前应用。省略
+时长时使用配置的最大值；`required: true` 还会禁止
+编写/导入的步骤省略该时长。
 
-`start: { step, action? }` chooses battle start; omitted action means cast start.
-Composite action indexes use the same structural expansion as the simulator,
-reserving the larger action count of each primary/fallback component pair,
-including sequence alternatives. Layout times are authored estimates; live
-requirements and timing modifiers still resolve in the event loop.
-Only ordered or live-attached rows can be selected as a fight-start anchor; fixed-time
-rows are not valid starts. Preserve attachment indexes and fight-start anchors when
-editing/migrating data.
-Generated waits and periodic rows are never authored rotation steps.
-All editor event timestamps are shown and entered relative to battle start.
-Authored fixed-time events already store that reference; generated target attacks
-carry simulation-absolute times and must subtract the battle anchor for display.
-Changing the anchor preserves authored battle-relative event offsets.
+`start: { step, action? }` 用于选择开战时刻；省略 action 表示以施放开始为准。
+组合动作的索引使用与模拟器相同的结构展开，
+为每一对主选项/回退项组件预留两者中较大的动作数，
+包括序列备选项。布局时间是编写时的估计值；实时的
+需求和时机修正项仍在事件循环中解析。
+只有有序行或实时附加的行可以被选为开战锚点；固定时间
+行不是有效的开始点。编辑/迁移数据时，请保留附加索引和开战锚点。
+生成的等待和周期行永远不是编写的循环步骤。
+编辑器中所有事件的时间戳都以相对于开战的时间显示和输入。
+编写的固定时间事件已经存储了该参照；生成的目标攻击
+带有模拟中的绝对时间，显示时必须减去开战锚点。
+更改锚点会保留编写的相对于开战的事件偏移。
 
-Without Battle End, the final ordered item determines cutoff, including its
-same-time causal follow-ups. A trailing explicit Delay extends combat. With
-Battle End, damage at its timestamp is excluded. Generated effects never extend
-combat on their own; see [combat cutoff](rotation-event-loop.md#combat-cutoff).
+没有战斗结束事件时，由最后一个有序项决定截止时间，包括其
+同一时刻的因果后续动作。末尾的显式延迟会延长战斗。有
+战斗结束事件时，恰好在其时间戳上的伤害不计入。生成的效果本身永远不会延长
+战斗；参见[战斗截止](rotation-event-loop.md#combat-cutoff)。
 
-Self HP events store absolute HP; the UI percentage is only an input boundary.
-Take Damage is an independent timed event. A manually authored event with zero
-damage still dispatches defensive responses and Take Damage effects even though
-it removes no HP. Target HP is depleted only when the rotation supplies maximum
-`targetHP`; otherwise it stays at the implicit state unless explicitly set.
+自身气血事件存储的是气血的绝对值；界面中的百分比仅存在于输入环节。
+承受伤害是独立的定时事件。手动编写的零伤害事件
+虽然不会扣除气血，但仍会派发防御响应和承受伤害效果。
+只有当循环提供了最大 `targetHP` 时，目标气血才会被扣减；
+否则除非显式设置，它将保持在隐含状态。
 
-`directDamageReduction` is an additive ratio on setup, innerway, or tracked
-self-effect rules. It accepts a fixed ratio or a `segment` on
-`currentHPPercentage`, resolved against pre-hit Self HP. Take Damage events
-represent direct incoming attacks; the reduction applies before Insightful
-Strike's probabilistic defense and before HP loss and take-damage triggers.
-Light and Shadow Alike uses this field alongside `healingBonus` for Relentless
-Combat. Its T4–T5 direct outgoing hits consume one Darkness and add one Light;
-incoming hits consume one Light and add one Darkness. Each effect refreshes its
-five-second duration, caps at five stacks, and uses `stackEffects` to enhance
-its HP-dependent bonus. T6 gates off both triggers and replaces the base rules.
+`directDamageReduction` 是配置、心法或所追踪
+自身效果规则上的加算比率。它接受固定比率，或基于
+`currentHPPercentage` 的 `segment`，按受击前的自身气血解析。承受伤害事件
+代表直接的来袭攻击；该减伤在凝神章的
+概率性防御之前生效，也在气血损失和受击触发之前生效。
+明晦同尘将此字段与 `healingBonus` 一起用于鏖战。
+其 T4–T5 时，造成的直接命中会消耗 1 层晦并增加 1 层明；
+受到的命中会消耗 1 层明并增加 1 层晦。每个效果都会刷新其
+5 秒的持续时间，最多 5 层，并使用 `stackEffects` 增强
+其随气血变化的加成。T6 会关闭这两个触发，并替换基础规则。
 
-Qi depletion is authored rather than calculated. A preset's Qi events read as repeating
-ramps of `0.5999`, `0.3999`, `0`; the `0` event applies Exhausted, and its expiry is
-the only thing that refills the meter. The target is then immune to Qi damage
-for four seconds (user-confirmed). A following depletion ramp starts after both the Exhausted
-duration and that immunity window. Presets preserve each ramp's depletion gaps
-by shifting its thresholds four seconds later per preceding Exhausted window.
-Might retains its original hit-attached Qi timings by user instruction.
-Shifted hit attachments become battle-relative timestamps; thresholds at or
-beyond Battle End are omitted. This is authored encounter timing, not an
-automatic Qi-damage calculation or a restriction on custom editor events. A rotation may stop its last ramp early, but every
-authored event must fall inside the fight. Move events use nonnegative whole-meter
-distances, including zero meters. Initial distance is one meter.
+真气削减是编写的，而不是计算出来的。模板中的真气事件表现为
+`0.5999`、`0.3999`、`0` 的重复递降；`0` 事件施加气竭，而气竭到期是
+唯一能让真气条回满的方式。此后目标在 4 秒内免疫真气伤害
+（已由用户确认）。下一轮削减递降在气竭
+持续时间和该免疫窗口都结束之后才开始。模板会针对之前的
+每个气竭窗口，将阈值顺延 4 秒，从而保留每轮递降的削减间隔。
+按用户指示，威流派保留其原本附着于命中的真气时机。
+被顺延的命中附加会变为相对于开战的时间戳；位于战斗结束时刻
+或之后的阈值会被省略。这是编写的战斗场景时机，而不是
+自动的真气伤害计算，也不是对自定义编辑器事件的限制。循环可以提前结束其最后一轮递降，但每个
+编写的事件都必须落在战斗之内。移动事件使用非负的整米
+距离，包括 0 米。初始距离为 1 米。
 
-Preset `martialArts` controls eligibility. Presets remain immutable; editor
-changes and imports produce custom records. Skill overrides replace records in
-the worker's resolved maps and must participate in calculation fingerprints.
-Use existing import/migration code rather than restating export schemas here.
+模板的 `martialArts` 控制适用性。模板保持不可变；编辑器
+中的修改和导入会生成自定义记录。技能覆盖会替换
+worker 已解析映射中的记录，并且必须参与计算指纹。
+请使用现有的导入/迁移代码，而不是在此重述导出 schema。
 
-## Data previews
+## 数据预览
 
-`data/preview/<id>/` mirrors the folders under `data/` and supplies alternate
-versions of records, selected from Settings. A preview file holds whole records
-under the same ids the shipped file uses, so a previewed record reads exactly as it
-would in `data/` and an omitted field is genuinely absent rather than inherited. The
-one exception is an Inner Way file, which supplies individual `<Id>T<n>` tiers so a
-version that changed one tier does not restate the whole definition and its
-`bySoloLevel` tables.
+`data/preview/<id>/` 镜像 `data/` 下的文件夹，提供记录的
+替代版本，可在设置中选择。预览文件以与正式发布文件
+相同的 id 存放完整记录，因此预览记录的读取方式与其在
+`data/` 中完全相同，省略的字段确实不存在，而不是被继承。
+唯一的例外是心法文件：它提供单独的 `<Id>T<n>` 重数，
+这样只改动了某一重的版本就无需重述整个定义及其
+`bySoloLevel` 表。
 
-A preview may introduce records the shipped data does not define, which is how a
-version adds a sub-action beside the record it replaces; it may not introduce a new
-Inner Way, because the selectors enumerate the shipped set. Name a new sub-action
-for what it is, keep `SubAction` or `Triggered` so it stays out of the castable
-list, and repeat the parent's damage-identity tags so attunement and set matching
-resolve on the component that deals the hit.
+预览可以引入正式数据中未定义的记录，版本正是以此
+在被替换记录旁新增子动作；但它不能引入新的
+心法，因为选择器枚举的是正式发布的集合。按新子动作的
+实际用途为其命名，保留 `SubAction` 或 `Triggered`，使其不出现在可施放
+列表中，并重复父技能的伤害身份标签，以便定音和套装匹配
+能在实际造成命中的组件上解析。
 
-A preview is layered under the user's own skill overrides, so it sets the baseline
-they edit against rather than competing with them. Resolved preview records are
-part of the worker bundle, so a previewed coefficient, duration, or tier reaches
-every result and invalidates the caches computed without it.
+预览层位于用户自己的技能覆盖之下，因此它设定的是
+用户编辑时所依据的基准，而不会与这些覆盖相互竞争。解析后的预览记录是
+worker 数据包的一部分，因此预览中的系数、持续时间或重数会
+影响每一个结果，并使未包含它时计算出的缓存失效。
 
-## WIP and evidence gaps
+## 进行中的工作（WIP）与证据缺口
 
-An empty record is preferable to invented mechanics. Treat tests using synthetic
-hits as verification of rules, not evidence that a real skill's timing is known.
-The talent and weapon-set audits hold their detailed deferred cases; the list
-below keeps cross-cutting blockers and outstanding skill evidence.
+空记录胜过臆造的机制。使用合成命中的测试应被视为对规则的验证，而不是证明某个真实技能的时机已知。天赋审计与武器套装审计记录了各自详细的延后案例；下面的列表保留跨领域的阻塞问题与尚待补充的技能证据。
 
-### Model limitations
+### 模型局限
 
-- Qi damage bonuses are data-only. Endurance is a tracked resource seeded from
-  `maxEndurance`, so `endurancePercentage` and `enduranceLost` both resolve, but
-  no authored skill spends Endurance yet. Those effects therefore read zero:
-  Battle Anthem T6, and every Wildfire Spark tier. Wildfire Spark T3 additionally
-  needs a dedicated cumulative accumulator, which is not a general parameter.
-- Wind attack HP drain/leech remains unmodeled. Insightful Strike uses its
-  Concentration tracker for damage-based HP recovery. Song of Tang HP drain is
-  intentionally ignored by user instruction.
-- Blade Momentum and Battle Will retain confirmed starting values but no
-  generation, spending, or caps. Do not treat their current fixed state as a
-  completed resource model.
-- Enemy-healing reduction, movement slow, control immunity,
-  breath-hold, and some talent-specific dodge-window changes remain unsupported.
-  Existing incoming-attack response windows do not resolve all those mechanics.
-- Eonpour, Skyspeak, and Volutefit currently provide stat tiers only; other
-  mechanics await combat-skill and state wiring. See their JSON and the talent
-  audit. Mistwing is fully wired and is offered on Draught and Wind.
-- Yaksha Rush's defense-break rewards are unresolved: breaking the target's
-  defense is not a modeled timeline state, so its extra damage, 10 Qi damage, and
-  Tenacity grant have no representation. Do not attach them to the base hits.
+- 真气伤害加成目前仅存在于数据中。耐力是以 `maxEndurance` 为初始值的被追踪资源，因此 `endurancePercentage` 与 `enduranceLost` 都能解析，但目前还没有任何已编写的技能消耗耐力。因此以下效果读数为零：威猛歌 T6，以及燎原星火的每一重。燎原星火 T3 另外还需要一个专用的累计累加器，而这并不是通用参数。
+- 风流派攻击的气血汲取/吸血仍未建模。凝神章使用其看破追踪器来实现基于伤害的气血回复。按用户指示，有意忽略大唐歌的气血汲取。
+- 刀势（Blade Momentum）与战意（Battle Will）保留了已确认的初始值，但没有生成、消耗或上限。不要将它们当前的固定状态视为完整的资源模型。
+- 敌方治疗削减、移动减速、控制免疫、闭气（Breath-hold）以及部分天赋特有的闪避窗口变化仍不受支持。现有的来袭攻击响应窗口并不能解决所有这些机制。
+- 一醉千秋、飞仙醉言与大卷微身目前只提供各重的属性；其他机制尚待战斗技能与状态的接入。参见它们的 JSON 与天赋审计。燕别云岫已完全接入，可在樽与风流派中选用。
+- 药叉破魔的破防奖励尚未解决：击破目标防御不是已建模的时间线状态，因此其额外伤害、10 点真气伤害以及韧性（Tenacity）获取都没有对应的表示。不要把它们附加到基础命中上。
 
-### Timing and source validation
+### 时机与来源验证
 
-- User-confirmed Deflect timing is 0.3s for all weapons, except Heng Blade at
-  0.25s. Both ordinary and successful variants resolve this from `currentWeapon`;
-  unknown weapons use the 0.3s fallback.
-- Might still has provisional cast-end multi-hit timings outside its measured
-  routes. Its available path status is not proof that every timing is verified.
-- Addled Mind's supplied outside-PvP Level 100 timing is unverified in play.
-  Its uniform Flamelash shift places the third hit at 0.328 seconds versus
-  0.329 in the supplied active table; do not silently mix timing models.
-- Bursting Nine's Single-Target versus Area classification remains unconfirmed.
-- Coiled Dragon still needs skill/application wiring; existing Bone Corrosion
-  Qi bonuses do not affect calculated HP damage.
-- Rodent's raw-distance unit mapping needs verification. Preserve the confirmed
-  PvE route while investigating it.
+- 用户确认的卸势时机对所有武器均为 0.3s，横刀除外，为 0.25s。普通变体与成功变体都从 `currentWeapon` 解析该值；未知武器使用 0.3s 的回退值。
+- 威在其已测量的路线之外仍有临时的施放结束多段命中时机。其流派状态为可用，并不证明每个时机都已验证。
+- 痴障所提供的非 PvP 环境 100 级时机尚未在实战中验证。其统一的嗔焰偏移将第三击置于 0.328 秒，而所提供的生效表中为 0.329 秒；不要在不加说明的情况下混用不同的时机模型。
+- 衍九矢属于单体还是群体的分类仍未确认。
+- 盘龙（Coiled Dragon）仍需技能/施加方面的接入；现有的蚀骨真气加成不影响计算出的气血伤害。
+- 鼠鼠的原始距离单位映射需要验证。调查期间保留已确认的 PvE 路线。
 
-### Bellstrike Splendor
+### 鸣金·虹
 
-Splendor is `available`: it has talent, Inner Way, attunement, and skill data,
-preset builds, and the accepted `dummy-1-min-81-waves` DPS snapshot. Its path
-status is not proof that any timing is verified.
+虹的状态为 `available`：它拥有天赋、心法、定音与技能数据、模板配装，以及已接受的 `dummy-1-min-81-waves` 秒伤快照。其流派状态并不证明任何时机已经过验证。
 
-`Dummy 1 min 81 waves` preserves the user-proposed sequence: 27 tier-2 Vagrant
-Sword casts, with battle start on the first cast's first damage hit (after its
-Endurance-spend action). It starts at 12 m and reasserts 12 m on Flute Full's
-last direct hit. The target is the non-attacking dummy, with preset ping of 15 ms. Qi break is attached after wave 3 of the Vagrant cast immediately before the
-second full Qiankun's Lock (the 11th Vagrant cast). The last Spear Q is a cancel.
-Battle ends at 60 seconds relative to the first-hit battle anchor. No
-additional movement is inferred. The break resolves at 21.338s after battle start.
-Qi 60% and 40% thresholds retain proportional timing at 8.5352s and 12.8028s.
-After Exhausted ends at 31.338s, Qi damage immunity lasts until 35.338s.
-The same depletion rate places the next 60% and 40% thresholds at 43.8732s
-and 48.1408s. No second break is authored.
-The production calculation verifies 81 waves before the cutoff: all 27 casts
-use the three-wave route, which requires Sword Morph and either Shield, the T1
-out-of-combat exception, or the T4 follow-up window.
+`Dummy 1 min 81 waves` 保留了用户提出的序列：27 次 2 档蓄力的无以为家施放，战斗开始锚定在第一次施放的第一个伤害命中上（位于其耐力消耗动作之后）。它从 12 m 开始，并在箫（完整）的最后一次直接命中时重新设为 12 m。目标为不攻击的木桩，模板延迟为 15 ms。破气（Qi break）附加在第二次完整乾坤定之前紧邻的那次无以为家施放（即第 11 次无以为家施放）的第 3 道剑气之后。最后一次枪Q为打断版本。战斗在相对于首击战斗锚点的第 60 秒结束。不推断额外的移动。破气在战斗开始后 21.338s 结算。真气 60% 与 40% 阈值保持按比例的时机，分别位于 8.5352s 和 12.8028s。气竭在 31.338s 结束后，真气伤害免疫持续至 35.338s。按相同的消耗速率，下一个 60% 与 40% 阈值位于 43.8732s 和 48.1408s。未编写第二次破气。生产计算验证了截止之前共有 81 道剑气：全部 27 次施放都走三道剑气路线，这需要无名心法，并且需要护盾、T1 的脱战例外或 T4 的后续窗口三者之一。
 
-Ghostly Step - Umbra is cast immediately after the fourth Vagrant Sword.
-Both Ghostly Step variants' 30-second Mystery buffs reduce all Endurance costs
-by 10%. This combines additively with Endless Gale's general 20% reduction:
-the shared general factor is 0.7. Mountain's Might's charge-only 10% reduction
-remains in the separate charge category, giving a combined 0.63 charge factor.
-At T6, a full ordinary charge therefore spends 15.12 Endurance with both buffs,
-and Sword Morph's separate release costs 14. Qi Surge's base 1 cost becomes
-0.63. Existing charge-start snapshots and release-time cost evaluation apply.
-The Fully Relayed preset equips Sword Morph, Mountain's Might, Battle Anthem, and Insightful Strike at T6, Jadeware, and Affinity bow/ring. Its fixed core is 12 max Physical, 8 Momentum, 2 All Martial Arts, 1 Art of Sword, and 2 vs Boss rolls. Comparing all legal Power/Affinity fills and offensive armor bases gives 6 Affinity and 9 Power rolls; optimization rebuilds the live timeline for each candidate.
+阴阳迷踪步·影紧接在第四次无以为家之后施放。两种阴阳迷踪步变体的 30 秒迷踪增益都会使所有耐力消耗降低 10%。这与长风的通用 20% 降低按加法合并：共享的通用系数为 0.7。千山法仅作用于蓄力的 10% 降低仍属于独立的蓄力类别，合并后的蓄力系数为 0.63。因此在 T6 时，两个增益同时生效下，一次完整的普通蓄力消耗 15.12 点耐力，而无名心法单独的释放消耗为 14。气涌（Qi Surge）的基础 1 点消耗变为 0.63。沿用现有的蓄力开始快照与释放时的消耗计算。全承音模板装备 T6 的无名心法、千山法、威猛歌与凝神章，以及玉斗和会意弓/戒指。其固定核心为 12 条最大外功、8 条势、2 条全武学增效、1 条剑武学增伤与 2 条对首领单位增伤词条。比较所有合法的劲/会意填充方案与进攻型防具基底后，得出 6 条会意与 9 条劲词条；优化会为每个候选方案重建实时时间线。
 
-Only the skills the Inner Ways reference are authored, at the user's direction:
+按用户指示，只编写了心法所引用的技能：
 
-| Skill                                    | ID        | Scope                                                         |
-| ---------------------------------------- | --------- | ------------------------------------------------------------- |
-| `QiankunsLock`                           | 20102101  | Nameless Spear Martial Art Skill; applies Endless Gale        |
-| `QiankunsLockCancel`                     | 20102101  | Zero-time cancel; applies Endless Gale without damage         |
-| `VagrantSword2`                          | 202011021 | Nameless Sword charge tier 2; three phases, two shot variants |
-| `VagrantSwordShootSingle` / `ShootThree` | —         | The two charge-tier-2 release variants                        |
-| `DauntingStrikeCancel`                   | 20201101  | Flying-sword hit and cancel at 0.293s; 20% of source damage   |
+| 技能                                     | ID        | 范围                                      |
+| ---------------------------------------- | --------- | ----------------------------------------- |
+| `QiankunsLock`                           | 20102101  | 无名枪法武学技；施加长风                  |
+| `QiankunsLockCancel`                     | 20102101  | 零耗时打断；施加长风但不造成伤害          |
+| `VagrantSword2`                          | 202011021 | 无名剑法 2 档蓄力；三个阶段，两种射出变体 |
+| `VagrantSwordShootSingle` / `ShootThree` | —         | 2 档蓄力的两种释放变体                    |
+| `DauntingStrikeCancel`                   | 20201101  | 飞剑命中并在 0.293s 打断；来源伤害的 20%  |
 
-The remaining Sword and Spear actions, including charge tier 1, are deliberately
-absent. The proposed rotation does not require them; author additional actions
-only when a rotation needs them.
+其余的剑与枪动作（包括 1 档蓄力）被有意省略。所提出的循环不需要它们；仅当某个循环需要时才编写额外的动作。
 
-Spear Q and Sword Q each have a 12-second skill cooldown. Spear Q and its
-cancel share `QiankunsLock` readiness; Sword Q has its own cooldown. Early
-rotation casts wait automatically without storing explicit Delay steps.
+枪Q与剑Q各有 12 秒的技能冷却。枪Q及其打断版本共享 `QiankunsLock` 的就绪状态；剑Q有自己的冷却。循环中过早的施放会自动等待，而无需存储显式的 Delay 步骤。
 
-### Vagrant Sword charge tiers
+### 无以为家的蓄力档位
 
-Vagrant Sword (both release variants) and Shadow Step carry `SwordEnergy`. Each
-damage hit applies Sword Slash Damage Boost (劍氣增傷) after that hit: one stack,
-up to three, with a shared eight-second duration refreshed on every hit. The
-debuff adds 10% damage bonus per stack only to `SwordEnergy` skills; the applying
-hit uses the previous stack count. This mechanic is independent of Inner Way tier.
+无以为家（两种释放变体）与退亦有方带有 `SwordEnergy`。每次伤害命中之后都会施加剑气增伤（Sword Slash Damage Boost）：每次一层，最多三层，共享的 8 秒持续时间在每次命中时刷新。该减益每层仅为 `SwordEnergy` 技能提供 10% 伤害加成；施加它的那次命中使用之前的层数。此机制与心法重数无关。
 
-Vagrant Sword ignores ping on its parent and every sub-action: pre-charge,
-charging, and both release variants. Input latency adds no delay to the cast
-or any phase or hit, including the charge skipped by Energy Surge.
+无以为家在其父技能及每个子动作上都忽略延迟：预蓄力、蓄力中以及两种释放变体。输入延迟不会给施放、任何阶段或任何命中增加延迟，包括被气涌跳过的蓄力。
 
-The export describes charge tier 2 (`202011021`) as two mutually exclusive
-"Full charge" routes, and `normalDescriptions.terms` supplies each wave's
-multiplier against the tier-2 baseline of `3.2664` / `904` / `493`:
+导出数据将 2 档蓄力（`202011021`）描述为两条互斥的“满蓄力”路线，`normalDescriptions.terms` 则给出每道剑气相对于 2 档基准值 `3.2664` / `904` / `493` 的倍率：
 
-| Route         | Waves | Multipliers           | Markers (attack animation) |
-| ------------- | ----- | --------------------- | -------------------------- |
-| `single wave` | 1     | `1`                   | `0.2023076923076923`       |
-| `three waves` | 3     | `0.4`, `0.48`, `0.56` | `0.101`, `0.267`, `0.755`  |
+| 路线          | 剑气数 | 倍率                  | 标记（攻击动画）          |
+| ------------- | ------ | --------------------- | ------------------------- |
+| `single wave` | 1      | `1`                   | `0.2023076923076923`      |
+| `three waves` | 3      | `0.4`、`0.48`、`0.56` | `0.101`、`0.267`、`0.755` |
 
-The waves **replace** each other rather than stacking, so the release selects
-one route. Both variants repeat the parent's `Charged` and `Heavy` tags so
-attunement matching resolves on the component that deals the hit.
+这些剑气彼此**替代**而非叠加，因此释放时只选择其中一条路线。两种变体都重复父技能的 `Charged` 与 `Heavy` 标签，以便定音匹配在实际造成命中的组件上解析。
 
-The cast is three sub-actions that the timing and the Endurance rates both fall
-out of: a 0.2s pre-charge with no Endurance setting, a 1.2s charging phase, and
-a 0.85s shooting phase, totalling the 2.25s cast. The shooting sub-action is
-itself a `value`/`fallback` choice between the two release variants, so there is
-no wrapper between the cast and its phases. Sword Morph T0 with the Qi shield
-active picks the three-wave variant. T1 also permits this route out of combat,
-using a negated `battleStarted` requirement; the release is selected before its
-first hit opens battle and retains all three waves. Both routes pay the extra
-20 Endurance at release. Shadow Step [Cancel] spends 20 Endurance at cast start,
-lands its single hit and ends at 0.287s (user-confirmed), and applies the
-five-second `SwordMorphWindow` on that hit with T1. Its level-100 damage comes
-from source skill `20201110`; it carries `Special` and `SwordEnergy`.
-T1 or T4 permits the three-wave route while this hidden, one-stack window is
-active. At T4, each three-wave release applies or refreshes it at release start
-for five seconds; a single-wave release cannot refresh it.
-Otherwise the single wave runs. Only the
-three-wave variant carries `SwordEnergy`, which is the skill tag the Nameless
-Sword talents match on, so the single wave must not carry it. Charge tier 1
-is not authored.
+该施放由三个子动作组成，时机与耐力速率都由此得出：0.2s 的预蓄力（无耐力设置）、1.2s 的蓄力阶段和 0.85s 的射出阶段，合计 2.25s 的施放。射出子动作本身就是两种释放变体之间的 `value`/`fallback` 选择，因此施放与其各阶段之间没有包装层。无名心法 T0 在真气护盾生效时选择三道剑气变体。T1 还允许在脱战状态下走这条路线，使用取反的 `battleStarted` 条件；释放在其首次命中开启战斗之前就已选定，并保留全部三道剑气。两条路线都会在释放时额外支付 20 点耐力。退亦有方（打断）在施放开始时消耗 20 点耐力，打出其唯一一次命中并在 0.287s 结束（用户确认），并在 T1 时于该次命中施加 5 秒的 `SwordMorphWindow`。其 100 级伤害来自来源技能 `20201110`；它带有 `Special` 与 `SwordEnergy`。当这个隐藏的单层窗口生效时，T1 或 T4 允许走三道剑气路线。在 T4 时，每次三道剑气释放都会在释放开始时施加或刷新该窗口，持续 5 秒；一道剑气的释放不能刷新它。否则执行一道剑气。只有三道剑气变体带有 `SwordEnergy`——这是无名剑法天赋所匹配的技能标签——因此一道剑气变体绝不能带有它。1 档蓄力未编写。
 
-### Endurance rates
+<a id="endurance-rates"></a>
 
-Endurance regenerates at 10/s from `system.json.resourceRegeneration`. A skill
-may hold rates for the span of its own cast:
+### 耐力速率
+
+耐力按 `system.json.resourceRegeneration` 以 10/s 的速度回复。技能可以在其自身施放期间持有速率设置：
 
 ```json
 "endurance": { "regeneration": 0.001, "consumption": 20 }
 ```
 
-Permanent setup effects may declare `resourceRegenerationBonus` with `resource`,
-`belowRatio`, and `bonus`. Nameless Spear's rank-13 talent uses Endurance, `0.3`,
-and `0.2`: natural regeneration is 20% faster strictly below 30% of the current
-maximum. This multiplies the active natural rate, including a cast's regeneration
-override, but never direct `addResource` restores such as Spear Q, Mountain's Might,
-Battle Anthem, or Energy Surge. Suppressed regeneration remains zero. The rate
-integrator splits at threshold crossings in either direction, alongside the existing
-cast and suppression boundaries; the bonus does not multiply consumption rates.
-
-There are no authored start or end times. A skill's rates cover exactly its
-cast, and a composite carries none itself: each sub-action owns the phase it
-covers, so a charge's timings and its Endurance follow from the same structure. A
-`value`/`fallback` variant carries its own rates, so whichever release variant is
-selected holds the shooting phase's regeneration.
-
-Consumption-rate modifiers are snapshotted at the owning phase's start, not the
-composite parent's start. Vagrant Sword's 0.2-second pre-charge remains free;
-the following charging phase fixes its drain rate for all 1.2 seconds even if
-Endless Gale expires or is gained midway. Direct `consumeResource` actions stay
-live: Sword Morph evaluates its extra 20-Endurance cost when the release starts.
-
-Energy Surge (Qi Surge) skips both Vagrant Sword's pre-charge and charging
-phases. Its buff's parent `skillStart` trigger pays 1 base Endurance before the
-0.85-second release, using the normal charged-cost modifiers. Sword Morph still
-pays its separate 20 base Endurance. The trigger sets `creditResourceSpend: false` on
-its `consumeResource` action: this drains the meter and suppresses natural
-regeneration normally, but excludes the cast cost from `baseResourceConsumption`
-and therefore from resource-spend damage bonuses. The default is to credit
-direct spends; the extra Sword Morph payment retains that behavior.
-
-`regeneration` replaces the base rate and `consumption` drains on top of it, so
-the two never merge into one net figure. `system.json.resourceSpendRegenDelay`
-suppresses regeneration for a fixed delay after a **direct** spend, which is a
-`consumeResource` action. A consumption rate is not a direct spend and does not
-suppress anything. Suppression stops regeneration only; a consumption rate keeps
-draining.
-
-The timeline splits each advance at every rate-window boundary and every
-suppression deadline, so a change lands exactly where the owning cast ends
-rather than being smeared across the gap. Both are event-aligned by
-construction: a window starts and ends at a sub-action boundary, and a spend
-happens at an event.
-
-Vagrant Sword's charge tier 2 uses this mechanism. The pre-charge
-has no setting; charging drains 20/s for its 1.2s; whichever release variant runs
-holds 0.001/s for its 0.85s; and the base 10/s returns after 2.25s. Both release
-variants declare the Sword Morph spend, which only resolves on the three-wave
-route, and that direct spend is what suppresses the 10/s for the following 1.2
-seconds. Passive rates begin at battle start in the current simulator, so the
-opening pre-combat charge does not drain Endurance; its direct release spend
-still applies.
-
-Remaining mechanics:
-
-- The export lacks Endurance costs; Vagrant Sword has separately authored costs.
-  Battle Anthem T6 and the low-Endurance Spear condition can now resolve.
-  Wildfire Spark T3 still needs its cumulative accumulator.
-- Sword Morph T0 scales sword-energy damage by 1.5% per directly spent Endurance,
-  capped at 30%. The dynamic `enduranceSpent` value excludes the charging rate
-  and credits the paid fraction of the undiscounted release cost. General cost
-  reductions do not reduce this bonus: paying 16 under Endless Gale counts as
-  the full 20. The release action uses `resourceCostTags: []` to exclude
-  charge-specific cost modifiers. Insufficient Endurance still reduces the
-  credited payment proportionally. T1 opens
-  the out-of-combat route; T4 sustains its five-second window. T3 removes Abrasion
-  on sword energy against Exhausted and guarantees Affinity on the third wave.
-  Shadow Step opens the same five-second window at T1. T6's
-  Energy Surge restores 20 Endurance at the start of a three-wave release,
-  after its Sword Morph payment, and grants a five-second buff that skips the
-  next charge. Its 20-second cooldown starts there and is reduced by one second
-  on each subsequent sword-energy hit, including the triggering release's waves,
-  up to eight times, using a hidden stack budget.
-
-Damage actions may declare `modifier` using the same requirement/effect structure
-as skill modifiers. These resolve against each hit's live state, and participate
-in the effect cache identity, so a third-hit modifier cannot leak into earlier
-hits. `GuaranteedAffinity` forces the Affinity outcome; `NoAbrasion` resolves
-rates with full precision while preserving Affinity and Critical inputs.
-
-Mountain's Might T1 applies Qi Imbalance on damaging Splendor Martial Art hits;
-Sword Q cancel uses this same hit trigger. Spear Q and its cancel restore
-30 Endurance, increased to 60 at T3. T6 restores 8 Endurance on charged hits
-against Qi Imbalance, with one shared two-second cooldown. Non-boss Moving
-Mountain is outside the current practice-target model: every target is a boss.
-
-Battle Anthem T3 restores 10 Endurance on a Critical or Affinity charged hit,
-with a shared 12-second cooldown. The live damage resolver exposes outcome rates;
-resource-only `damageOutcome` triggers track a distribution of cooldown readiness
-in expected mode and concrete outcomes in sampled mode. Expected resource gains
-enter the shared meter as probability-weighted amounts. T6's missing-Endurance
-bonus applies only to Charged damage. The user confirmed that T6 removes the
-10% charge-cost increase despite the description. The T4 cost rule therefore
-requires T6 to be absent, preserving the increase at T4–T5 without changing
-the damage bonuses or recovery trigger. At T4–T5, +0.10 and Mountain's Might's
--0.10 cancel before Endless Gale's general 0.8 multiplier. At T6, only the
--0.10 remains: Vagrant's base 20/s drain becomes 14.4/s, or 17.28 Endurance
-over its 1.2-second charging phase. Without Gale it costs 24. The separate
-Sword Morph release payment remains 16 with Gale or 20 without it.
-
-Insightful Strike T1's damage/leech rules and T6's DOT bonus belong to
-Concentration, not to permanent effects. The outcome-state tracker includes the
-conditional damage rules only in its active branch. At or below 75% HP, its
-damage-based recovery updates self HP after each eligible hit. The same tracker
-resolves incoming-damage reduction, including expiry between outgoing hits.
-Neither HP effect is exercised by the full-HP, non-attacking dummy.
-
-### Endless Gale naming
-
-The export renders one buff under two names: `Endless Gale` in the Nameless
-Spear talent and Mountain's Might T0, and `Long Wind` in Mountain's Might T4. The
-correct name is **Endless Gale**, it is the buff Qiankun's Lock applies, and the
-user confirmed `Long Wind` is a mistranslation of that same buff rather than a
-second effect. Store it as `EndlessGale` only; do not add a `LongWind` alias.
-Its base duration is 5 seconds with a maximum of one stack; Mountain's Might T0
-sets the duration to 10 seconds. T4
-is therefore reachable and grants 3% Direct Affinity Rate while it is active —
-the source splits that into 1.5% plus 1.5% against bosses, and the boss role is
-implicit because both dummies count as a boss.
-
-Daunting Strike [Cancel] ends on its initial flying-sword hit at 0.293s.
-Its damage uses 0.2 times source skill `20201101` at level 100; the two
-Relentless Chase follow-ups are excluded. Mountain's Might T1 applies Qi
-Imbalance through the shared Martial Art damage trigger at the hit, replacing
-the former explicit cast-start application.
-
-### Wind dummy rotation behavior
-
-Blade of Heaven's Wrath must start while Flamelash is active. The user confirmed
-that Flamelash may expire during an already-started cast; its remaining hits
-continue with the actual buff state. Do not restore Flamelash or extend its
-duration to cover those hits. A new Blade of Heaven's Wrath cast starting
-without Flamelash remains an invalid state to investigate.
-
-### Bamboocut Dust definitions
-
-Dust implements only the skills its rotations cast. The rotations live at
-`data/rotation/bamboocut-dust/`, and each is the subject of its own DPS snapshot,
-so they are the reference rather than a separate draft. `dust-dummy-1-min-100pc`
-is the path default and the 100% Phantom Chime variant; it anchors battle start on
-the four-hit release's first hit, which is why its opener break lands in combat.
-
-Unmeasured damage hits use **0 seconds**, as requested. Unmeasured buff
-applications use **cast end**, except user-confirmed applications at 0 and Soul
-Loss, which is applied immediately after its corresponding hit.
-
-| Skill                | Temporary values                                                | Existing cast duration                                      |
-| -------------------- | --------------------------------------------------------------- | ----------------------------------------------------------- |
-| Soul Sweep           | Three damage timestamps at 0                                    | 1.75 s, source interrupt                                    |
-| Piercing Dart        | Measured seven-hit marker series; four-hit release truncates it | 1.841 s full, 0.796 s interrupted release                   |
-| Burn and Bury        | Finger snap at 0.53 s, inside the 0.65 s cast                   | 0.65 s, source interrupt                                    |
-| Scarlet Spin         | Four source stage markers; duration input controls the chain    | User-entered, capped at 12 s                                |
-| Dreamwrought Bubbles | Charge and release split into sub-actions                       | 0.743 s charge + 1.2 s release; Delicate removes the charge |
-
-The 0.743 s Bubbles charge is a user-supplied value, not a measurement: the
-datamine explicitly excludes charge timing. Soul Sweep Cancel at 0 and Piercing
-Dart Charge at 1.5 s are user-confirmed rather than timing gaps.
-
-Qi is authored as absolute-time `Qi` steps on the rotation. A rotation cannot
-attach one beyond a Scarlet Spin throw's first, because an attachment's `trigger`
-ordinal indexes the anchoring step's own trigger actions and later throws are
-raised by the stage rows. The exhaust therefore sits on the sixth throw's
-forward hit of the second Scarlet Spin, and a second proportional ramp follows
-the first Exhausted window without reaching a second exhaust.
-
-The second ramp's spacing is measured from the end of the four-second Qi
-damage immunity after the exhaust's expiry, so re-authoring
-the exhaust moves its steps twice: once by the exhaust's own shift and once by
-whatever change the first ramp's shape took. Shortening the four-hit release
-moved the whole downstream timeline 0.2209835277 s earlier, so the first ramp
-shifted by that much and the second by twice it. The 100% Phantom Chime variant
-places its own exhaust on the fifth forward hit of its second Scarlet Spin and
-stops there; it keeps the same two ramp gaps so the exhaust lands on that hit.
-The regular variant now crosses 60% Qi at 51.2362s after recovery immunity;
-its shifted 40% threshold would fall at 60.722s and is omitted after Battle End.
-
-Out of scope by user instruction: Fading Crimson, Tokens of Gratitude, Song of
-Tang HP drain, and Tenacity damage. These are exclusions rather than gaps, so
-they are not tracked as outstanding work.
-
-Piercing Dart's seven hits are modelled as `PiercingDartSweep1`–`7` triggered
-damage skills rather than seven `damage` actions on one skill. This is deliberate:
-Towline Sweep Tier 3 gives each hit a different bonus (0.05, 0.05, 0.05, 0.10,
-0.10, 0.15, 0.15) through `skillTag` requirements, and a `damage` action cannot
-carry its own tag — tags resolve per skill. Keeping the hits in one skill would
-need a per-action tag mechanism, which is not worth introducing for a single skill.
-Revisit this if a second skill needs per-action tags. The four-hit release reuses
-sweeps 1–4, matching the shared marker series.
-
-The source routes for Piercing Dart are cumulative prefixes of one seven-hit series
-measured from the side-button press: `20702101` is the charging stance and reports
-no hits, `20702102` is the three-hit release, `20702103` the five-hit release, and
-`20702104` the seven-hit release. Each variant is therefore the leading markers of
-`[0.099, 0.298, 0.498, 0.796, 1.02, 1.268, 1.841]`, and the cast time is the last
-marker it lands: 1.841 s for the full release and 0.796 s for the four-hit release,
-which ends at the interrupt. Soul Loss is applied on the same markers as the hit it
-belongs to, and its requirement resolves at skill start because Soulbound is
-consumed there.
-
-Each sweep's coefficients come from `timings.hitCoefficients` on `20702104`, matched
-by the `hitIds` list parallel to `hitTimes` and read at level 100. Each ordinal
-lists the collision alternatives observed for it, and every alternative within an
-ordinal shares one coefficient, so the mapping is unambiguous. Ordinals 1 and 2
-both resolve to the `20702102` 0.3-multiplier curve, so the first two hits are
-deliberately equal; the ramp is 0.334122, 0.334122, 0.445496, 0.313564, 0.470346,
-0.689664, 1.034496. The per-hit `multiplier` is already folded into these
-coefficients, so it is not applied again.
-
-Dreamwrought Bubbles is split into a charge and a release sub-action. Actions
-scheduled past a skill's cast time are inactive, and action times are absolute from
-the skill's start, so a charge that Fragrant Song - Delicate skips cannot be
-expressed inside the release skill. As sub-actions the 0.743 s charge delays the
-release, and skipping it slides the two collider markers back to their raw
-`0.400` and `0.830` second offsets. The release ends at the 1.2 s source interrupt,
-so the skill takes 1.943 s with the charge and 1.2 s without it. This matches the
-Drunken Poet charge pattern, and matches how Soul Sweep and Burn and Bury take their
-source interrupt as the cast time.
-
-Delicate skips the charge through a conditional sub-action rather than a
-`castTimeMultiplier` modifier on it. A sub-action that fails its requirement becomes
-an inactive segment contributing no cast time, so the release simply starts at once.
-Prefer this over a modifier: modifier requirements are evaluated against live state
-when the segment resolves, so a Delicate stack consumed on the parent at time 0 is
-already gone by then, and a lone remaining stack cancels nothing. Delicate is
-consumed by the release, on the cast the buff paid for.
-
-Both Dreamwrought Bubbles sub-actions set `ignorePing: true`. Input latency is paid
-once when the parent is dispatched, and every sub-action past the first would
-otherwise pay it again, stretching the skill by 2 × ping. Set it on a sub-action
-when that component is not a separate button press.
-
-Charged Combo reduces Soul Sweep remaining cooldown by 0.5 seconds per Piercing Dart
-damage hit, with a shared 0.5-second trigger cooldown. Soul-state stacking,
-conversion, lifetimes, and cast-start consumption are implemented. Fading Crimson
-and Tokens of Gratitude are intentionally ignored by user instruction.
-Mode-specific exclusions from Soulbreak recorded damage are intentionally ignored
-by user instruction. Fragrant Song's source text describes a 30% faster flight
-and accelerated-flight catch; Scarlet Spin applies the source `1 / 1.3` timing
-ratio to the next throw, with acceleration on Stage 4. Its damage bonus,
-guaranteed crit, and one-use consumption remain implemented. `FragrantSong` and
-`FragrantSongDelicate` both last 10 seconds, so a grant made more than 10 seconds
-before a throw does not accelerate it.
-
-Rotation `enemyCount` is a positive whole number, defaulting to one. It models
-the number of enemies hit for Light Anew and Song of Tang; it does not multiply
-damage or replace healing-recipient `groupSize`. Light Anew applies Candlelight
-on damage at three or more enemies, reduced to two at T4. Song of Tang T4
-grants one extra Tang Melody stack per eligible Martial Arts hit at two or
-more enemies, through the existing half-second application cooldown. Song of
-Tang HP drain is intentionally ignored.
-Scarlet Spin is represented by the castable `ScarletSpin` parent and the
-source-tagged `ScarletSpinStage1`–`4` components. The parent applies
-`FlowerBurial` for the authored duration and triggers the stage cycle
-`1 → 2 → 3 → 4 → 2 → …`; each stage uses the source next-start marker and
-level-100 weighted damage values. The entry and catch triggers use
-`sourceEffect: "FlowerBurial"` to bind each chain to its original application.
-Each delayed stage trigger declares an earlier `queueTime`; its queue-time
-source check reserves the next throw before the current throw finishes, while
-execution still waits for the source next-start marker. A queued throw can
-therefore start after `FlowerBurial` expires, and the parent effective cast
-extends through that throw's returned hit. Fragrant Song accelerates the next
-throw using the source `1 / 1.3` ratio, so Stage 4 is the accelerated stage.
-At zero ping, the rank-13 route starts 14 throws; positive ping shifts each
-throw's execution and can move the final queue acceptance beyond the 12-second
-state. The initial stage inherits the parent input's ping; later queued stages
-opt into `triggerPing`. The parent clears accumulated catch stacks at the start
-of a new segment. Local hit markers from every started stage remain two separate
-outgoing/returning damage actions.
-
-The draft has no accepted DPS snapshot and must not be treated as a validated
-build or rotation recommendation.
-
-Burn and Bury includes `dmgBonus: 0.3`, additive in the same category as vs Boss.
-Light Anew T3 immobilization/lockouts, Candlelight slow, Phantom Rally pull,
-and Burn and Bury slow/Breath-hold are intentionally ignored by user instruction.
-
-Towline T6 refreshes/settles target Soulbreak only at distance <= 15m.
-Its self Soul Return refresh and Burn and Bury damage bonus are not range-gated.
-
-### Bellstrike Umbra implementation gaps
-
-`InnerTrackSlashCancel` (Sword QQQ [Cancel]) retains both third-cast hits and
-ends that component at its second hit, 1.187704707s into cast three. Its total
-base duration is 2.510104707s. The component remains in the ordinary third-cast
-breakdown category and is hidden from rotation selection with `SubAction`.
-The 60-second preset uses this variant for the first QQQ, followed immediately
-by Ghostly Step - Umbra. At its configured 40ms ping, the delay before the second
-Sweep All is 1.342295293s, preserving its 12-second Empowered River Flow BB
-cooldown boundary and the rotation's 38 total Blood Bursts.
-
-Umbra's dummy Qi break is attached after the final direct hit of editor cast #34
-(zero-based skill numbering), Inner Balance Strike III [2 Casts][Cancel]. At the
-preset's 40ms ping it lands at battle time 30.54962591963635s. Pre-break Qi
-thresholds are authored at 40% and 60% of that time. Exhausted lasts ten seconds
-and its expiry restores Qi; the next ramp starts after the additional four-second
-immunity window. Only its 60% threshold falls before the 60-second Battle End.
-
-Umbra is available without Dev mode. Its Fully Relayed Max Build and Full Max Build presets copy Splendor's gear,
-replace the four armor attunements with Strategic Sword - Bleeding DMG Boost,
-and use Hawkwing with Sword Horizon, Morale Chant, Insightful Strike, and
-Wolfchaser's Art at T6. `dummy-1-min-38-bb` is registered as a draft, with the
-requested ordered sequence and Battle End at battle-relative 60 seconds. BB
-means Blood Burst; 38 is the intended trigger count, not a validated result.
-The first four-hit sword charge's first damage marker anchors battle start.
-The preset applies five Zenith stacks before the opening drink, representing
-Spirit prepared before the fight. Its first Blood Burst therefore starts at full
-Zenith, guaranteeing affinity and extending active Smolder through Sword Horizon T3.
-
-Umbra variants share `skillBreakdownCategory` by skill family: Inner Track
-Slash, Inner Balance Strike, Second Track Slash, Sober Sorrow, Sweep All, and
-Blood Burst. `SecondTrackSlash2Casts1Hit` composes the existing charge and
-one-hit follow-up; the preset replaces adjacent pairs with that composite.
-The component IDs remain available for stored rotations and overrides.
-Inner Balance Strike's second-cast variants use the separate breakdown category
-`Crisscross - Inner Balance Strike III`.
-Composite damage and healing use the subaction reference's `skillBreakdownCategory`,
-then the component skill's category, then wrapper attribution. Reference overrides
-also propagate through nested composites. Cast statistics
-continue to describe the complete composite, and action IDs and damage are unchanged.
-
-The refreshed `local/datamine/wwm-skills-normal-all.json` supplied on 2026-10-08
-includes normal-route Strategic Sword per-hit coefficients and attack-animation
-markers. These coefficients already include the hit multiplier; importing them
-must not multiply them a second time. Level-dependent curves select level 100,
-while scalar follow-up curves use their exported value.
-Inner Track Slash uses three separate animation clocks: stage one advances at
-the 0.3s combo boundary, stage two at the 1.0224s perfect-input boundary, and
-stage three finishes at its 1.426s interrupt boundary. All seven damage hits
-(one, four, then two) are imported, including both Horizon follow-up coefficients.
-The four-hit charge uses the first four level-one hits after a free 0.2s
-pre-charge and the minimum 0.3s charge clock, then advances at the 0.947s
-perfect-input release boundary. Its deflect
-cancel timing remains unmeasured. The first-stage special imports all four
-hits and its 1.4s interrupt boundary. Sober Sorrow now uses all six exported
-hit markers and the 1.996s full-cast interrupt boundary. Its five-hit cancel
-uses a temporary boundary at the fifth hit (1.374300296s); actual cancel timing
-remains unmeasured. Sweep All uses the user-selected 0.304s first-hit and one-hit cancel boundary
-for all buff variants. Its exported animation route mapping remains unresolved.
-These remaining placeholders cannot validate the proposed sequence within 60s,
-cooldown readiness, effect coverage, or its named 38 BB count.
-
-The user confirmed that Q Q Q uses all three stages, the combined special
-uses both stages, and the four-hit special uses only stage one. On 2026-10-08,
-the combined special was clarified to mean three stage-one hits plus one
-follow-up hit (four total). It advances at 1.063s and ends the follow-up at
-its first hit at 0.095977982s for the combined [2 Casts][Cancel] variant.
-The standalone second-stage definition retains its 0.946s interrupt boundary. Inner Track
-Slash's first two stages use the source one-plus-four hit series; the third
-stage is the two-hit Horizon follow-up. Second Track Slash is the charged route;
-Inner Balance Strike III is the special route. The combined special now applies
-Bleed before checking for Blood Burst on each stage-one hit. Horizon follow-up
-hits also apply one stack and check at that same hit, including the second hit
-of a two-hit route if the first has not reached five. These application/order
-semantics are user-confirmed from combat comparison, rather than explicit
-tooltip ordering. Charged follow-ups expose one-hit and two-hit
-cancel variants; the rotation uses the one-hit variant. Their temporary cancel
-boundaries equal their last retained hit marker (0.22504647s or 0.68347914s).
-
-Damage coverage and remaining omissions:
-
-- Bleed ticks (`2038001`–`2038005`) use the user-supplied per-tick coefficients:
-  0.132/0.165/0.198/0.264/0.33 for both physical and attribute damage at one
-  through five stacks, without an additional stack multiplier. The existing DOT
-  scheduler ticks at application +0.528s, then every 1.023 seconds. Stack additions refresh
-  the ten-second duration while preserving cadence. Sword BB clears all stacks,
-  then T6 reapplies two, restarting the 0.528-second tick delay. Full Zenith also
-  extends the reapplied Bleed through the existing 16-second cap. Clearing or
-  expiry ends ticks, and reapplication starts a new timer.
-  Sweep All's High Bleed does not detonate Bleed: it keeps five stacks and preserves cadence.
-- Blood Burst (`2038006`) uses the user-confirmed physical and attribute
-  coefficients of 2.4, supplied on 2026-10-08. The export still lacks its curve,
-  but burst damage is now implemented and resolves immediately on its trigger.
-- The refreshed export resolves Q stage three and the four-hit charge/special
-  coefficients, both charged follow-up cancel variants, and the combined special.
-  Their coefficients are no longer placeholders; measured partial-route cancel
-  boundaries remain missing.
-- Horizon's description scopes its five-stack Blood Burst to follow-up attacks.
-  This does not add a global threshold trigger to ordinary Q or charge hits.
-
-Sword Blood Burst clears all Bleed stacks, then T6 reapplies two while Zenith
-exists after the burst's Spirit grant, including the first burst as observed
-in the user's confirmed special sequence. Raw Horizon passive `102154301` grants 20 Sword Spirit per burst,
-represented by one of five Zenith stacks. At 100 Spirit the next burst forces
-Affinity; T6 retains 20 and then credits that burst's ordinary 20 gain.
-The T4 bonus and T1 follow-up Endurance restore are implemented. T3's full-Zenith
-burst extends Bleeding, Smolder, Qingyi's Poison, and Weeping Blood by ten seconds,
-capped at sixteen seconds remaining; missing effects are left absent. All
-currently supported encounter targets are non-player targets.
-Strategic Sword rank 13/14 restores ten Endurance on the first qualifying
-five-stack Special hit of each cast. Special stages apply their Bleed stack
-before checking the threshold. Their shared `StrategicSwordSpecialBloodBurst`
-trigger restores Endurance when the cast-start readiness effect is present,
-consumes that effect, then detonates. A hit raising four stacks to five therefore
-restores Endurance too; later bursts in the same cast do not restore again.
-The Special follow-up declares a `skillStart` action at its own start. This uses
-the shared skill-start trigger pipeline with the component's tags, refreshing the
-talent's readiness for that second cast even inside a composite rotation row.
-Thus two casts can each refund ten; multiple detonations within one cast refund
-only once. The composite wrapper remains a display container for these casts.
-Ordinary Q/charged follow-up bursts and Sweep All do not use this special refund.
-Blood Burst is `DirectDamage`, with `HighBleed` selecting Soul-Shaken's exclusive
-High Bleed bonus (10% per stack). It receives no ordinary DOT bonus or
-Insightful Strike DOT-only T6 bonus. `Bleed` selects Bleeding attunements and talents.
-Legacy special and charge follow-up IDs migrate to the current III/Crisscross IDs
-in saved rotations and skill overrides, including component references.
-Component-only skills carry `SubAction` to hide them from rotation selection.
-Every Umbra skill includes its own current skill ID in its tags.
-
-Sober Sorrow's five-hit cancel and full six-hit route use the source five
-0.15 multipliers plus the final 0.25 multiplier. Sweep All uses the description's
-0.8/1/1.2 factors against `20101101`, rather than guessing from its separate
-parent curve. Water Drop, Spring Surge, River Flow, and Empowered River Flow
-are selected automatically when Sober Sorrow ends, using its cast-scoped combo
-resource. Every DirectDamage hit during the cast counts, including Solid Foundation;
-DOT ticks do not. Wolfchaser adds an extra combo on Sober Sorrow hits with own Bleed
-at probabilities 0.6/0.7/0.8/0.9/1 for one through five stacks. Expected calculation
-adds probability-weighted resource gains; sampled simulation rolls each gain.
-Buff thresholds read this resource at the authored cast end; this expected-counter
-model does not branch buff selection at uncertain thresholds. Five-stack casts
-are deterministic. The counter resets on each cast and remains available for
-diagnostics after the window closes. The explicit five-hit/ten-combo variant
-starts with five extra combos and is used for the first Sober Sorrow in the
-draft (stored step index 8). River Flow and Empowered River Flow Sweep All fill
-Bleed to five stacks, based on the user's confirmed behavior; the tooltip only
-says that Bleed is applied. Subsequent casts still require those stacks to
-remain present; expiry and intervening consumption are not bypassed. The second-cast special cancel
-keeps the first Empowered River Flow active through the second Sweep All;
-all ordinary Sober Sorrow casts in the draft now start at five Bleed stacks.
-Sweep All's defense reduction lifetime and empowered damage leech are missing.
-Wolfchaser T3 damage, T6 Soul-Shaken, and the existing three-hit/three-second
-rolling-window mechanism for fifteen-second Wine Gu are implemented.
-
-User-supplied Endurance costs (2026-10-08): Second Track Slash drains 14/s
-only during its held-charge phase and pays another 6 at 0.3s. A separate 0.2s
-pre-charge precedes the 0.3s charging phase, matching Vagrant Sword's explicit
-phase structure; pre-charge does not drain Endurance. Its separate
-four-hit release does not continue the charging drain. The draft's default
-0.3s hold costs 10.2 gross Endurance; a 1.2s full hold costs 22.8. Natural
-regeneration and suppression use the shared resource pipeline, including before
-battle start. Charging overrides regeneration to 0.001/s; the one-time 6 spend
-suppresses regeneration for 1.2 seconds. Continuous
-drain changes the tracked meter but, like other charging phases, is not
-credited as direct `enduranceSpent` damage scaling.
-Inner Balance Strike III pays 40 at stage-one start, for both the four-hit
-first-stage route and the three-hit-prefix plus follow-up route. The follow-up
-does not pay another 40. Its minimum 50 Endurance activation requirement is
-documented but deliberately not enforced, at the user's request. The recovered
-held-charge path has no fixed minimum and ends when Endurance runs out; this
-draft tracks depletion but does not automatically truncate an authored hold.
-Sweep All pays 40 at the start of its selected Water Drop, Spring Surge, or River
-Flow component, once per cast. This direct spend also starts the shared
-1.2-second regeneration suppression; empowered recovery remains a separate gain.
-Endurance checks remain draft diagnostics with the remaining timing gaps,
-not validation of the final measured rotation.
-
-Umbra cooldowns, incoming mitigation/Tenacity, and missing
-stage-specific Bleed grants still need source records. General and Mystic
-skills retain their existing definitions. The draft has no accepted DPS
-snapshot; its incomplete damage and zero timings cannot establish either a
-useful DPS recommendation or the intended 38 Blood Bursts.
-
-### Food choices
-
-Food has two independent categories, each with its own None option. Physical
-Attack offers Simmering Fish Slices (+120/+240 effective Physical Attack), while
-Endurance offers Swallow’s Agility (巧燕). Both can be active together.
-The persisted `food` selection holds Physical Attack; `enduranceFood` holds
-Endurance. Legacy Swallow’s Agility selections migrate to Endurance with Physical
-Attack set to None, preserving the previous effects.
-Endurance (Swallow’s Agility) is available only for Splendor and Umbra and adds
-20 to `maxEndurance` through the shared stat pipeline. A saved unavailable food
-is treated as None without deleting the saved choice. Comparisons involving
-Endurance food rebuild combat with the variant’s starting Endurance and capacity.
-
-### Umbra canceled Stage 1 Slash preset
-
-`SecondTrackSlash1Cancel` uses the existing charge components and a four-hit
-release ending at 0.831138954 seconds. Its release preserves all damage and
-Bleed applications. The one-minute Umbra preset uses this cancel twice;
-its timed Qi ramps are recalibrated around the earlier attached Qi break.
-
-### Silkbind Wings Preview combat
-
-Wings follows Deluge in the selector and is available without Dev mode with a Preview badge. Its martial arts are
-文動霓裳 (Ribbon & Drum) and 杏遊草野 (Fan). Their rotation skills use the
-normal layer-zero, level-100 numerical records from `wwm-skills-normal-all.json`.
-Alternative hit IDs with identical numerical ownership are not extra hits.
-Fan Q uses the tooltip's 0.8 multiplier; special variants use their exported
-0.85 or 0.7225 multipliers. Attribute coefficients retain the same baseline as
-physical coefficients. The shared damage calculator applies the primary Silkbind
-attribute's 1.5 multiplier once; it must not also be baked into `attrCoef`.
-
-The updated export supplies provisional animation clocks. Wings imports the
-interrupt clock as the cancelable cast duration when the route identifies the
-matching skill animation. Equivalent branches with identical clocks share that
-timing. This covers both Drum Q casts, the drum light variant, all three matching
-drum heavy casts, and both Fan Q casts. The Pre-VC third-heavy component
-interrupts 0.25 seconds earlier (0.5833333333 seconds) when followed by VC. Hit clocks are imported for heavy stages
-two and three and the drum light variant; its on-hit 雅意 gain uses that same
-clock. These source routes remain marked `audit-provisional`.
-
-Unresolved event timings remain zero. The first Drum Q's collider marker is not
-projectile contact, and the second Drum Q and ordinary Fan Q lack hit clocks. The
-first heavy uses its own animation's interrupt clock, never the unrelated
-`skill_20901001_2` route; its hit clock stays zero. Northwind Sweep uses the shorter `skill_20303105_2` animation route by
-explicit selection: its cast duration and three hit clocks are imported. Enhanced Fan Q uses two attack requests at 0.5 and 1.0 seconds, splitting the
-existing combined coefficients into the first and second wind fields. Its
-connection to Perception is at 1.0 seconds. The one-dash Fan Perception route
-uses a 1.933-second cast with slash and final damage requests at 0.566 and
-1.816 seconds relative to Perception start: 1.566, 2.816, and 2.933 seconds
-from enhanced Fan Q start for slash, final damage, and ordinary interrupt.
-After each slash, another eligible target allows another dash, up to four
-executed dashes. Each additional dash adds 0.4 seconds to the final damage
-request and ordinary interrupt gate; the first slash clock is unchanged.
-For one through four dashes, final damage / interrupt times from Perception
-start are 1.816 / 1.933, 2.216 / 2.333, 2.616 / 2.733, and 3.016 / 3.133
-seconds respectively. The rotation editor’s enemy count selects the dash count,
-capped at four, through existing enemy-count requirements and segmented timing
-modifiers. Extra dashes strike other targets, so they extend timing without
-adding slash damage to the selected target. The first slash and unspecified
-resource/buff clocks are unchanged.
-These are nominal callback/request times; unspecified buff and resource event
-clocks remain unchanged. Jadebreaker uses user-supplied nominal timings from skill start: ordinary hits
-at 0.982, 3.033, and 4.089 seconds; the enhanced wave at 5.235 seconds; and
-the Harmony T6 extra wave at 5.435 seconds. Its earliest normal cancel is
-5.852 seconds. The enhanced component starts at 5.235 seconds and places its
-extra wave 0.2 seconds later. These timings assume immediate melody selection,
-an immediately starting rhythm clock, and earliest perfect inputs. Position
-synchronization and ring contact may delay actual landing; selection UI handoff
-delay remains unverified. Dawnsun uses the same immediate-selection and earliest-perfect-input assumptions:
-melody selection becomes available at 0.566 seconds, ordinary hits land at
-0.982 and 2.963 seconds, the enhanced hit lands at 5.165 seconds, and normal
-cancel is available at 5.920 seconds. The selection milestone is documentation,
-not an additional delay on these skill-start-relative times. Buff applications and other
-mechanic-event clocks are unchanged where unresolved.
-
-Both presets use heavy 1–3 / VC for every drum combo, followed by movement to 1m,
-and enable infinite Vitality. After the opening Ripple, the first round uses
-Drum Q1/Q2, two heavy/VC combos, Leaping Toad / Deflect, Boundless Blossom,
-End of Gale, Smolder 2-hit cancel / Deflect, and the second Ripple. This ordering
-leaves a roughly 0.67-second Jadebreaker / 0.74-second Dawnsun Cloudshear gap
-before Boundless Blossom. Smolder at skill 25 also leaves roughly 0.56 seconds
-without Cloudshear before the fourth Ripple refresh. Qi breaks after the second Ripple's last hit: the second
-enhanced Jadebreaker beat at T6, or Dawnsun's final wave. The following Drum
-Q1/Q2 restores 100 Noble Will and resets the shared Ripple cooldown through
-Harmony Song T4. Flute cancel / Deflect then precedes the third Ripple, followed
-by Boundless Blossom, Smolder 2-hit cancel, End of Gale, heavy/VC, Leaping Toad / Deflect,
-Drum Q1/Q2, heavy/VC, and the fourth Ripple. Both presets share this sequence,
-with only the Ripple skill and its last-hit Qi anchor/times differing.
-The proportional Qi markers use 40% and 60% of the second Ripple's last-hit time.
-After the ten-second Exhausted window restores Qi, another pair of 59.99% and
-39.99% markers uses that same depletion rate, measured from Qi recovery.
-Charged light
-羅袖動香 followed by VC remains selectable. Charged light uses numerical skill `2100100101`: five
-0.135 hits and one 0.19 final hit, following the explicit damage table rather
-than the conflicting maximum-eight-hit tooltip. Its user-confirmed time to connect to VC
-is 2.033 seconds: 0.2 seconds of pre-charge plus 1.833 seconds after pre-charge.
-Individual hit clocks remain zero because they are unresolved. It carries both `Light` and
-`Charged` tags.
-
-`RibbonLightChargedVC` and `RibbonHeavyComboVC` are selectable composite skills
-using the shared `subAction` mechanism. The heavy composite uses
-`RibbonHeavy3PreVC`; ordinary `RibbonHeavy3` keeps its original timing for stored
-references. Heavy stages and charged light carry `SubAction` and are hidden from
-rotation selection. The composite wrappers ignore ping; each component retains
-its own input latency, preserving the original separate-input timing. Both
-presets use these composites. Wings damage skills and components carry their weapon-family tag (`Fan` or
-`RibbonAndDrum`) for Art affix matching, independently of their `weapon` context.
-Wings skills omit descriptions; unresolved timing
-details are maintained here.
-
-These presets remain drafts; their DPS is not an accepted timing benchmark.
-Both use the non-attacking dummy. Exhausted is attached after the second Ripple's
-last damage action, including the triggered enhanced beat for Jadebreaker.
-The reset occurs once per 60 seconds on the following Q2 hit. The final Ripple
-finishes before the unchanged 60-second BattleEnd;
-only hits within that battle window contribute. The opener uses Drink cancel, Deflect, Fan Special, Flute cancel, Deflect, Boundless Blossom (granting
-Rustling), and End of Gale. Combat starts on Boundless Blossom's first hit,
-which enables End of Gale. The first Drum Special starts at 6m.
-`EndOfGale` is the internal ID for End of Gale (formerly `FiendishSquall`).
-End of Gale is a Heavy Varied Combo and carries both `Heavy` and `VariedCombo`
-for damage-bonus matching. 墨韻 is displayed in English as Ink Rhythm; its
-internal ID remains `InkRhyme`.
-`RhythmOfAccord` is the internal ID for Rhythm of Accord (鼓樂和), formerly
-`HarmoniousDrum`; composite skill components and eligible-hit rules use the new ID.
-Rhythm of Accord is a Light Varied Combo and carries both `Light` and `VariedCombo`
-for damage-bonus matching.
-`VerdantGust` is the internal ID for Verdant Gust (一扇生息), formerly `Rustling`.
-Saved casts, skill overrides, and nested skill references migrate to the new ID.
-Crane's Cry uses `CranesCry`, migrated from `CraneCry`, through the same mechanism.
-The shared skill-ID migration preserves saved rotations and skill overrides,
-including skill tags and nested references.
-End of Gale reapplies the 20-second Driftbreeze buff on its first hit, so later
-loops omit Fan Special. Its application action is appended to preserve stored
-action indexes. The editor displays 雅意
-from worker state on rows and actions. Cooldowns and the imported cast clocks
-advance the timeline even where a hit still has a zero placeholder.
-
-雅意 is represented by `NobleWill`, initially 100 with a cap of 100. Drum
-specials consume all of it. The requested single-target loops restore 30 from
-鸞鶴引聲, 20 from each 鼓樂和, and 30 from 煞盡東風 with 風知意 T3.
-No preset resource-refill event is used. Each Fan Perception dash attempts 30 雅意 recovery through a triggered skill
-with two shared cooldown uses per 15-second window. The editor enemy count
-selects up to four dashes; the third and fourth recovery attempts are rejected.
-
-扶風 and 爍鼓 activate the rank-13/14 talents and 弦墨篇 penetration rules.
-Paired 扶風 grants 6% attribute attack, rising to 12% with 風知意 T6;
-爍鼓 grants 6% all attack, rising to 12% with 相和歌 T6 and 18% with
-風知意 T6. 相和歌 T3 enhances normal Jadebreaker Critical damage only while 爍鼓 is active; T6
-adds the second enhanced beat and its Critical bonus. 墨韻 lasts 18 seconds
-at 風知意 T4. Dawnsun shield-active markers and damage reduction are modeled; shield absorption
-amounts and interruption refunds remain unmodeled. The exhaustion
-reset applies on 鼓樂和 or 鸞鶴引聲 damage against an Exhausted target.
-
-The Cloudshear build copies Deluge's Etherwrath minimum-attack gear at tiers
-96 and 100, replacing Fan boost with Ribbon & Drum boost and armor attunement
-with 文動霓裳 Special damage. It equips 相和歌, 風知意, 弦墨篇, and
-Morale Chant at T6. The Full Min Build preset retains this setup and affix choices, with every base and
-additional affix at its tier maximum and the existing maximum attunements.
-Ribbon & Drum gear uses the template Fan's base values and
-affix availability pending a dedicated equipment export.
-
-Cloudshear and Etherwrath are available for Wings. Cloudshear retains the
-77.8 minimum Physical Attack two-piece bonus at four pieces. Its self buff,
-裁雲·翊 (`buff.json` 109804), grants 6% all-type damage and healing for 15 seconds, capped at
-one stack and refreshing its duration on reapplication, when Fan Q applies
-扶風 or Drum Special applies 爍鼓. The automatic 扶風 application when 爍鼓
-expires does not trigger Cloudshear. Ally application is not part of the dummy presets.
-
-寸草心 T2 uses the first Void Attack table, matching Celestial Vigor
-(19.9–39.9 at Solo Level 21). Its alternative table is not added. Solo Level
-arrays prepend the application's index-zero slot to the source levels.
-
-### Wings attunements
-
-The tier-96 and tier-100 item exports share five Wings attunement categories.
-文動霓裳 covers Martial Art, Special, and Light/Heavy/Varied Combo damage;
-杏遊草野 covers Martial Art and Heavy/Varied Combo damage. Derived attacks
-use the existing VariedCombo tag. Armor rolls use the shared level-based limits
-(6% at tier 96 and 7% at tier 100); the two tiers import into the same keys.
-
-Blade's Will triggers and 寸草 damage bonuses match `Light` plus `VariedCombo`
-or `Heavy` plus `VariedCombo`, without skill-ID exceptions or combined category
-tags. Its T6 bonus additionally retains the Drum Series scope.
-寸草心 models PvE 寸草 stacks using the editor target count: three targets
-(two at T4) unlock eligible-hit applications; T4 gives two stacks at three
-targets. Stacks cap at five, last five seconds (eight at T1), and increase
-eligible damage by 2% per stack (4% at T3), with the T6 five-stack bonus.
-Target count is a proxy for simultaneous hits, including the Fan perception
-route; per-target hit tracking and PvP effects remain unimplemented. See
-[wings-implementation-audit.md](wings-implementation-audit.md) for remaining gaps.
-
-The Wings Fully Relayed Max Build uses Max Physical Attack weapon base affixes and eight Power rolls, one additional affix per piece, in place of Max Silkbind. The tier-96 Drum already has Power, so its displaced Max Silkbind roll uses Momentum, the best eligible offensive alternative by average preset DPS. Its additional affixes are optimized independently at each gear tier; setup and attunements remain fixed.
-
-Official item imports map Ribbon & Drum Art affixes 9793032/9794032 (tier 96)
-and 10193032/10194032 (tier 100) to `ribbonAndDrumDmgBoost`. The item exports omit these affixes' name fields; the user-provided
-Traditional Chinese label is 舞綾鼓武學增傷.
-
-相和歌 T6 昭陽 enhanced wave extends existing 爍鼓 by four seconds at
-5.165 seconds, so the initial 6.5-second buff expires at 10.5 seconds from
-cast start. With only 扶風 active, it grants four seconds of 爍鼓 instead.
-The game caps this extension at ten seconds remaining; that cap is documented
-but not enforced because the modeled route cannot exceed it.
-
-Wings has four fully relayed attack layouts: Double Min (Min Physical and Min
-Void/Silkbind), Min (Min Physical and Max Void/Silkbind), Min Attribute
-(Max Physical and Min Void/Silkbind), and Max (Max Physical and Power). Graduate retains its non-relayed Min layout and maximum rolls.
-Double Min, Min, and Graduate require eight Agility rolls, one
-additional affix on every equipped piece, at both tiers. Missing Agility replaces
-Critical Rate or attribute attack, choosing the higher average preset DPS.
-This requirement takes precedence over the former twenty-attack-roll and 79%
-effective-critical-rate constraints. Max weapon bases are fixed to Max Physical.
-
-Affix optimization uses the average DPS of the Jadebreaker and Dawnsun presets,
-Simmering Fish Slices, Fire, no script, and default global debuffs at
-breakthroughs 17/18. After applying the Agility and weapon-base constraints,
-the remaining attack rolls stay fixed to preserve each layout. Remaining
-additional affixes other than flat attack are optimized by repeatedly accepting the best
-eligible single replacement until none increases the objective. Required
-Agility stays fixed in Min layouts. Weapons, sets, Inner Ways, armor bases, and
-attunements remain fixed. These are constrained local optima, not a global search.
-A weapon cannot combine Void and Silkbind rolls of the same attack bound.
-Physical penetration remains the selected attunement for every layout.
-
-Double Min requires twelve Min Physical and eight Min Silkbind rolls, including
-Min Physical weapon bases, while retaining eight Agility rolls. The 12/8 split improves both preset rotations at both tiers compared with 10/10. Additional offensive affixes
-may be replaced only when neither preset rotation loses DPS. The tier-100
-layout moves Precision from weapon/accessory rolls to the helmet to meet this
-constraint. Min Attribute requires ten Min Silkbind, ten Max Physical, and three Agility rolls at both tiers. Its remaining Agility/Critical/Power positions are filled with Critical Rate or Power by enumerating legal assignments and selecting the highest two-rotation average DPS. Existing Precision and damage-boost affixes remain fixed. Both tiers select eight total Critical Rate rolls, reaching 79.83% effective crit at tier 96 and 79.21% at tier 100 with Simmering Fish Slices. Remaining fills use one Power roll at tier 96 and two at tier 100; an additional crit roll lowers the objective.
-
-### Wings supported-effect corrections
-
-墨韻 applies after the final Perception hit, including enemy-count dash delays.
-Its T4 upgrade adds 5% to the original 5% while preserving Fan/Drum Series scope.
-弦墨篇 T6 replaces previous penetration and limits its extra 12 penetration to
-Drum Series. Its qualifying attack buffs include both Floating Grace variants.
-裁雲·翊 uses damage/healing bonuses rather than attack-range bonuses.
-
-Envigorated Warrior uses existing incoming/outgoing triggers and timed buffs for
-its disable, Cage, escape and T6 mark. Incoming damage belongs to the modeled
-target; no separate attacker identities are inferred. Morale Chant healing
-applications share Yi River’s two-second application cooldown, and T6 damage and
-healing payloads share their ten-second cooldown. Below-T4 random self stacks
-remain unsupported. See [the Wings audit](wings-implementation-audit.md) for
-remaining mechanisms and draft Flourishing Notes timing limits.
-
-### Global Wings support
-
-The Global Buffs Wings selector uses permanent expected bonuses for other paths:
-Cloudshear contributes 6% damage and healing; Yellow weights Tailwind's 3%
-attribute attack bonus by 13.5/20 and Radiant Drum's 6% Physical/all-attribute
-attack bonus by 6.5/20. Blue uses 9.5/20 and 10.5/20 respectively. Full uses
-Cloudshear and Radiant Drum at full coverage. These weighted effects do not
-activate local Tailwind/Radiant Drum states or grant Wings talent bonuses.
-
-For the locked Wings weapon pair, None and Yellow add no effects. Blue overrides
-local Radiant Drum applications to 10.5 seconds; Full uses 20.5 seconds. Both
-disable Dawnsun's extra four-second extension and its fallback application.
-The existing global effect-definition modifiers express the duration overrides,
-and persistent support markers select them. Comparisons rebuild the timeline
-because changing this selector changes Wings buff expiry events.
-
-### Forgetfulness cooldown
-
-Forgetfulness's application has no internal cooldown. Grave Frost consumes the
-active Forgetfulness at cast start and applies the six-second Forgetfulness
-Cooldown (忘機調息) only when that cast used Forgetfulness. Snowbreak Spring at
-Frost-Clad Night T6 removes this cooldown buff on an Exhausted target, then
-checks the live buff state before granting Forgetfulness. Other targets cannot
-receive a new grant while the cooldown buff is active. An unused Forgetfulness
-expiring does not start cooldown. The CN preview uses the same rules.
+永久性的配置效果可以声明 `resourceRegenerationBonus`，其中包含 `resource`、`belowRatio` 与 `bonus`。无名枪法的 13 阶天赋使用耐力、`0.3` 与 `0.2`：当耐力严格低于当前上限的 30% 时，自然回复加快 20%。它乘以当前生效的自然回复速率（包括施放对回复速率的覆盖），但绝不作用于直接的 `addResource` 恢复，例如枪Q、千山法、威猛歌或气涌。被抑制的回复仍为零。速率积分器会在任一方向跨越阈值时拆分，与现有的施放边界和抑制边界一并处理；该加成不会乘到消耗速率上。
+
+没有编写任何开始或结束时间。技能的速率恰好覆盖其施放，组合技能本身不携带任何速率：每个子动作拥有它所覆盖的阶段，因此蓄力的时机与其耐力都由同一结构得出。`value`/`fallback` 变体携带自己的速率，因此无论选中哪个释放变体，都由它持有射出阶段的回复速率。
+
+消耗速率修正在其所属阶段开始时进行快照，而不是在组合父技能开始时。无以为家 0.2 秒的预蓄力仍然免费；随后的蓄力阶段在整整 1.2 秒内固定其消耗速率，即使长风在中途到期或在中途获得，也是如此。直接的 `consumeResource` 动作保持实时计算：无名心法在释放开始时计算其额外 20 点耐力的消耗。
+
+气涌（Qi Surge）会同时跳过无以为家的预蓄力与蓄力阶段。其增益的父级 `skillStart` 触发器在 0.85 秒的释放之前支付 1 点基础耐力，并使用常规的蓄力消耗修正。无名心法仍需单独支付 20 点基础耐力。该触发器在其 `consumeResource` 动作上设置 `creditResourceSpend: false`：这会正常扣减耐力条并抑制自然回复，但会把这次施放消耗排除在 `baseResourceConsumption` 之外，因而也排除在基于资源消耗的伤害加成之外。默认会计入直接消耗；无名心法的额外支付保留这一行为。
+
+`regeneration` 替换基础速率，`consumption` 在其之上额外扣减，因此两者绝不会合并为一个净值。`system.json.resourceSpendRegenDelay` 会在一次**直接**消耗（即 `consumeResource` 动作）之后的固定延迟内抑制回复。消耗速率不是直接消耗，不会抑制任何回复。抑制只会停止回复；消耗速率会继续扣减。
+
+时间线会在每个速率窗口边界和每个抑制截止点拆分每次推进，因此变化恰好落在所属施放结束的位置，而不会被平摊到整个间隔中。两者在结构上都与事件对齐：窗口在子动作边界开始和结束，而消耗发生在某个事件上。
+
+无以为家的 2 档蓄力使用此机制。预蓄力没有设置；蓄力阶段在其 1.2s 内以 20/s 扣减；所运行的释放变体在其 0.85s 内保持 0.001/s；2.25s 后恢复基础的 10/s。两种释放变体都声明了无名心法的消耗，但它只在三道剑气路线上生效，正是这次直接消耗在随后的 1.2 秒内抑制了 10/s 的回复。在当前模拟器中，被动速率从战斗开始时才生效，因此开场的战前蓄力不会扣减耐力；其释放时的直接消耗仍然生效。
+
+其余机制：
+
+- 导出数据缺少耐力消耗；无以为家的消耗是单独编写的。威猛歌 T6 与低耐力的枪法条件现在可以解析。燎原星火 T3 仍需要其累计累加器。
+- 无名心法 T0 按每直接消耗 1 点耐力提高 1.5% 剑气伤害，上限 30%。动态的 `enduranceSpent` 值不计入蓄力速率，并计入未折扣释放消耗中已支付的部分。通用的消耗降低不会削减此加成：在长风下支付 16 点仍按完整的 20 点计算。释放动作使用 `resourceCostTags: []` 来排除蓄力专属的消耗修正。耐力不足时仍会按比例减少计入的支付量。T1 开启脱战路线；T4 维持其 5 秒窗口。T3 使剑气对气竭目标不再产生擦伤，并保证第三道剑气触发会意。退亦有方在 T1 时开启同样的 5 秒窗口。T6 的气涌在三道剑气释放开始时（在其无名心法支付之后）恢复 20 点耐力，并给予一个 5 秒增益，用于跳过下一次蓄力。其 20 秒冷却从此时开始，并在之后每次剑气命中（包括触发该效果的那次释放的各道剑气）时减少 1 秒，最多 8 次，使用一个隐藏的层数预算。
+
+伤害动作可以使用与技能修正相同的条件/效果结构声明 `modifier`。这些修正按每次命中的实时状态解析，并参与效果缓存标识，因此第三击的修正不会泄漏到更早的命中中。`GuaranteedAffinity` 强制会意结果；`NoAbrasion` 以满精准解析各项概率，同时保留会意与会心的输入。
+
+千山法 T1 在虹的武学技造成伤害的命中上施加真气失衡；剑Q打断版本使用同一个命中触发器。枪Q及其打断版本恢复 30 点耐力，T3 时提高到 60 点。T6 在蓄力命中处于真气失衡的目标时恢复 8 点耐力，共享一个 2 秒冷却。非首领目标的移山（Moving Mountain）超出当前练习目标模型的范围：所有目标都是首领。
+
+威猛歌 T3 在蓄力命中触发会心或会意时恢复 10 点耐力，共享 12 秒冷却。实时伤害解析器会给出各结果的概率；仅影响资源的 `damageOutcome` 触发器在期望模式下追踪冷却就绪状态的分布，在采样模式下追踪具体结果。期望的资源获取以概率加权的数量进入共享的资源条。T6 基于已损失耐力的加成仅作用于蓄力伤害。用户确认，尽管描述如此，T6 会移除 10% 的蓄力消耗增加。因此 T4 的消耗规则要求 T6 不存在，从而在 T4–T5 保留该增加，而不改变伤害加成或恢复触发。在 T4–T5 时，+0.10 与千山法的 -0.10 在长风的通用 0.8 倍率之前相互抵消。在 T6 时只剩 -0.10：无以为家基础的 20/s 扣减变为 14.4/s，即在其 1.2 秒蓄力阶段中消耗 17.28 点耐力。没有长风时消耗 24 点。单独的无名心法释放支付在有长风时仍为 16，没有时为 20。
+
+凝神章 T1 的伤害/吸血规则与 T6 的 DOT 加成属于看破，而不属于永久效果。结果状态追踪器只在其生效分支中包含这些条件伤害规则。气血不高于 75% 时，其基于伤害的回复会在每次符合条件的命中后更新自身气血。同一追踪器还会解析受到伤害的减免，包括在两次输出命中之间到期的情况。满气血且不攻击的木桩不会触发这两种气血效果。
+
+### 长风的命名
+
+导出数据以两个名称呈现同一个增益：在无名枪法天赋与千山法 T0 中为 `Endless Gale`，在千山法 T4 中为 `Long Wind`。正确名称是 **Endless Gale**（长风），它是乾坤定施加的增益；用户确认 `Long Wind` 是同一增益的误译，而不是第二个效果。只以 `EndlessGale` 存储；不要添加 `LongWind` 别名。其基础持续时间为 5 秒，最多 1 层；千山法 T0 将持续时间设为 10 秒。因此 T4 可以达成，并在其生效期间提供 3% 直接会意率——来源将其拆分为 1.5% 加上对首领的 1.5%，而首领身份是隐含的，因为两种木桩都算作首领。
+
+出畏之（打断）在其最初的飞剑命中处结束，时间为 0.293s。其伤害使用 100 级来源技能 `20201101` 的 0.2 倍；两次穷追（Relentless Chase）追击不计入。千山法 T1 通过共享的武学技伤害触发器在该命中时施加真气失衡，取代了以前在施放开始时显式施加的方式。
+
+### 风流派木桩循环行为
+
+天怒刀法必须在嗔焰生效时开始。用户确认，嗔焰可能在已经开始的施放过程中到期；其余命中按实际的增益状态继续。不要恢复嗔焰或延长其持续时间来覆盖这些命中。没有嗔焰时开始新的天怒刀法施放，仍属于需要调查的无效状态。
+
+<a id="bamboocut-dust-definitions"></a>
+
+### 破竹·尘的定义
+
+尘只实现其循环所施放的技能。这些循环位于 `data/rotation/bamboocut-dust/`，每个循环都有各自的秒伤快照，因此它们本身就是参考，而不是单独的草稿。`dust-dummy-1-min-100pc` 是该流派的默认循环，也是 100% 幻鸣变体；它将战斗开始锚定在四击释放的第一击上，这就是其开场破气落在战斗中的原因。
+
+按要求，未测量的伤害命中使用 **0 秒**。未测量的增益施加使用**施放结束**，但用户确认在 0 时施加的效果以及失魂除外，失魂在其对应命中之后立即施加。
+
+| 技能     | 临时值                                  | 现有施放时长                            |
+| -------- | --------------------------------------- | --------------------------------------- |
+| 履虚扫尘 | 三个伤害时间戳均为 0                    | 1.75 s，来源打断点                      |
+| 镖鸣彻野 | 已测量的七击标记序列；四击释放会截断它  | 完整 1.841 s，被打断的释放 0.796 s      |
+| 焚巢捣穴 | 响指位于 0.53 s，处于 0.65 s 的施放之内 | 0.65 s，来源打断点                      |
+| 红消香断 | 四个来源阶段标记；持续时间输入控制连锁  | 用户输入，上限 12 s                     |
+| 玲珑泡影 | 蓄力与释放拆分为子动作                  | 0.743 s 蓄力 + 1.2 s 释放；玲珑移除蓄力 |
+
+玲珑泡影 0.743 s 的蓄力是用户提供的数值，而非测量值：数据挖掘明确不包含蓄力时机。履虚扫尘打断于 0 以及镖鸣彻野蓄力 1.5 s 均由用户确认，不属于时机缺口。
+
+真气以循环中绝对时间的 `Qi` 步骤编写。循环无法在红消香断第一次投掷之后的投掷上附加该步骤，因为附加项的 `trigger` 序号索引的是锚定步骤自身的触发动作，而后续投掷由各阶段行触发。因此真气耗尽点位于第二次红消香断第六次投掷的去程命中上，第二段按比例的下降段跟在第一个气竭窗口之后，但不会达到第二次耗尽。
+
+第二段下降的间距从耗尽效果到期之后那 4 秒真气伤害免疫结束时开始计算，因此重新编写耗尽点会使其步骤移动两次：一次是耗尽点自身的偏移，另一次是第一段下降形状所发生的任何变化。缩短四击释放使整个下游时间线提前了 0.2209835277 s，因此第一段下降偏移了这么多，第二段偏移了两倍。100% 幻鸣变体将其耗尽点放在其第二次红消香断的第五次去程命中上，并止于此；它保留相同的两段下降间隔，使耗尽点落在该命中上。常规变体现在在恢复免疫之后于 51.2362s 越过 60% 真气；其偏移后的 40% 阈值将落在 60.722s，因位于战斗结束之后而被省略。
+
+按用户指示不在范围内：残红（Fading Crimson）、谢礼（Tokens of Gratitude）、大唐歌的气血汲取以及韧性伤害。这些属于排除项而非缺口，因此不作为待办工作追踪。
+
+镖鸣彻野的七击被建模为 `PiercingDartSweep1`–`7` 这些被触发的伤害技能，而不是同一技能上的七个 `damage` 动作。这是有意为之：绳舟行木第 3 重通过 `skillTag` 条件给每一击不同的加成（0.05、0.05、0.05、0.10、0.10、0.15、0.15），而 `damage` 动作无法携带自己的标签——标签按技能解析。若把这些命中保留在一个技能中，就需要逐动作的标签机制，而为单个技能引入它并不值得。如果有第二个技能需要逐动作标签，再重新考虑。四击释放复用横扫 1–4，与共享的标记序列一致。
+
+镖鸣彻野的来源路线是同一个七击序列（从按下侧键开始测量）的累积前缀：`20702101` 是蓄力架势，不报告任何命中；`20702102` 是三击释放，`20702103` 是五击释放，`20702104` 是七击释放。因此每个变体都是 `[0.099, 0.298, 0.498, 0.796, 1.02, 1.268, 1.841]` 中靠前的若干个标记，施放时间是它打出的最后一个标记：完整释放为 1.841 s，四击释放为 0.796 s，后者在打断点结束。失魂在与其所属命中相同的标记上施加，其条件在技能开始时解析，因为摄魂在那时被消耗。
+
+每次横扫的系数来自 `20702104` 上的 `timings.hitCoefficients`，通过与 `hitTimes` 平行的 `hitIds` 列表匹配，并按 100 级读取。每个序号列出了针对它观察到的碰撞备选，同一序号内的所有备选共享一个系数，因此映射是明确的。序号 1 和 2 都解析到 `20702102` 的 0.3 倍率曲线，因此前两击有意相等；系数递进为 0.334122、0.334122、0.445496、0.313564、0.470346、0.689664、1.034496。每击的 `multiplier` 已并入这些系数，因此不会再次应用。
+
+玲珑泡影被拆分为蓄力与释放两个子动作。安排在技能施放时间之后的动作不会生效，且动作时间是从技能开始算起的绝对时间，因此被芳歌·玲珑跳过的蓄力无法在释放技能内部表达。作为子动作，0.743 s 的蓄力会推迟释放，跳过它则会使两个碰撞体标记回到其原始的 `0.400` 与 `0.830` 秒偏移。释放在 1.2 s 的来源打断点结束，因此该技能带蓄力时耗时 1.943 s，不带时为 1.2 s。这与太白醉月的蓄力模式一致，也与履虚扫尘和焚巢捣穴以来源打断点作为施放时间的做法一致。
+
+玲珑通过一个条件子动作跳过蓄力，而不是在蓄力上使用 `castTimeMultiplier` 修正。未满足条件的子动作会成为不贡献施放时间的非活动片段，因此释放会立即开始。应优先采用这种方式而非修正：修正的条件是在片段解析时按实时状态评估的，因此在时间 0 由父技能消耗的玲珑层数到那时已经消失，而仅剩的一层也取消不了任何东西。玲珑由释放消耗，作用于该增益所对应的那次施放。
+
+玲珑泡影的两个子动作都设置了 `ignorePing: true`。输入延迟在父技能派发时支付一次，否则第一个之后的每个子动作都会再次支付，使技能被拉长 2 × 延迟。当某个组件不是一次独立的按键操作时，就在该子动作上设置它。
+
+蓄势连击（Charged Combo）在每次镖鸣彻野伤害命中时使履虚扫尘的剩余冷却减少 0.5 秒，共享 0.5 秒的触发冷却。魂类状态的叠层、转换、持续时间以及施放开始时的消耗均已实现。按用户指示，有意忽略残红与谢礼。按用户指示，有意忽略失魂落魄记录伤害中按模式区分的排除项。芳歌的来源文本描述了飞行速度加快 30% 以及加速飞行后的接回；红消香断对下一次投掷应用来源中的 `1 / 1.3` 时间比率，加速作用于第 4 段。其伤害加成、必定会心与单次消耗均仍已实现。`FragrantSong` 与 `FragrantSongDelicate` 都持续 10 秒，因此在投掷前超过 10 秒获得的效果不会使其加速。
+
+循环的 `enemyCount` 是正整数，默认为 1。它为灯儿亮与大唐歌建模被命中的敌人数量；它不会使伤害倍增，也不会替代治疗接收者的 `groupSize`。当敌人数为三个或更多时，灯儿亮造成伤害即施加烛影，T4 时降为两个。大唐歌 T4 在命中两个或更多敌人时，每次符合条件的武学技能命中额外给予一层唐歌，受现有的半秒施加冷却限制。有意忽略大唐歌的气血汲取。红消香断由可施放的父技能 `ScarletSpin` 与带来源标签的 `ScarletSpinStage1`–`4` 组件表示。父技能在编写的持续时间内施加 `FlowerBurial`，并触发阶段循环 `1 → 2 → 3 → 4 → 2 → …`；每个阶段使用来源中的下一次开始标记与 100 级加权伤害值。入场与接回触发器使用 `sourceEffect: "FlowerBurial"` 将每条链绑定到其原始施加。每个延迟的阶段触发器都声明一个更早的 `queueTime`；其排队时的来源检查会在当前投掷完成之前预留下一次投掷，而执行仍需等待来源的下一次开始标记。因此排队的投掷可能在 `FlowerBurial` 到期后才开始，父技能的有效施放会延续到该投掷的回程命中。芳歌使用来源中的 `1 / 1.3` 比率加速下一次投掷，因此第 4 段是被加速的阶段。延迟为零时，13 阶路线会开始 14 次投掷；正延迟会使每次投掷的执行后移，并可能使最后一次排队接受超出 12 秒的状态。初始阶段继承父技能输入的延迟；之后排队的阶段选择启用 `triggerPing`。父技能在新片段开始时清除累积的接回层数。每个已开始阶段的本地命中标记仍保持为去程与回程两个独立的伤害动作。
+
+该草稿没有已接受的秒伤快照，不得被视为经过验证的配装或循环推荐。
+
+焚巢捣穴包含 `dmgBonus: 0.3`，与对首领单位增伤属于同一类别并相加。按用户指示，有意忽略灯儿亮 T3 的定身/封锁、烛影的减速、千营一呼的牵引以及焚巢捣穴的减速/闭气。
+
+绳舟行木 T6 仅在距离 <= 15m 时刷新/结算目标的失魂落魄。其自身回魂的刷新与焚巢捣穴的伤害加成不受距离限制。
+
+### 鸣金·影的实现缺口
+
+`InnerTrackSlashCancel`（剑QQQ（打断））保留第三次施放的两次命中，并在其第二次命中时结束该组件，即第三次施放开始后 1.187704707s。其总基础时长为 2.510104707s。该组件仍归入普通的第三次施放明细分类，并通过 `SubAction` 在循环选择中隐藏。60 秒模板在第一次 QQQ 中使用此变体，并紧接着施放阴阳迷踪步·影。在其配置的 40ms 延迟下，第二次扫千军之前的等待为 1.342295293s，从而保持其 12 秒的强效江流爆血冷却边界，以及该循环总计 38 次爆血。
+
+影的木桩破气附加在编辑器中 #34 号施放（技能编号从零开始）——次三衡径数 [2次施放]（打断）——的最后一次直接命中之后。在模板的 40ms 延迟下，它落在战斗时间 30.54962591963635s。破气前的真气阈值编写在该时间的 40% 和 60% 处。气竭持续 10 秒，到期时恢复真气；下一段下降在额外的 4 秒免疫窗口之后开始。只有其 60% 阈值落在 60 秒的战斗结束之前。
+
+影无需开发模式即可使用。其全承音大外配装与大外毕业配装模板复制虹的装备，将四件防具的定音替换为积矩九剑·流血增伤，并使用飞隼，搭配 T6 的剑气纵横、易水歌、凝神章与逐狼心经。`dummy-1-min-38-bb` 以草稿形式注册，采用所要求的有序序列，战斗结束位于战斗相对时间 60 秒。BB 指爆血（Blood Burst）；38 是预期的触发次数，而非经过验证的结果。第一次四击剑蓄力的第一个伤害标记锚定战斗开始。该模板在开场饮酒之前施加 5 层纵横，代表战斗前预先积攒的剑意。因此其第一次爆血从满纵横开始，必定触发会意，并通过剑气纵横 T3 延长生效中的暗灼。
+
+影的各变体按技能族共享 `skillBreakdownCategory`：内一衡径数、次三衡径数、次二衡径数、愁无酒、扫千军与爆血。`SecondTrackSlash2Casts1Hit` 组合了现有的蓄力与一击追击；模板将相邻的成对步骤替换为该组合。组件 ID 仍可供已存储的循环与覆盖使用。次三衡径数的第二次施放变体使用独立的明细分类 `Crisscross - Inner Balance Strike III`。组合技能的伤害与治疗依次使用子动作引用的 `skillBreakdownCategory`、组件技能的分类，最后是包装层归属。引用覆盖也会在嵌套组合中传递。施放统计仍描述完整的组合，动作 ID 与伤害保持不变。
+
+2026-10-08 提供的更新版 `local/datamine/wwm-skills-normal-all.json` 包含积矩九剑常规路线的每击系数与攻击动画标记。这些系数已包含命中倍率；导入时不得再乘一次。随等级变化的曲线选取 100 级，而标量追击曲线使用其导出值。内一衡径数使用三个独立的动画时钟：第一段在 0.3s 的连招边界推进，第二段在 1.0224s 的完美输入边界推进，第三段在其 1.426s 的打断边界结束。全部七次伤害命中（依次为一、四、二次）均已导入，包括两个剑气纵横追击系数。四击蓄力在免费的 0.2s 预蓄力与最短 0.3s 蓄力时钟之后，使用第一级的前四次命中，然后在 0.947s 的完美输入释放边界推进。其卸势打断时机仍未测量。第一段特殊技导入全部四次命中及其 1.4s 的打断边界。愁无酒现在使用全部六个导出的命中标记以及 1.996s 的完整施放打断边界。其五击打断版本使用位于第五击的临时边界（1.374300296s）；实际打断时机仍未测量。扫千军对所有增益变体都使用用户选定的 0.304s 首击及一击打断边界。其导出的动画路线映射仍未解决。这些剩余的占位值无法验证所提出的序列能否在 60s 内完成，也无法验证冷却就绪、效果覆盖或其所称的 38 次 BB。
+
+用户确认：Q Q Q 使用全部三段，组合特殊技使用两段，四击特殊技只使用第一段。2026-10-08 澄清了组合特殊技指的是三次第一段命中加一次追击命中（共四次）。对于组合的 [2次施放]（打断）变体，它在 1.063s 推进，并在追击的第一次命中（0.095977982s）处结束追击。独立的第二段定义保留其 0.946s 的打断边界。内一衡径数的前两段使用来源中一加四的命中序列；第三段是两击的剑气纵横追击。次二衡径数是蓄力路线；次三衡径数是特殊技路线。组合特殊技现在在每次第一段命中时先施加流血，再检查是否触发爆血。剑气纵横追击命中同样施加一层并在同一次命中时检查，包括两击路线中第一击尚未达到五层时的第二击。这些施加/顺序语义由用户通过战斗对比确认，而非来自技能说明中的明确顺序。蓄力追击提供一击与两击两种打断变体；循环使用一击变体。它们的临时打断边界等于各自最后保留的命中标记（0.22504647s 或 0.68347914s）。
+
+伤害覆盖情况与剩余遗漏：
+
+- 流血跳伤（`2038001`–`2038005`）使用用户提供的每跳系数：1 至 5 层时外功与属性伤害均为 0.132/0.165/0.198/0.264/0.33，不再额外乘以层数倍率。现有的 DOT 调度器在施加后 +0.528s 跳伤，之后每 1.023 秒一次。叠加层数会刷新 10 秒持续时间，同时保持跳伤节奏。剑的 BB 清除所有层数，然后 T6 重新施加两层，并重新开始 0.528 秒的跳伤延迟。满纵横还会在现有的 16 秒上限内延长重新施加的流血。清除或到期会结束跳伤，重新施加会启动新的计时器。扫千军的高额流血（High Bleed）不会引爆流血：它保持五层并维持跳伤节奏。
+- 爆血（`2038006`）使用 2026-10-08 提供、经用户确认的外功与属性系数 2.4。导出数据仍缺少其曲线，但爆发伤害现已实现，并在触发时立即结算。
+- 更新后的导出数据补齐了 Q 第三段与四击蓄力/特殊技的系数、两种蓄力追击打断变体以及组合特殊技。它们的系数不再是占位值；已测量的部分路线打断边界仍然缺失。
+- 剑气纵横的描述将其五层爆血限定于追击攻击。这不会给普通 Q 或蓄力命中添加全局的阈值触发。
+
+剑的爆血会清除所有流血层数，然后若在爆血给予剑意之后仍存在纵横，T6 会重新施加两层，包括用户确认的特殊技序列中观察到的第一次爆血。原始的剑气纵横被动 `102154301` 每次爆血给予 20 点剑意，由五层纵横中的一层表示。剑意达到 100 时，下一次爆血强制会意；T6 保留 20 点，然后再计入该次爆血常规的 20 点获取。T4 加成与 T1 追击的耐力恢复已实现。T3 的满纵横爆血会将流血、暗灼、青衣毒与泣血延长 10 秒，剩余时间上限为 16 秒；不存在的效果保持缺失。当前支持的所有战斗目标均为非玩家目标。积矩九剑 13/14 阶会在每次施放中第一次符合条件的五层特殊技命中时恢复 10 点耐力。特殊技各段先施加其流血层数，再检查阈值。它们共享的 `StrategicSwordSpecialBloodBurst` 触发器在施放开始时的就绪效果存在时恢复耐力，消耗该效果，然后引爆。因此，将层数从四层提升到五层的命中同样会恢复耐力；同一次施放中之后的爆血不会再次恢复。特殊技追击在其自身开始时声明一个 `skillStart` 动作。它使用共享的技能开始触发管线并带上组件的标签，从而即使在组合循环行内，也会为第二次施放刷新天赋的就绪状态。因此两次施放可以各返还 10 点；一次施放内的多次引爆只返还一次。组合包装层仍只是这些施放的显示容器。普通 Q/蓄力追击的爆血以及扫千军不使用这一特殊返还。爆血属于 `DirectDamage`，由 `HighBleed` 选择惊神专属的高额流血加成（每层 10%）。它不享受普通 DOT 加成，也不享受凝神章仅限 DOT 的 T6 加成。`Bleed` 选择流血相关的定音与天赋。旧版特殊技与蓄力追击的 ID 会在已保存的循环和技能覆盖（包括组件引用）中迁移到当前的 III/纵横剑 ID。仅作为组件的技能带有 `SubAction`，以便在循环选择中隐藏。每个影技能的标签中都包含其自身的当前技能 ID。
+
+愁无酒的五击打断版本与完整六击路线使用来源中的五个 0.15 倍率加上最后的 0.25 倍率。扫千军使用描述中针对 `20101101` 的 0.8/1/1.2 系数，而不是根据其单独的父级曲线猜测。愁无酒结束时，会使用其施放范围内的连击资源自动选择滴水、涌泉、江流或强效江流。施放期间的每次 DirectDamage 命中都计数，包括厚积薄发；DOT 跳伤不计。逐狼心经在愁无酒命中带有自身流血的目标时，按 1 至 5 层分别以 0.6/0.7/0.8/0.9/1 的概率额外增加一次连击。期望计算累加按概率加权的资源获取；采样模拟则对每次获取单独掷骰。增益阈值在编写的施放结束时读取该资源；这种期望计数模型不会在不确定的阈值处对增益选择进行分支。五层时的施放是确定的。计数器在每次施放时重置，并在窗口关闭后仍可用于诊断。显式的五击/十连击变体以额外五次连击开始，用于草稿中的第一次愁无酒（存储的步骤索引 8）。根据用户确认的行为，江流与强效江流的扫千军会将流血填满至五层；技能说明只提到会施加流血。后续施放仍要求这些层数保持存在；到期与中途的消耗不会被绕过。第二次施放的特殊技打断使第一次强效江流在第二次扫千军期间保持生效；草稿中所有普通愁无酒施放现在都以五层流血开始。扫千军的减防持续时间与强效伤害吸血尚缺失。逐狼心经 T3 伤害、T6 惊神，以及现有的用于 15 秒酒蛊的三击/三秒滚动窗口机制均已实现。
+
+用户提供的耐力消耗（2026-10-08）：次二衡径数仅在其按住蓄力阶段以 14/s 扣减，并在 0.3s 时再支付 6 点。在 0.3s 的蓄力阶段之前有一个独立的 0.2s 预蓄力，与无以为家显式的阶段结构一致；预蓄力不扣减耐力。其独立的四击释放不会延续蓄力扣减。草稿默认的 0.3s 按住消耗 10.2 点总耐力；1.2s 的完整按住消耗 22.8 点。自然回复与抑制使用共享的资源管线，包括战斗开始之前。蓄力将回复速率覆盖为 0.001/s；一次性的 6 点消耗会抑制回复 1.2 秒。持续扣减会改变被追踪的耐力条，但与其他蓄力阶段一样，不会作为直接的 `enduranceSpent` 伤害缩放计入。次三衡径数在第一段开始时支付 40 点，四击第一段路线与三击前缀加追击路线均如此。追击不会再支付 40 点。其最低 50 点耐力的启动要求已记录，但应用户要求有意不强制执行。恢复出的按住蓄力路径没有固定最低值，并在耐力耗尽时结束；本草稿追踪耗尽情况，但不会自动截断编写的按住时长。扫千军在其选定的滴水、涌泉或江流组件开始时支付 40 点，每次施放一次。这次直接消耗同样会启动共享的 1.2 秒回复抑制；强效恢复仍是独立的获取。耐力检查仍是带有剩余时机缺口的草稿诊断，而不是对最终测量循环的验证。
+
+影的冷却、受击减伤/韧性以及缺失的分段流血施加仍需来源记录。通用与奇术技能保留其现有定义。该草稿没有已接受的秒伤快照；其不完整的伤害与为零的时机既无法给出有用的秒伤建议，也无法确认预期的 38 次爆血。
+
+### 食物选择
+
+食物有两个独立类别，各自带有“无”选项。外功攻击类提供涮鱼（+120/+240 实际外功攻击），耐力类提供巧燕（Swallow’s Agility）。两者可以同时生效。持久化的 `food` 选择保存外功攻击类，`enduranceFood` 保存耐力类。旧版的巧燕选择会迁移到耐力类，并将外功攻击类设为“无”，从而保留之前的效果。耐力类（巧燕）仅对虹与影可用，并通过共享的属性管线为 `maxEndurance` 增加 20。已保存但不可用的食物会被视为“无”，但不会删除已保存的选择。涉及耐力食物的对比会以该变体的初始耐力与耐力上限重建战斗。
+
+### 影：次二衡径数 第1段（打断）模板
+
+`SecondTrackSlash1Cancel` 使用现有的蓄力组件，以及在 0.831138954 秒结束的四击释放。其释放保留了全部伤害与流血施加。一分钟影模板使用该打断两次；其定时真气渐变围绕更早挂接的破气重新校准。
+
+### 牵丝·翊预览版战斗
+
+在选择器中，翊排在霖之后，无需开发模式即可使用，并带有“预览”徽标。其武学为文动霓裳（舞绫鼓）与杏游草野（扇）。它们的循环技能使用 `wwm-skills-normal-all.json` 中常规的第 0 层、100 级数值记录。数值归属相同的替代命中 ID 不算额外命中。扇Q使用技能说明中的 0.8 倍率；特殊变体使用其导出数据中的 0.85 或 0.7225 倍率。属性系数与外功系数保持相同的基准。共享伤害计算器只应用一次牵丝主属性的 1.5 倍率；不得再将其预先计入 `attrCoef`。
+
+更新后的导出数据提供了暂定的动画时钟。当路由识别出匹配的技能动画时，翊会将打断时钟导入为可打断的施放时长。时钟相同的等效分支共享该时序。这涵盖两次鼓Q施放、鼓轻击变体、全部三次匹配的鼓重击施放，以及两次扇Q施放。派生前置的第三段重击组件在后接派生时提前 0.25 秒打断（0.5833333333 秒）。第二、第三段重击以及鼓轻击变体导入了命中时钟；其命中时的雅意获取也使用同一时钟。这些来源路由仍标记为 `audit-provisional`。
+
+未确定的事件时序仍为零。第一次鼓Q的碰撞体标记并非投射物接触，而第二次鼓Q和普通扇Q缺少命中时钟。第一段重击使用其自身动画的打断时钟，绝不使用无关的 `skill_20901001_2` 路由；其命中时钟保持为零。北风卷地（Northwind Sweep）通过显式选择使用较短的 `skill_20303105_2` 动画路由：其施放时长和三个命中时钟均已导入。扇Q（强化）在 0.5 秒和 1.0 秒发出两次攻击请求，把现有的合并系数拆分到第一道和第二道风场中。其衔接感知技的时间点为 1.0 秒。单次突进的扇感知技路由使用 1.933 秒的施放，斩击与最终伤害请求分别位于感知技开始后的 0.566 秒和 1.816 秒：换算为从扇Q（强化）开始计时，斩击、最终伤害与普通打断分别为 1.566、2.816 和 2.933 秒。每次斩击后，若还有另一个符合条件的目标，即可再突进一次，最多执行四次突进。每增加一次突进，最终伤害请求和普通打断门槛各推迟 0.4 秒；第一次斩击的时钟不变。一至四次突进时，从感知技开始计时的最终伤害 / 打断时间分别为 1.816 / 1.933、2.216 / 2.333、2.616 / 2.733 和 3.016 / 3.133 秒。循环编辑器中的敌人数量通过现有的敌人数量条件和分段时序修正来选择突进次数，上限为四次。额外突进命中的是其他目标，因此它们会延长时序，但不会对所选目标增加斩击伤害。第一次斩击以及未指定的资源/增益时钟保持不变。以上均为名义上的回调/请求时间；未指定的增益与资源事件时钟保持不变。撼玉使用用户提供的、从技能开始计时的名义时序：普通命中位于 0.982、3.033 和 4.089 秒；强化音波位于 5.235 秒；相和歌 T6 的额外音波位于 5.435 秒。其最早的普通打断时间为 5.852 秒。强化组件在 5.235 秒开始，并将其额外音波放在 0.2 秒之后。这些时序假定立即选择曲调、节奏时钟立即开始，并以最早时机完成完美输入。位置同步与音环接触可能会推迟实际命中；选择界面交接的延迟仍未验证。昭阳采用相同的立即选择与最早完美输入假设：曲调选择在 0.566 秒变为可用，普通命中落在 0.982 和 2.963 秒，强化命中落在 5.165 秒，普通打断在 5.920 秒可用。该选择节点仅作说明，并不会在这些相对技能开始的时间上额外增加延迟。增益施加及其他机制事件时钟在未确定之处保持不变。
+
+两个模板的每一组鼓连招都使用重击 1–3 / 派生，随后移动至 1m，并启用无限精元。开场凌波之后，第一轮依次使用鼓 Q1/Q2、两组重击/派生连招、金蟾腾跃 / 卸势、不尽春生、煞尽东风、暗灼 2 击打断 / 卸势，以及第二次凌波。该顺序使不尽春生之前出现约 0.67 秒（撼玉）/ 0.74 秒（昭阳）的裁云空档。第 25 个技能处的暗灼同样会在第四次凌波刷新之前留下约 0.56 秒的无裁云时段。破气发生在第二次凌波的最后一击之后：即 T6 时撼玉的第二次强化鼓拍，或昭阳的最后一道音波。随后的鼓 Q1/Q2 通过相和歌 T4 回复 100 点雅意，并重置共享的凌波冷却。接着在第三次凌波之前使用箫打断 / 卸势，之后依次为不尽春生、暗灼 2 击打断、煞尽东风、重击/派生、金蟾腾跃 / 卸势、鼓 Q1/Q2、重击/派生，以及第四次凌波。两个模板共用该序列，仅凌波技能及其最后一击的真气锚点/时间不同。按比例设置的真气标记使用第二次凌波最后一击时间的 40% 与 60%。十秒的气竭窗口使真气恢复后，另一对 59.99% 与 39.99% 标记沿用相同的消耗速率，从真气恢复时起算。蓄力轻击罗袖动香后接派生仍可选择。蓄力轻击使用数值技能 `2100100101`：五次 0.135 命中加一次 0.19 的最终命中，依据的是明确的伤害表，而非与之矛盾的“最多八击”技能说明。经用户确认，其衔接派生的时间为 2.033 秒：0.2 秒预蓄力加上预蓄力之后的 1.833 秒。各次命中的时钟仍为零，因为它们尚未确定。它同时带有 `Light` 和 `Charged` 标签。
+
+`RibbonLightChargedVC` 与 `RibbonHeavyComboVC` 是使用共享 `subAction` 机制的可选复合技能。重击复合技能使用 `RibbonHeavy3PreVC`；普通的 `RibbonHeavy3` 为已保存的引用保留其原始时序。各段重击与蓄力轻击带有 `SubAction`，并在循环选择中隐藏。复合包装技能忽略 ping；每个组件保留各自的输入延迟，从而保持原先分开输入时的时序。两个模板都使用这些复合技能。翊的伤害技能及组件带有其武器类别标签（`Fan` 或 `RibbonAndDrum`），用于武学增伤词条匹配，与其 `weapon` 上下文无关。翊技能省略了描述；未确定的时序细节在此处维护。
+
+这些模板仍为草稿；其秒伤并不是公认的时序基准。两者都使用不攻击的木桩。气竭挂接在第二次凌波的最后一个伤害动作之后，对撼玉而言包括触发的强化鼓拍。重置每 60 秒发生一次，发生在随后的 Q2 命中时。最后一次凌波在未改变的 60 秒 BattleEnd 之前结束；只有该战斗窗口内的命中才计入。开场依次使用饮酒打断、卸势、扇特、箫打断、卸势、不尽春生（获得扶风）和煞尽东风。战斗从不尽春生的第一次命中开始，该命中使煞尽东风可用。第一次鼓特殊技在 6m 处开始。`EndOfGale` 是煞尽东风的内部 ID（原为 `FiendishSquall`）。煞尽东风属于重击派生技，同时带有 `Heavy` 和 `VariedCombo`，用于增伤匹配。墨韵在英文界面中显示为 Ink Rhythm；其内部 ID 仍为 `InkRhyme`。`RhythmOfAccord` 是鼓乐和（Rhythm of Accord）的内部 ID，原为 `HarmoniousDrum`；复合技能组件与可计入命中规则使用新 ID。鼓乐和属于轻击派生技，同时带有 `Light` 和 `VariedCombo`，用于增伤匹配。`VerdantGust` 是一扇生息（Verdant Gust）的内部 ID，原为 `Rustling`。已保存的施放、技能覆盖以及嵌套技能引用都会迁移到新 ID。鸾鹤引声通过相同机制使用 `CranesCry`，由 `CraneCry` 迁移而来。共享的技能 ID 迁移会保留已保存的循环与技能覆盖，包括技能标签和嵌套引用。煞尽东风在第一次命中时重新施加 20 秒的流风增益，因此后续循环省略扇特。其施加动作追加在末尾，以保持已保存的动作索引。编辑器根据 worker 状态在行和动作上显示雅意。即使某次命中仍为零占位值，冷却与导入的施放时钟也会推进时间轴。
+
+雅意由 `NobleWill` 表示，初始值为 100，上限为 100。鼓特殊技会消耗全部雅意。所要求的单目标循环中，鸾鹤引声回复 30 点，每次鼓乐和回复 20 点，在风知意 T3 下煞尽东风回复 30 点。模板中不使用资源补充事件。每次扇感知技突进都会通过一个触发技能尝试回复 30 点雅意，该技能每 15 秒窗口内共享两次冷却使用次数。编辑器中的敌人数量最多选择四次突进；第三、第四次回复尝试会被拒绝。
+
+扶风与烁鼓会激活第 13/14 级天赋以及弦墨篇的穿透规则。成对的扶风提供 6% 属性攻击，风知意 T6 时提高至 12%；烁鼓提供 6% 全攻击，相和歌 T6 时提高至 12%，风知意 T6 时提高至 18%。相和歌 T3 仅在烁鼓生效期间强化普通撼玉的会心伤害；T6 增加第二次强化鼓拍及其会心加成。风知意 T4 时墨韵持续 18 秒。昭阳的护盾生效标记与减伤已建模；护盾吸收量和被打断时的返还仍未建模。气竭重置在鼓乐和或鸾鹤引声对气竭目标造成伤害时生效。
+
+裁云配装照搬霖在 96 与 100 阶的撼天小外装备，将扇武学增伤替换为舞绫鼓武学增伤，并将防具定音替换为文动霓裳特殊技伤害。它装备 T6 的相和歌、风知意、弦墨篇和易水歌。小外毕业配装模板保留这套配置与词条选择，所有基础词条和附加词条均取该阶最大值，并使用现有的最大定音。在专门的装备导出数据出来之前，舞绫鼓装备沿用作为模板的扇的基础数值和可用词条。
+
+翊可使用裁云与撼天。裁云在四件时保留 77.8 最小外功攻击的两件套加成。当扇Q施加扶风或鼓特殊技施加烁鼓时，其自身增益裁云·翊（`buff.json` 109804）提供 15 秒的 6% 全类型伤害与治疗加成，最多 1 层，再次施加时刷新持续时间。烁鼓结束时自动施加的扶风不会触发裁云。对友方的施加不包含在木桩模板中。
+
+寸草心 T2 使用第一张无相攻击表，与天行健一致（单人等级 21 时为 19.9–39.9）。其备选表未加入。单人等级数组会在来源等级之前加上应用程序的索引 0 槽位。
+
+### 翊定音
+
+96 阶与 100 阶物品导出数据共有五类翊定音。文动霓裳涵盖武学技、特殊技以及轻击/重击/派生技伤害；杏游草野涵盖武学技以及重击/派生技伤害。派生攻击使用现有的 VariedCombo 标签。防具词条使用共享的按等级上限（96 阶为 6%，100 阶为 7%）；两阶导入到相同的键中。
+
+寸草心的触发与寸草增伤匹配 `Light` 加 `VariedCombo`，或 `Heavy` 加 `VariedCombo`，不设技能 ID 例外，也不使用组合类别标签。其 T6 加成另外保留击鼓系列的范围限制。寸草心使用编辑器中的目标数量为 PvE 寸草层数建模：三个目标（T4 时为两个）可解锁符合条件命中的施加；T4 在三个目标时给予两层。层数上限为五层，持续五秒（T1 时为八秒），每层使符合条件的伤害提高 2%（T3 时为 4%），并有 T6 的五层加成。目标数量作为同时命中的近似代理，包括扇感知技路由；逐目标的命中追踪与 PvP 效果仍未实现。其余缺口参见 [wings-implementation-audit.md](wings-implementation-audit.md)。
+
+翊全承音大外配装使用最大外功攻击作为武器基础词条，并以八条劲词条（每件装备一条附加词条）代替最大牵丝。96 阶鼓已有劲，因此其被替换掉的最大牵丝词条改用势——按模板平均秒伤衡量，这是符合条件的最佳输出类替代词条。其附加词条在每个装备阶位上独立优化；配置与定音保持固定。
+
+官方物品导入将舞绫鼓武学增伤词条 9793032/9794032（96 阶）与 10193032/10194032（100 阶）映射到 `ribbonAndDrumDmgBoost`。物品导出数据中缺少这些词条的名称字段；用户提供的繁体中文标签为舞绫鼓武学增伤。
+
+相和歌 T6 下，昭阳的强化音波在 5.165 秒时将已有的烁鼓延长四秒，因此初始 6.5 秒的增益在施放开始后 10.5 秒结束。若只有扶风生效，则改为给予四秒烁鼓。游戏将此延长限制为剩余时间最多十秒；该上限已记录但未强制执行，因为所建模的路由不可能超过它。
+
+翊有四种全承音攻击布局：小外小属（最小外功与最小无相/牵丝）、小外（最小外功与最大无相/牵丝）、小属（最大外功与最小无相/牵丝），以及大外（最大外功与劲）。毕业配装保留其非承音的小外布局与最大数值词条。小外小属、小外和毕业配装在两阶下都要求八条敏词条，即每件已装备部件各一条附加词条。缺少的敏词条替换会心率或属性攻击，选择模板平均秒伤更高者。该要求优先于以前的二十条攻击词条和 79% 实际会心率约束。大外的武器基础词条固定为最大外功。
+
+词条优化使用撼玉与昭阳模板的平均秒伤，条件为涮鱼、火、无帖以及默认全局减益，破阵 17/18。应用敏与武器基础词条约束后，其余攻击词条保持固定，以保留各布局。除固定攻击值以外的其余附加词条，通过反复接受最佳的单项合规替换来优化，直到再无替换能提高目标值。在小外类布局中，必需的敏词条保持固定。武器、套装、心法、防具基础词条与定音保持固定。这些结果是受约束的局部最优解，而非全局搜索结果。一把武器不能同时带有攻击上下限类型相同的无相词条与牵丝词条。所有布局所选的定音仍为外功穿透。
+
+小外小属要求十二条最小外功与八条最小牵丝词条（含最小外功武器基础词条），同时保留八条敏词条。与 10/10 相比，12/8 的分配在两阶下都提升了两个模板循环的表现。只有在两个模板循环都不损失秒伤时，才可替换附加输出词条。为满足此约束，100 阶布局将精准从武器/饰品词条移到头盔上。小属在两阶下都要求十条最小牵丝、十条最大外功和三条敏词条。其余的敏/会心/劲位置通过枚举合法分配，并选取两个循环平均秒伤最高者，以会心率或劲填充。现有的精准与增伤词条保持固定。两阶都选择共八条会心率词条，在涮鱼加持下，96 阶达到 79.83% 实际会心，100 阶达到 79.21%。剩余填充在 96 阶使用一条劲词条，在 100 阶使用两条；再多一条会心词条会降低目标值。
+
+### 翊已支持效果的修正
+
+墨韵在感知技最后一次命中后施加，包括敌人数量带来的突进延迟。其 T4 升级在原有 5% 的基础上再增加 5%，同时保留扇/击鼓系列的范围。弦墨篇 T6 取代之前的穿透，并将其额外 12 点穿透限定于击鼓系列。其符合条件的攻击增益包括一念浮生的两种变体。裁云·翊使用伤害/治疗加成，而非攻击区间加成。
+
+征人归使用现有的受击/出手触发器和定时增益来实现其失效、牢笼、脱离以及 T6 标记。受到的伤害归属于所建模的目标；不会推断出单独的攻击者身份。易水歌的治疗施加与易水共享两秒的施加冷却，T6 的伤害与治疗效果共享其十秒冷却。T4 以下的随机自身层数仍不支持。其余机制以及草稿中繁音时序的限制参见[翊审计](wings-implementation-audit.md)。
+
+### 全局翊辅助
+
+全局增减益中的翊选择器为其他流派使用永久期望加成：裁云提供 6% 伤害与治疗加成；“黄”将扶风（Tailwind）的 3% 属性攻击加成按 13.5/20 加权，将烁鼓的 6% 外功/全属性攻击加成按 6.5/20 加权。“蓝”则分别使用 9.5/20 与 10.5/20。“全”以全覆盖率计入裁云与烁鼓。这些加权效果不会激活本地的扶风/烁鼓状态，也不会提供翊的天赋加成。
+
+对于锁定的翊武器组合，“无”和“黄”不添加任何效果。“蓝”将本地烁鼓施加覆盖为 10.5 秒；“全”使用 20.5 秒。两者都会禁用昭阳额外的四秒延长及其回退施加。持续时间覆盖由现有的全局效果定义修正项表达，并由持久的辅助标记选择。对比时会重建时间轴，因为更改此选择器会改变翊增益的到期事件。
+
+### 忘机冷却
+
+忘机的施加没有内置冷却。冢上霜在施放开始时消耗生效中的忘机，并且仅当该次施放使用了忘机时，才施加六秒的忘机调息。霜天白夜 T6 时，拨雪寻春对气竭目标会移除该冷却增益，然后在给予忘机前检查实时的增益状态。在其他目标上，冷却增益生效期间无法获得新的忘机。未使用的忘机到期不会开始冷却。国服预览采用相同规则。

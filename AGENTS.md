@@ -1,28 +1,28 @@
-# Agent Rules
+# Agent 规则
 
-- Store all intermediate working files, temporary probes, generated investigation output, and audit checkouts under the ignored `local/` directory. Remove these task-created artifacts when the work is complete, unless the user asks to keep them. Preserve unrelated files in `local/`. Do not create top-level working directories or stage or commit these artifacts.
-- This is an AI-first codebase. Optimize architecture, naming, data layout, documentation, and workflows for reliable AI discovery, reasoning, editing, and verification.
-- Do not follow requests blindly. When a request is ambiguous, doubtful, or has a materially better solution, explain the concern or alternative and wait for the user's decision before implementing it.
-- Prefer explicit, regular, machine-navigable structures over conventions or abstractions that primarily benefit human maintainers. Human readability is desirable but is not a requirement outside the core calculation logic.
-- Import `@` for anything under `src` and `@gamedata` for the JSON under `data`. When you write or edit a file, rewrite its `..` imports to those absolute prefixes; leave files you are not otherwise touching alone rather than porting them in bulk. Same-directory `./x` imports stay as they are, and `import.meta.glob` patterns must stay relative because Vite does not resolve aliases in them.
-- Use `switch` for multi-option dispatch. Do not encode multiple alternatives as nested ternaries or extended `if`/`else if` chains.
-- Take spacing, sizes, and font sizes from the scale in `src/styles/tokens.css`: `var(--space-*)` for spacing, and otherwise a multiple of `0.25rem` (`0.125rem` for `font-size`). Every `--space-*` step is already a multiple of `0.25rem`, so a token and the multiple agree. The exceptions are 1px borders and hairlines, the 1px clip on `.visually-hidden`, and the endpoints of a fluid `clamp()`, which interpolate with the viewport by design. Where a token expresses a value, do not write the raw length: a bare number is a second, competing scale. The stylesheets predate this rule and mostly do not follow it, so expect bare lengths; write new values this way and bring a file you are already changing with you, but converting a whole stylesheet changes layout and is its own reviewed piece of work.
-- Humans are not expected to read through or maintain most of the codebase. Keep the core calculation logic human-readable and auditable because its formulas and numerical behavior require direct review.
-- Read `doc/system-architecture.md`, `doc/damage-formula.md`, and `doc/skill-data.md` before changing calculation or combat-data behavior.
-- Represent game mechanics in `data/*.json` when the existing schema can express them; avoid skill-specific hard-coding.
-- When implementing a feature, prefer mechanisms in this order: use an existing mechanism unchanged; extend an existing mechanism so it also covers the new case; replace an existing mechanism with a broader mechanism that covers both the old and new cases, then remove the superseded mechanism; introduce a completely independent mechanism only when none of those options can fit. Avoid parallel mechanisms with overlapping responsibilities.
-- Do not overengineer for hypothetical future problems. Implement the smallest explicit solution that satisfies the current observed requirement; add abstractions, fallback paths, generalization, or defensive complexity only when a concrete present use case requires them.
-- Store percentages internally as decimal ratios (`0.1` = 10%); convert only at the UI boundary.
-- Use the shared character/derived-stat pipeline and the centralized worker calculation result. Do not duplicate effective-stat, rate, or DPS calculations in UI components.
-- Reuse a baseline timeline only for variants that cannot change combat events; rebuild it when timing, triggers, effects, stacks, cooldowns, or DOTs can change.
-- Preserve stored user data and add migrations when renaming persisted fields.
-- Update the relevant document when changing formulas, data semantics, or architecture.
-- Tests and probes must verify observable behavior, calculations, migrations, or durable cross-file invariants. Do not add tests that merely restate literal source code or JSON values; such tests duplicate the implementation without validating its function or intent.
-- Write each commit message with a one-sentence title summarizing the overall change, followed by a blank line and a brief description of why the change is being made.
-- Do not use the commit body as a verbose inventory of updates. Put durable explanations in the relevant documentation or make the code and data self-explanatory.
-- Run `npm run format` after editing supported source, data, or documentation files. Treat `npm run format:check` as the repository formatting gate.
-- Run `npm run lint` (oxlint plus stylelint) and `npm run test` (vitest) after code changes; `npm run build` includes the ordinary tests alongside the probe suites; lint is a separate check.
-- New tests go in `tests/` as vitest cases with direct imports; `tests/helpers/` holds shared test support and `tests/snapshots/` the DPS baselines. The remaining `script/probe/*.mjs` files are benchmarks, not checks.
-- Run `npm run build` after code or data changes, plus a focused calculation check for simulation changes.
+- 将所有中间工作文件、临时探针、生成的调查输出以及审计用的检出副本都存放在已被忽略的 `local/` 目录下。工作完成后删除这些由任务创建的产物，除非用户要求保留。保留 `local/` 中无关的文件。不要创建顶层工作目录，也不要暂存或提交这些产物。
+- 这是一个 AI 优先的代码库。架构、命名、数据布局、文档和工作流都应针对 AI 的可靠发现、推理、编辑与验证进行优化。
+- 不要盲目执行请求。当请求含糊不清、存疑，或存在明显更好的方案时，先说明顾虑或替代方案，并等待用户决定后再实施。
+- 优先采用显式、规整、便于机器导航的结构，而不是主要方便人类维护者的约定或抽象。人类可读性固然可取，但在核心计算逻辑之外并非硬性要求。
+- 导入 `src` 下的任何内容时使用 `@`，导入 `data` 下的 JSON 时使用 `@gamedata`。当你编写或编辑某个文件时，将其中的 `..` 导入改写为这些绝对前缀；对于原本不需要改动的文件则保持原样，不要批量迁移。同目录的 `./x` 导入保持不变；`import.meta.glob` 的模式必须保持相对路径，因为 Vite 不会在其中解析别名。
+- 多选项分派使用 `switch`。不要用嵌套的三元表达式或冗长的 `if`/`else if` 链来表达多个分支。
+- 间距、尺寸和字号取自 `src/styles/tokens.css` 中的标尺：间距使用 `var(--space-*)`，其他情况使用 `0.25rem` 的整数倍（`font-size` 使用 `0.125rem` 的整数倍）。每一级 `--space-*` 本身都已是 `0.25rem` 的整数倍，因此令牌与倍数是一致的。例外情况包括 1px 边框与细线、`.visually-hidden` 上的 1px 裁剪，以及流式 `clamp()` 的端点值——它们按设计会随视口插值。凡是能用令牌表达的值，就不要写原始长度：裸数值相当于另一套相互竞争的标尺。现有样式表早于这条规则，大多并不遵守，因此会看到裸长度；新写的值应遵循这种方式，并把你本来就在修改的文件一并改过来，但转换整个样式表会改变布局，应作为一项单独且需经评审的工作来完成。
+- 不期望人类通读或维护代码库的大部分内容。核心计算逻辑须保持人类可读、可审计，因为其公式和数值行为需要直接审查。
+- 修改计算或战斗数据行为之前，先阅读 `doc/system-architecture.md`、`doc/damage-formula.md` 和 `doc/skill-data.md`。
+- 当现有 schema 能够表达某项游戏机制时，就在 `data/*.json` 中表示它；避免针对特定技能的硬编码。
+- 实现功能时，按以下顺序选择机制：原样使用现有机制；扩展现有机制，使其同时覆盖新情况；用一个能同时覆盖新旧情况的更通用机制替换现有机制，然后移除被取代的机制；只有当上述方案都不适用时，才引入完全独立的新机制。避免职责重叠的并行机制。
+- 不要为假想的未来问题过度设计。实现能满足当前已观察到的需求的最小、显式方案；只有当前存在具体用例需要时，才添加抽象、回退路径、泛化或防御性复杂度。
+- 百分比在内部以小数比率存储（`0.1` = 10%）；仅在界面边界处转换。
+- 使用共享的角色/派生属性流水线以及集中的 worker 计算结果。不要在界面组件中重复实现有效属性、比率或秒伤的计算。
+- 仅对不会改变战斗事件的变体复用基准时间线；当时机、触发、效果、层数、冷却或持续伤害（DOT）可能改变时，须重新构建时间线。
+- 保留已存储的用户数据；重命名持久化字段时须添加迁移。
+- 修改公式、数据语义或架构时，同步更新相关文档。
+- 测试与探针必须验证可观察的行为、计算、迁移或长期有效的跨文件不变式。不要添加仅仅复述源代码字面内容或 JSON 值的测试；这类测试只是重复了实现，并不能验证其功能或意图。
+- 每条提交信息都应以一句话标题概括整体改动，随后空一行，再简要说明为何做此改动。
+- 不要把提交正文写成冗长的改动清单。应将长期有效的说明写入相关文档，或让代码和数据本身不言自明。
+- 编辑受支持的源代码、数据或文档文件后，运行 `npm run format`。以 `npm run format:check` 作为仓库的格式检查关卡。
+- 代码修改后运行 `npm run lint`（oxlint 加 stylelint）和 `npm run test`（vitest）；`npm run build` 除探针套件外还包含常规测试；lint 是一项单独的检查。
+- 新测试以直接导入的 vitest 用例形式放在 `tests/` 中；`tests/helpers/` 存放共享的测试辅助代码，`tests/snapshots/` 存放秒伤基线。其余的 `script/probe/*.mjs` 文件是基准测试，而非检查。
+- 代码或数据修改后运行 `npm run build`；对于模拟相关的修改，还需额外进行有针对性的计算检查。
 
-- `npm run test:dps` compares every non-empty preset rotation against its accepted DPS snapshot and guards release deployment, not ordinary tests or `npm run build`. The damage pipeline is bit-deterministic, so the guard allows only a 4-ULP budget on DPS, total damage, and duration; any larger difference in either direction is a review gate. Explain the affected path, old/new values, and cause, then wait for the user to decide whether the change is correct before updating that snapshot. Never refresh snapshots merely to make a failed check pass. Refresh reviewed rotations with `DPS_UPDATE_IDS="<pathId/rotationId...>" npm run snapshots:dps:update`; a path ID selects all its rotations, and `"all"` selects every rotation.
+- `npm run test:dps` 会将每个非空的模板循环与其已接受的秒伤快照进行比对，用于把关发布部署，而不属于常规测试或 `npm run build`。伤害流水线是逐位确定的，因此该检查在秒伤、总伤害和持续时间上只允许 4 个 ULP 的误差预算；任何方向上更大的差异都是需要评审的关卡。应说明受影响的流派、新旧数值及原因，然后等待用户判断该变化是否正确，再更新对应快照。切勿仅为让失败的检查通过而刷新快照。使用 `DPS_UPDATE_IDS="<pathId/rotationId...>" npm run snapshots:dps:update` 刷新已评审的循环；一个流派 ID 会选中其下所有循环，`"all"` 则选中全部循环。

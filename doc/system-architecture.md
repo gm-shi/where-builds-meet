@@ -1,71 +1,28 @@
-# System Architecture
+# 系统架构
 
-## Purpose and deployment
+## 用途与部署
 
-Where Builds Meet is a client-only Where Winds Meet build and rotation simulator.
-It is implemented with React, TypeScript, and Vite and is intended to run on
-GitHub Pages without a backend. Game definitions are JSON files imported at
-build time. User changes remain in browser storage. Deterministic calculation
-work runs in a persistent Web Worker, while requested Monte Carlo simulations
-run in their own disposable worker.
+Where Builds Meet 是一个纯客户端的《燕云十六声》配装与循环模拟器。它使用 React、TypeScript 和 Vite 实现，旨在无需后端即可运行于 GitHub Pages 上。游戏定义是在构建时导入的 JSON 文件。用户的修改保存在浏览器存储中。确定性的计算工作在一个常驻的 Web Worker 中运行，而按需请求的蒙特卡洛模拟则在各自独立的一次性 worker 中运行。
 
-## Spacing and sizing scale
+## 间距与尺寸刻度
 
-`src/styles/tokens.css` defines the scale: `--space-3xs` through `--space-xl`, at
-`0.125rem`, `0.25rem`, `0.5rem`, `0.75rem`, `1rem`, `1.5rem`, and `2rem`. Every step
-is a multiple of `0.25rem`, so a token and a bare multiple of that unit always
-agree, and the two can be adopted independently. `AGENTS.md` requires new values to
-come from this scale.
+`src/styles/tokens.css` 定义了这套刻度：从 `--space-3xs` 到 `--space-xl`，取值依次为 `0.125rem`、`0.25rem`、`0.5rem`、`0.75rem`、`1rem`、`1.5rem` 和 `2rem`。每一级都是 `0.25rem` 的倍数，因此 token 与该单位的裸倍数总是一致的，二者可以各自独立地采用。`AGENTS.md` 要求新的数值必须取自这套刻度。
 
-**The scale is barely adopted.** Measured across the fifteen stylesheets, six
-declarations reference a `--space-*` token against roughly 314 spacing declarations
-written as bare lengths. The rhythm is not absent, it is just not on the scale: the
-commonest values are `8px`, `12px`, `16px`, and `4px`, which are the tokens
-`--space-sm`, `--space-sm`, `--space-md`, and `--space-2xs`. Alongside those sits a
-regular `4n + 2` sub-grid — `6px`, `10px`, `14px`, `18px`, `22px` — and then values
-with no pattern at all: `5px`, `7px`, `9px`, `13px`, `23px`, `37px`. That mixture,
-rather than any single wrong number, is what makes the interface read as uneven.
+**这套刻度几乎没有被采用。** 在全部十五个样式表中统计，只有六条声明引用了 `--space-*` token，而以裸长度书写的间距声明约有 314 条。节奏并非不存在，只是没有落在刻度上：最常见的值是 `8px`、`12px`、`16px` 和 `4px`，分别对应 token `--space-sm`、`--space-sm`、`--space-md` 和 `--space-2xs`。与之并存的是一套规整的 `4n + 2` 子网格——`6px`、`10px`、`14px`、`18px`、`22px`——此外还有毫无规律的值：`5px`、`7px`、`9px`、`13px`、`23px`、`37px`。让界面显得参差不齐的，正是这种混杂，而不是某个单独的错误数值。
 
-Two conversions are different in kind and should not be bundled. Substituting a token
-for an equal raw length (`8px` to `var(--space-sm)`) cannot change layout, so it is
-mechanical and safe to do everywhere. Rounding an off-scale value to its nearest step
-does change layout, has no automated check — `test:dps` is bit-deterministic for damage
-and blind to pixels — and is verified by looking at it.
+有两种转换在性质上不同，不应捆绑在一起进行。用 token 替换等值的原始长度（`8px` 改为 `var(--space-sm)`）不可能改变布局，因此属于机械操作，可以在任何地方安全进行。把刻度外的值舍入到最接近的一级则确实会改变布局，而且没有自动化检查——`test:dps` 对伤害是逐位确定的，对像素却毫无感知——只能通过目视来验证。
 
-## Typography and resilient layout
+## 字体排印与稳健布局
 
-The UI self-hosts the variable Noto Sans family through Fontsource as its
-cross-platform Latin, Greek, Cyrillic, and Devanagari baseline. The active
-locale selects the matching self-hosted Noto Sans TC Variable or Noto Sans KR
-Variable stack for Traditional Chinese or Korean, while Latin still resolves
-through Noto Sans Variable first. System sans fonts remain the loading,
-accessibility-override, and unsupported-script fallback.
+界面通过 Fontsource 自托管 Noto Sans 可变字体家族，作为跨平台的拉丁、希腊、西里尔和天城文字基线。当前语言区域会为繁体中文或韩语选择相应的自托管 Noto Sans TC Variable 或 Noto Sans KR Variable 字体栈，而拉丁字符仍优先通过 Noto Sans Variable 解析。系统无衬线字体仍作为加载期间、无障碍覆盖以及不受支持文字的回退字体。
 
-Layouts must remain usable when the web font is unavailable or overridden.
-Text-bearing controls wrap instead of relying on English-label pixel widths,
-flex and grid children use zero minimum sizes, longer content may grow row
-height, and dense data tables keep one logical row while their cell contents
-wrap within flexible columns. Buff and debuff cells may grow vertically when
-their effect lists need additional lines. Fixed square dimensions are reserved
-for icons and other non-text controls. UI icons are SVG components so their
-geometry does not depend on the active font. Noto Sans is therefore a repeatable
-visual baseline, not a layout requirement.
+当网页字体不可用或被覆盖时，布局必须仍然可用。带文字的控件采用换行，而不是依赖英文标签的像素宽度；flex 与 grid 子元素使用零最小尺寸；较长的内容可以撑高行高；密集的数据表格保持一个逻辑行，同时单元格内容在弹性列内换行。增益和减益单元格在效果列表需要更多行时可以纵向增高。固定的正方形尺寸仅保留给图标及其他非文字控件。界面图标是 SVG 组件，因此其几何形状不依赖当前字体。所以，Noto Sans 是一个可复现的视觉基线，而不是布局的必要条件。
 
-PC and mobile are explicit presentation modes over the same React state and
-calculation components. PC retains the established wide grids and viewport-bound
-Build and Rotation workspaces. Mobile uses normal document scrolling, compact
-single-column panels, and horizontal item choosers. Rotation rows remain a
-single CSS grid row in both modes; their flexible columns wrap long cell content
-instead of switching the whole row to a card layout.
-The production mode follows a `48em` viewport query. Settings always shows the
-currently resolved PC/Mobile layout below the weapon selectors. The selector remains disabled
-and dimmed until Dev mode is enabled, at which point it overrides the viewport
-query until the user changes it again, without changing calculation or stored game data.
+PC 版与手机版是建立在同一套 React 状态和计算组件之上的两种显式呈现模式。PC 版保留既有的宽网格，以及受视口约束的「配装」和「循环」工作区。手机版使用常规的文档滚动、紧凑的单列面板和横向的物品选择器。循环行在两种模式下都保持为单个 CSS grid 行；其弹性列会让较长的单元格内容换行，而不是把整行切换为卡片布局。生产环境下的模式遵循 `48em` 视口查询。「设置」始终在武器选择器下方显示当前解析出的 PC 版/手机版布局。在启用开发模式之前，该选择器保持禁用并呈暗淡状态；启用后，它会覆盖视口查询，直到用户再次更改为止，且不会改变计算或已存储的游戏数据。
 
-The long-term product direction is to accept complete character and gear data,
-simulate rotations, compare alternatives, and recommend builds or rotations.
+产品的长期方向是接收完整的角色与装备数据、模拟循环、比较备选方案，并推荐配装或循环。
 
-## Runtime overview
+## 运行时概览
 
 ```text
 JSON game data ─────────────┐
@@ -90,10 +47,9 @@ User edits ─────────────────┘           │
 Active rotation snapshot ─> Disposable simulation worker ─> Simulation tab
 ```
 
-The UI never needs a server request. Both workers receive structured-cloneable
-bundles containing every value required for their calculation.
+界面从不需要发起服务器请求。两个 worker 接收的都是可结构化克隆（structured-cloneable）的数据包，其中包含各自计算所需的全部数值。
 
-## Source layout
+## 源码布局
 
 ```text
 data/
@@ -183,839 +139,384 @@ public/
   mask-icon.png                  solid silhouette, for surfaces that tint a mask themselves
 ```
 
-The tree above is reached through two import prefixes declared in `aliases.ts` and
-mirrored in `tsconfig.app.json`: `@` resolves into `src` and `@gamedata` into `data`.
-`vite.config.ts` and `vitest.config.ts` share the same map, so the app, the tests, and
-the calculation probes resolve a specifier identically. A string alias only matches on a
-`/` boundary, which leaves scoped packages such as `@tabler/icons-react` untouched.
-`import.meta.glob` is the one exception: Vite does not resolve aliases inside glob
-patterns, so `src/gear.ts` and `src/application/rotationCatalog.ts` keep relative
-patterns while still importing the same files by name elsewhere.
-
-The icons in `public/` are generated from `script/logo/logo.png` by
-`npm run icons:build`; `npm run icons:preview` draws the result at every size a
-surface uses it, on a light and a dark one. They are checked in rather than built
-during a deploy because they are part of the site's identity, not of a build.
-
-The emblem is gold line art whose pale highlight measures 1.12:1 against a light
-browser tab, where it is not visible, and no browser recolours an icon to
-compensate. Every icon is therefore drawn on a plate of the same `#11131a` the
-`theme-color` meta declares: that puts each tone of the artwork between 5.7:1 and
-14.9:1, and because the plate matches a dark tab it disappears on one rather than
-framing the emblem. The source is cropped to its ink first, which is most of the
-emblem's apparent size, and each embed is palette-quantised, which is worth about
-two thirds of the remaining bytes.
-
-Combat-path icons live under `src/assets/path-icons/` and are imported with
-`vite-imagetools` using `?w=56&h=56&format=webp`; production builds emit
-optimized 56px WebP assets instead of copying the 512px PNG sources.
-`gameData/pathIcons.ts` binds one icon to each `PathId` and is the only place
-that names a source file, so `data/path.json` carries no image fields and the
-selector renders straight from the `PathId` it is already iterating.
-
-Script and Divinecraft selector images live under `src/assets/script/` and
-`src/assets/divinecraft/`. `gameData/setupImages.ts` maps the filenames in game
-data to imported WebP URLs using `?quality=85&format=webp`. Builds preserve
-the source dimensions for responsive selectors and emit compressed, hashed
-assets instead of copying the original PNGs from `public/`.
-
-## UI layering
-
-`src/ui/` contains only generic, reusable UI primitives. A primitive stays
-domain-agnostic: it renders arbitrary children, owns no game or application
-state, and imports nothing from application, feature, or domain modules.
-Feature components own their local UI and compose primitives from `src/ui/`.
-Application services own cross-feature behavior and may import UI primitives,
-but feature modules must not import one another. `src/App.tsx` is the eager
-composition shell: it coordinates shared state and renders features, while
-reusable domain services live under `src/application/`. The dependency
-direction is one-way: features may use application services and primitives;
-application services must not import feature UI; UI must not import any of
-those layers.
-
-### Primitive contract (`src/ui/<Name>/{index.tsx, style.module.css}`)
-
-A primitive owns reusable behavior and its base presentation in one folder.
-When `index.tsx` grows too large to stay readable, the folder has room for
-additional files (for example `types.ts`, `helpers.ts`, or subcomponents) —
-splitting a primitive across files inside its own folder is expected and
-preferred over growing a single file. A primitive renders arbitrary children,
-owns no game or application state, and imports nothing from application,
-feature, or domain modules.
-
-The CSS module owns the same small, reusable set of rules as any other UI
-component and consumes shared custom properties from the globally loaded
-`src/styles/tokens.css`. Reusable appearance options are explicit primitive
-props and local module classes rather than recreated global classes. For
-example, `Button` owns primary, secondary, and danger variants, their hover
-states, the small size, and an icon-only presentation that takes its block size
-from the size it is combined with and centres itself, so an icon-only action
-stands as tall as a labelled button of the same size. An icon-only button carries
-its wording in `aria-label` and `title` rather than in text. A reset offered
-beside a label of its own keeps the small circular dot of `stat-reset-button`,
-because a bordered control the height of a labelled one would crowd that label. Its `data-button` marker exists only so domain
-layout rules can target primitive instances; it does not provide a global
-button-style fallback. `Panel` and `PanelHeading` expose the corresponding
-`data-panel` and `data-panel-heading` hooks for stable application selectors
-while their generated module classes remain private. `ButtonGroup` owns a set of
-mutually exclusive options: it draws the divider colour as its own background
-showing through a one-pixel gap, so neighbours are separated by a single line
-however the grid wraps, and it gives every option an equal share of the available
-width via `auto-fit` tracks with an `fr` maximum rather than a fixed column count.
-`ButtonGroupOption` takes the option's name as its label and anything else as a
-note beneath it, so the name carries the weight and the note steps down in size and
-luminance; the two are never rendered as peers. Panels that present an image per
-option instead of a name and a note are not option groups and keep their own
-presentation.
-
-`Tooltip` renders its floating box through a portal onto `document.body`, which
-is what lets it escape a trigger's scrolling or clipping ancestors — a build
-editor, a rotation table, a panel that scrolls on one axis — where a box left in
-the trigger's own tree would be cut off at the region's edge or would escape over
-whatever follows it. The box is `position: fixed` and placed against the
-trigger's viewport rectangle, preferring above and falling below when there is no
-room, and it is measured again whenever the page scrolls or resizes. Because
-measuring needs the box to exist, it is rendered invisible for the frame before it
-is placed. The anchor is a real inline-flex box rather than a `display: contents`
-one: an element that generates nothing has no rectangle to measure and no pointer
-events of its own to hang the reveal on, and the box is rendered only while the
-trigger is hovered or focused. A consumer class may lay the box's contents out,
-but it must not own the box's display or reveal: a rule keyed on the trigger can no
-longer reach a box that is not inside it.
-
-Domain-specific classes one layer above a primitive may still adjust layout
-or context-specific appearance with the same design tokens. Primitives do not
-expose a second custom-property theming API, duplicate token values as literal
-fallbacks, or require global token bridges.
-
-`src/ui/` sits above base normalization and below application layers in the
-CSS cascade (`tokens, base, ui, layout, components, utilities`). `main.tsx`
-must import `styles/index.css` before `App` so this declaration establishes
-layer order before component CSS Modules are evaluated. Primitive defaults
-therefore win over element normalization while application classes can still
-refine them without specificity battles. The icon pack is
-`@tabler/icons-react`, imported per-glyph at call sites; no new hand-drawn SVGs
-are added.
-
-Lint hardening is scoped to the folder and explicitly invoked after the root
-lint pass: `src/ui/.oxlintrc.json` enables the `suspicious` and `pedantic`
-categories on top of the root baseline through `extends`;
-`src/ui/.stylelintrc.json` extends upstream `stylelint-config-standard` without
-local rule overrides.
-
-Icons never get a primitive: there is no `ui/Icon`. Call sites import
-`@tabler/icons-react` icons directly so bundling stays per-glyph; the
-`.tabler-icon` class in `styles/base.css` keeps them at `1em`. No new
-hand-drawn SVGs are added.
-
-## Localization boundary
-
-`locales/translations.csv` is the canonical translation source. The extraction
-script discovers UI message keys plus translatable JSON and stat labels, then
-generates the locale manifest and one JSON file per locale under
-`public/locales/`. At startup the application loads the saved user locale,
-falls back to the browser locale when none was saved, and finally falls back to
-English. Only an explicit user selection is persisted.
-
-Localization remains on the main-thread presentation boundary. Workers,
-calculation bundles, cache identities, stored builds, stored rotations, and
-game-data IDs never contain localized values. See `localization.md` for the
-catalog workflow and validation rules.
-
-Damage, healing, and the per-second rates taken from them are presented by
-`formatThroughput` and `formatThroughputDelta` in
-`src/application/formatting.ts`, which take the active locale from
-`getLocale()` and hand the digits to `Intl.NumberFormat`. Two rules are the
-module's own rather than `Intl`'s. A thousand separator appears only once a
-magnitude reaches `10000`, because a number already short enough to count at a
-glance is not made easier to read by being split, and two figures of similar size
-stop occupying the same width. The threshold is judged on the rounded magnitude,
-so a value that rounds up across it is grouped like the number it becomes. And
-a difference of nothing is written `0` rather than `+0.00`, because a sign on an
-absent value is noise and would claim a direction the colour reads as no change.
-
-A magnitude is shown to two decimals unless a call site asks for another, which
-`BuildTab` does for a build's headline rate. Percentages, stat values, and
-durations are not magnitudes a reader weighs against one another and stay on
-`formatNumber`, which is not locale-aware. The distinction that matters is that
-`Intl` rounds the shortest decimal representation of a value where `toFixed` does
-not — `1.005` is `1.00` to one and `1.01` to the other — so the rounding a
-difference is coloured by is read back out of a formatter rather than computed
-separately, and it is read back in a fixed locale so the text stays parseable.
-
-## Application and UI state
-
-`App.tsx` owns the shared character state:
-
-- final-value character stat overrides
-- final-value attunement overrides
-- reusable character profiles containing those override maps and Main-tab setup
-- two equipped weapons
-- selected combat path and its optional weapon lock
-- build list, shared gear inventory, and one active build ID per combat path
-- selected breakthrough profile
-- globally resolved stats and derived stats
-- the latest metrics published for the active rotation
-
-Food, Script, and Divinecraft are parent-owned React state, initialized from
-persistent storage. The Main selectors, character-stat preparation, and rotation
-bundles consume the same selection snapshot; storage is only persistence.
-Character-stat memoization depends explicitly on stat overrides, settings
-(including weapons and breakthrough), equipped gear effects, resolved build
-setup, these three selections, and combat path. Path controls Inner Way and set
-eligibility. `innerWayEntriesForTag` sorts eligible Inner Ways by their data
-display name, so the key order of the `innerWayDefinitions` registry is not a UI
-contract and reordering it cannot reorder a selector. Selection validity, tier
-conditions, and calculation are keyed by ID. Resolve this sheet before
-fingerprinting the worker bundle: a new fingerprint cannot repair stale prepared
-stats. Attunement has its own derived pipeline; global buffs/debuffs and
-conditional combat effects remain rotation inputs rather than unconditional
-character-sheet bonuses.
-
-It renders seven tabs:
-
-1. Main
-2. Build
-3. DPS Breakdown
-4. Rotation Editor
-5. Simulation
-6. Skill Editor
-7. Settings
-
-The Rotation Editor is loaded on demand, on the first visit to its tab, and stays
-mounted and hidden with CSS after that, which preserves its local state. It is
-deferred because it is the largest module in the application and, once the
-application resolves the active rotation's comparisons itself, has nothing left
-to do that the rest of the interface does not already have. It is absent from the
-idle preload of the other deferred tabs, which would hand back what deferring it
-saves.
-
-Main, DPS Breakdown, and the simulation tab read the published rotation from
-`rotationStore`, which is a zustand store read with selectors. They render the
-latest published immutable metrics rather than calculating independently.
-
-In PC mode, Build or Rotation Editor constrains the page shell to the visible
-viewport. The header, tabs, and footer remain visible while the build manager
-and rotation table use the remaining height and scroll internally. The
-Rotation Editor keeps its header and one-row grid while cell content wraps, so
-it does not introduce a horizontal scrollbar. Mobile mode and the other tabs
-retain normal document scrolling.
-
-### Rotation row windowing
-
-The rotation step list is windowed, but only after it has been measured. Row
-heights vary because cell contents wrap, and a windowed list only knows the
-height of rows it has actually rendered. Reserving space for the rest from an
-average is not stable: every newly measured row replaces an estimate and moves
-the total by (real − average), so the scroll extent swings, the browser clamps
-`scrollTop`, and the list appears to bounce back with its last row unreachable.
-So the list first renders in full, measures every row, and only then starts
-windowing; from then on the total height is exact and stops moving.
-
-Heights are collected during the commit, once per mounted row, and again when a
-row resizes through a `ResizeObserver`. Both paths coalesce into one state update
-per frame. The `ROW_GAP` in the windowing hook must match the list's CSS `gap`,
-or spacer padding stops reproducing the real rhythm.
-
-A changed column set re-wraps every cell, so `layoutKey` carries the resolved
-grid template and invalidates the measurements when it changes. That costs one
-full measuring pass per column change — which is what switching between an
-attacking and a non-attacking target does — and is unavoidable, because every
-row genuinely has a different height afterwards. Measurements are tagged with the
-layout they were taken in, so a stale layout is ignored rather than cleared by an
-effect.
-
-Each display entry has a stable `displayEntryKey`, carried as `data-window-key`
-on the rendered row. The final row is marked `data-window-last`, because
-`:last-child` is now whichever row the window happens to end on. Scroll anchoring
-and post-edit focus resolve authored step indexes to that key and call
-`scrollToKey` first, so a target outside the current window is pulled into view
-before its position is measured. Deleting a row still anchors to a neighbouring
-_rendered_ row, which is correct because an anchor is only needed when the
-deleted row was visible, and a visible row's neighbours fall inside the overscan.
-
-When heights cannot be obtained at all — hidden, or a test environment without
-layout — the full list stays rendered, so no row can disappear where layout
-metrics do not exist. This is why the existing editor tests still exercise the
-full list under jsdom.
-
-The currently viewed build and active build are separate concepts. Only the
-active build contributes gear stats, attunement, weapon and armor sets, bow/ring set, and
-arsenal to calculations. The same
-viewed-versus-active distinction applies to rotations; an edited rotation
-publishes metrics globally only when it is also active.
-All bundled rotation presets explicitly store ping, including the empty planner
-preset, so changes to Settings ping do not change their timelines. Most use
-40 ms; the Might dummy preset uses 30 ms.
-Preset ping is displayed in a disabled input with muted text. A custom rotation inheriting
-Settings shows the current default as a muted input placeholder.
-Custom rotations can override ping; an explicit override uses the Main tab's
-modified-field highlight and reset control. This feedback is local to the
-ping field and appears while typing, before committing or rebuilding the
-timeline. Reset removes the override and
-returns to Settings ping. Editor worker calculations update silently without
-a calculating-status message. Both ping inputs keep local drafts until Enter or
-blur, then clamp to 0–999 ms; a blank custom rotation field inherits Settings.
-
-Bundled rotation presets are immutable editor sources. Switching, activating,
-or creating another rotation only writes the current editor content back when
-the previous entry is user-created.
-
-Build and rotation activation are stored independently for every combat path.
-A single parent-owned path transition resolves the destination path's compatible
-build and rotation before changing any visible state. A missing or incompatible
-saved selection falls back to that path's configured default. The transition
-invalidates the previous calculation batch, forgets every cached calculation,
-installs the path, martial arts, build, and rotation together, then lets the
-normal fingerprint schedule start a replacement batch. Forgetting reaches the
-store and the workers, because a worker's baseline and editor-timeline caches
-exist only inside the worker holding them, so terminating the pool is the only
-way to release that memory. A fingerprint covers the whole bundle, so another
-path's results can never be read as this path's, and nothing reaches for them
-once the path has changed; keeping them would only spend memory. A transition
-resolving to the path already selected, as choosing that path's martial arts
-does, changes no fingerprint and so forgets nothing. The Rotation Editor remounts
-at this path boundary; it does not reconcile the new path through a later child
-effect. Calculation fingerprints explicitly contain the ordered pair of equipped
-martial arts, so otherwise identical rotations from different martial-art
-selections cannot share cached results.
-
-Rotation editing uses a separate baseline-preview schedule. Input changes render
-immediately while a short debounce coalesces rapid edits before constructing and
-fingerprinting the worker bundle. A matching main-thread baseline cache entry is
-published without recalculation; a cache miss is queued as low-priority worker
-work. Results enter the cache when completed, but only the latest requested
-fingerprint may replace the editor preview. The previous completed preview stays
-visible while newer work runs. A previewed result records the calculation context
-it was produced under, so the toolbar can tell a result that still describes the
-current inputs from one a pending calculation is about to replace. Until such a
-result exists the toolbar reports the calculation rather than a zeroed result,
-because a total of zero reads as an answer where there is not one yet; once a
-result exists it stays on screen while its replacement is calculated.
-
-A calculation status is reported in two variants: with the fraction it measured,
-or without a percentage when the calculation publishes no intermediate steps. A
-baseline reports no steps, so it is described as under way rather than as stalled
-at zero percent; a comparison category reports the fraction of its variants that
-have settled, counting a dispatched variant as part-settled by the progress it
-reports, so a category does not read as stalled while its first variants run. Both are the same primitive, given a progress or not given one, and the
-wording is shared by every caller, so a status reads identically wherever it
-appears. The stats tab and the rotation toolbar therefore describe the same
-pending baseline the same way. The editor never requests comparison variants;
-active-rotation comparisons are requested only while the Main tab is visible.
-Manual event rows expose their authored start time as an input. Entering a time
-switches the event to explicit battle-relative timing while retaining its old
-anchor only for editor navigation; the previous/next event controls remove that
-explicit time and reattach the event to the selected action. Switch Martial Art
-and Delay are presented as Action options, named "Action: Switch Martial Art"
-and "Action: Delay" to match that group, and keep their existing start-only and
-sequential semantics. The step picker groups options by skill category, listing
-each equipped martial-art category, then Mystic, General, and Mechanism, ahead of the Events
-and Action groups. Battle-start markers and persisted starts are limited to ordered
-or live-attached rows; fixed-time rows cannot establish the fight-start anchor. The
-rotation portion of the fingerprint includes its resolved ping, steps, target HP,
-practice target, group size, enemy count, Infinite Vitality, battle-start anchor, and event-time
-reference. Duration-controlled skill steps use the same authored input for
-editor display, anchor timing, sequential scheduling, and any named tracked
-effect; an omitted bounded input uses its configured maximum, and required
-inputs reject duration-less authored/imported steps. Their data-defined cap is
-applied before those consumers. Triggered
-skills may name a source effect to keep a delayed chain bound to its original
-application. Its display name is intentionally excluded because renaming cannot
-change a calculation.
-
-Rotations may optionally store a target maximum HP. Without one, the target HP
-state defaults to 99% but damage does not deplete it. The centralized baseline
-calculation then walks damage actions in timeline order, subtracts each resolved
-damage result, and publishes target-HP snapshots with the worker timeline. Rows
-and actions without damage inherit the most recent target-HP ratio instead of
-falling back to the timeline's initial 100% state. Self
-HP, target HP, and target Qi are distinct timeline states. Qi reaching zero
-applies Exhausted; the debuff's data-defined `"expire"` action restores Qi when
-the current application expires, so duration refreshes remain authoritative.
-Attached manual events can target either a skill action or a fixed-time Take
-Damage action. The editor keeps the attached event immediately before its
-anchor in stored rotation order, while timeline sort order determines whether
-its effect resolves before or after the selected action at the shared timestamp.
-
-Auto HP has been removed. Loading or importing a legacy rotation discards its
-`autoHP` flag while preserving authored HP events, target maximum HP, and the
-fight-start anchor. The simulator does not infer HP changes from future rotation
-duration. Target HP follows explicit HP events or damage against a supplied
-maximum HP; otherwise it stays at the ordinary 99% default.
-
-Each rotation stores a `targetType` practice target selected from `data/boss.json`.
-That file is the single source for a target's display name, its `Dummy` or `Boss`
-type, and its attack patterns. The removed `dummyAttack` flag is the former
-two-value form of this setting; a stored `true` migrates to `DummyAttack` and any
-other value to `Dummy`, so previously saved rotations keep their exact timeline.
-The timeline exposes the resolved target to data as the `targetType` requirement
-target, letting a definition gate itself on the encounter rather than on a
-skill ID. `vsBossDmg` applies for every practice target.
-
-Both `Dummy` and `DummyAttack` count as a boss, so the boss role is implicit
-rather than a property to test. A mechanic whose source says it works "against a
-boss" must therefore not gate itself on `targetType`, because matching `Boss`
-would exclude both dummies. Write such a mechanic unconditionally, exactly as
-`vsBossDmg` is applied. Reserve `targetType` for conditions that genuinely
-distinguish one practice target from another, such as a target that attacks or a
-target with a different resistance profile.
-
-The fight-start anchor is also the boundary for anything put on the target. The
-event loop sets one `battleStarted` boolean when it reaches the anchor; target
-`apply`/`extend` actions, trigger-driven target applications, data requirements,
-and conditional sub-action selection read that same live state. Requirement
-checks do not traverse source rows to determine combat status. A delayed
-follow-up from a prepull cast can apply target effects after battle starts;
-`sourceRowId` retains its damage ownership and causal associations independently.
-When the anchor names one action inside a step, the fight opens on that action's
-resolved time before damage or target-effect actions sharing that instant,
-including timed encounter effects and delayed follow-ups from other rows.
-Earlier events processed before the anchor remain prepull. Prepull damage and
-unconditional self effects are unaffected; only the target is unreachable.
-A self effect can require `battleStarted` to exclude prepull, such as an
-in-combat hit counter. A release selected before its anchored first hit can
-choose an out-of-combat route and retain it once the hit opens combat.
-
-A target's `attackPattern` array declares its generated Take Damage events. Each
-entry is `{ firstDelay, interval, count, damage }`: the first occurrence lands
-`firstDelay` seconds after battle start, repeats every `interval` seconds, and
-lands `count` simultaneous hits of `damage` each. Several entries repeat
-independently, so a future boss can mix cadences. An empty array never attacks.
-The current `DummyAttack` entry uses `5.5 / 6 / 2 / 200`. These rows carry
-`automatic: "targetAttack"` and stop before Battle End. A Take
-Damage event overlapping a skill tagged `AvoidsTakeDamage` resolves to zero and
-does not fire take-damage triggers; the cast interval includes both boundaries,
-so a zero-cast-time avoidance skill protects its exact timestamp. A manually
-authored zero-damage Take Damage event still fires defensive responses and the
-ordinary take-damage lifecycle. Other Take Damage events use the ordinary Self
-HP and take-damage trigger pipeline. The optional `infiniteVitality` flag marks
-Vitality as an infinite timeline resource: its displayed value is `∞`, and its
-normal gains, regeneration, and consumption are skipped while ordinary resource
-requirements continue to use the character's capped maximum.
-
-Every normalized rotation stores `enemyCount`, a positive whole number defaulting
-to one for new and legacy records. The Rotation Editor places Enemy Count before
-Ping; edits commit on blur or Enter, persist with the rotation, and participate
-in worker fingerprints. The timeline exposes it as a numeric requirement for
-Light Anew and Song of Tang; it does not multiply total damage.
-
-Every normalized rotation also stores `groupSize` as `1`, `5`, or `10`, exposed
-in the editor as Solo, Team, or Group. Missing and invalid legacy values migrate
-to `1`. A skill with `group: true` multiplies its reported healing by this
-recipient count, while only one copy enters the tracked Self HP state. A
-`target: "player"` application instead allocates one independently expiring
-effect copy to self first and then to teammates. Once every represented player
-has a copy, reapplication replaces the copy with the least remaining duration.
-
-Every normalized rotation also stores `divinecraftDamage`, a boolean exposed in
-the editor as a checkbox after Ping. Unchecked, the selected Divinecraft
-contributes only its stat bonus and healing trigger; omitted records mean damage
-applies. The flag is passed to `selectedSetupEffects` as an override rather than
-being read from the timeline, so every setup comparison variant built for that
-rotation inherits it. The rotation participates in the worker fingerprint as a
-whole, so toggling it invalidates cached results.
-
-Timeline construction records an auditable numeric-resource ledger alongside
-the first sorted row. The worker uses the ledger's consumed and final Vitality
-to apply any rotation-wide Mystic damage sustainability correction only to the
-published total damage and DPS. Action breakdowns and the Rotation Editor keep
-their original calculated values; the UI does not independently derive or
-apply this correction.
-
-Permanent setup `resourceRegenerationBonus` entries are consumed by the existing
-natural-resource integration loop. `calculations/resourceRegeneration.ts` splits
-constant-rate spans at a fraction-of-cap threshold, including crossings caused
-by simultaneous drain. Direct resource actions remain separate. Comparisons
-with these bonuses rebuild the timeline because a changed resource maximum can
-move the threshold and alter subsequent spending and damage.
-
-Current martial art and physical weapon are timeline state as well. They start
-from the left equipped martial art, change automatically at the start of each
-castable `MartialArts` skill from that skill's data fields, and remain unchanged
-through General, Mystic, and triggered skills. A start-only Martial Art event
-can switch them explicitly before a cast. Ordinary requirements can inspect
-both values, and rows and actions snapshot them so a Mystic follow-up such as
-Ghostly Step - Umbra Dodge can dispatch weapon-specific damage definitions.
-
-## Chance-applied periodic damage
-
-Chance-applied DOTs reuse the trigger application and periodic event scheduler.
-Action chances can be numeric or use the existing `switch` value resolver against
-current requirement state and active condition flags. Both expected and sampled
-paths resolve the same value; simulation timeline-rebuild detection recognizes
-object-valued chances as well as numeric ones.
-The data-defined `onMaxStack` consume-and-trigger transition runs synchronously
-inside both ordinary and trigger-driven effect applications, removing state and
-pending ticks before queuing the burst. The expected tracker uses the same
-threshold predicate, resets only threshold-reaching branches, and weights the
-normal triggered damage skill by the resulting burst probability.
-Existing `time: "expire"` actions also support chance-triggered damage. Concrete
-expiration schedules have a latest-generation identity so refreshes to the same
-timestamp cannot duplicate actions. Natural expiration is validated before state
-pruning, independently of other actions at that clock boundary. Expected DOT
-branches keep one pending expiry wakeup per effect, selected from sorted list heads.
-Applications, branch release and tiny-state merging update that wakeup in place.
-When it fires, matching owners supply their current probability, and the next
-live expiration is scheduled. Live expiry actions
-reuse the effect-action executor without publishing an expiration-check row.
-`ExpectedPeriodicTracker` extends the outcome-probability infrastructure with a
-distribution over stack count, shared expiration, damage owner, and temporary
-branch identity. Within each branch and owner, stack-indexed sorted lists hold
-expiration and absolute probability; inactive mass is a scalar. Applications walk
-stacks downward, scale failed applications in place and aggregate successful mass
-into one new entry per destination stack. Indexed linked lists backed by shared
-numeric arrays recycle slots without allocating per-state objects. Packed arrays
-remain available through the diagnostic `expectedPeriodicStorage` input.
-Tiny-state compaction collects only released rare states and groups them by stack
-count across owners and deadlines. Only entries that
-actually merge are removed and rebuilt in the recycled arena; significant and
-singleton states retain their storage. Empty stack lists are removed. Stack traversal
-order is cached until a stack list is added or removed, avoiding repeated sorting
-during tick, expiry, and damage-snapshot reads. Source probabilities remain a
-mixture while expiration and pending-tick fields are averaged; stack counts stay unchanged.
-Branch release merges sorted lists with one forward cursor and a direct-tail
-fast path for current-expiration follow-ups, avoiding repeated prefix searches.
-Exact-cadence states also carry maps of next-tick timestamps to absolute
-probability mass. Cadence does not affect the supported application, threshold,
-or expiration transitions, so states with different cadences share those
-transitions while their tick schedules remain exact except for tiny-state
-weighted-time merging. The expected
-timeline contains the union of possible ticks, with separate damage and hit
-weights. These finite probability branches do not consume the ordinary-event
-loop budget. Without the tiny-state approximation described below, the DOT's
-marginal stack distribution is exact; downstream
-expected-state calculations use marginal hit weights, not a joint distribution
-of every proc, resource cap, and other random buff. Simulations instead rebuild
-concrete timelines, including on-hit resource gains. Damage and proc draws occur
-in chronological execution order, once per action/application, without replay.
-Bitter Seasons reuses this tracker for the longer-lived defense debuff applied
-by the same chance roll as its Poison. Action snapshots carry weighted damage-effect
-alternatives, and the central damage formula evaluates each stack outcome. Linked
-Poison ticks condition those weights on their own cadence/lifetime, preserving the
-proc correlation without introducing a second probability engine. The linked
-debuff also uses the shared tick clock, avoiding per-application cadence maps.
-Inclusive final
-DOT ticks are honored in expected and sampled timelines.
-Selecting or comparing an Inner
-Way that can add these events must rebuild the timeline.
-The distribution is partitioned by temporary branch identity inside each effect's
-tracker. A conditional post-burst application detaches and transforms only its
-partition; unrelated partitions retain their states, cadence maps, and merge
-indexes. Ordinary applications still transform all partitions. Releasing a branch
-merges only its states into the unconditioned partition, preserving absolute mass,
-expiry, cadence and owner. Clock-driven ticks and expiration queries inspect all
-applicable states; this is not a global joint-probability engine for unrelated
-buffs or resources. `tests/periodic-branch-isolation.test.ts` covers overlapping branches,
-conditional chances, owner-specific expiration, and probability conservation.
-`script/probe/benchmark-fivefold-bleed.mjs` measures timeline runtime, output rows,
-peak combat states, and executed tick/expiration checks for dense distinct-cadence hits.
-The exact factorization reduces transition overhead without pruning rare outcomes.
-Weeping Blood and Qingyi's Poison opt into `periodic.expectedTickAlignment: "battle"`.
-Expected timelines use one shared cadence at battle seconds 1, 2, and so on,
-with one probability-weighted DOT row per active boundary. New applications wait
-for the next strictly later boundary; refreshes retain it. Expiration and threshold
-times are not rounded, and expired or consumed branches contribute no tick mass.
-Battle-aligned trackers store one shared tick cursor, not per-state cadence maps.
-Each active state's probability supplies tick mass directly. A scalar pending
-probability excludes newly applied mass at the current unprocessed boundary;
-it scales with conditional transitions and clears when the shared clock advances.
-This preserves same-timestamp refresh/application ordering without individual tick
-timestamps. Exact-cadence expected trackers retain their weighted cadence maps.
-This deliberately approximates tick timing and downstream DOT-sensitive effects,
-but the grid alone does not approximate stack/expiration transitions or conditional burst probabilities.
-Sampled timelines ignore this option and retain exact periodic cadence.
-The generic exact-cadence path remains available for other periodic definitions.
-Shared-clock expected trackers additionally merge released states below `1e-5`
-probability when stack counts match, regardless of expiration time or damage owner.
-The merged state preserves total mass and source ownership and uses the weighted mean expiry;
-temporary conditional branches remain isolated until their follow-ups finish.
-Superseded expiration wakeups are removed, not merely left to fire with zero mass.
-This approximates expiry timing and can affect later stack/trigger transitions;
-it never prunes probability. Exact-cadence trackers use the same rare-state policy;
-sampled simulations are unchanged.
-See [tiny-state merging and its benchmark](rotation-event-loop.md#tiny-expected-state-merging)
-for the diagnostic opt-out, rounding rule, and measured accuracy.
-Expected DOT scheduling keeps one pending tick wakeup per active effect. Applications
-update that wakeup's time/causal ordering instead of rebuilding future tick rows.
-Only when it fires is the current tick probability resolved and a damage row emitted;
-the scheduler then selects the next eligible tick. This also supports exact cadences
-without enumerating their entire future union. Both tick and expiry wakeups retain
-the active-effect identity so removal/reapplication cannot revive stale schedules.
-These internal checks do not consume the ordinary trigger-chain safety budget.
-
-Ordinary and sampled DOTs also retain only their next tick. A completion marker
-after its actions schedules the following tick against the current expiry.
-Cadence-preserving refreshes update the pending tick's ownership and ordering
-through retained queue references, without enumerating future ticks or scanning
-the entire queue. Resetting cadence or removing the effect invalidates the old
-successor chain. See the [event-loop reference](rotation-event-loop.md) for
-same-time ownership and expiry boundaries.
-
-Threshold and expiration bursts retain a temporary expected-state branch identity
-until their damage triggers finish. Reapplications to the originating DOT operate
-conditionally on those branches, preserving the consumed/expired-state correlation
-without weighting the burst probability twice.
-The optional data-defined `onMaxStack.triggerTags` adds skill tags to the spawned
-instance only. This lets normal damage-trigger requirements distinguish a
-threshold burst from an expiration burst of the same skill without duplicating
-its damage definition.
-
-Recurring effects use the same event-loop endpoint as ordinary actions. Battle
-End excludes damage at its timestamp. Without Battle End, completing the last
-ordered item ends combat, after same-time final actions and causal follow-ups.
-A trailing explicit Delay extends this window; DOTs, triggered skills, replays,
-and generated target attacks cannot extend it. No feedback-suppressed cutoff pass
-is needed.
-
-## Prepared attack comparisons
-
-Comparison variants that reuse combat events can reuse per-hit damage expressions.
-`damage.ts` prepares the physical and four attribute channels plus the four outcome
-routes from the ordinary damage formula. A comparison-local cache retains those
-expressions while the shared stat pipeline supplies each variant's effective
-attack ranges and outcome rates. The cache is used for attack/rate stat variants and includes all fixed formula inputs,
-including penetration, bonuses, attunements, dynamic state, and resolved effects;
-formulas reading mutable attack/rate inputs bypass it. Expected-effect mixtures
-and recorded damage retain the ordinary sequence traversal and ordering.
-Each prepared hit caches four outcome channel vectors. When only outcome rates
-change, evaluation resolves the shared rate rules and reweights those vectors
-without repeating attack, penetration, multiplier, or zero-clamp calculations.
-Changing an effective attack endpoint or effective critical damage rebuilds all
-four vectors. The existing fixed-context cache still invalidates other multipliers
-and dynamic state. Rate-dependent buffs and recorded damage continue through the
-ordinary sequence; this shortcut does not freeze their probability state.
-
-For attack-only variants, `rotationDamageResponse.ts` additionally accumulates an
-affine rotation response with separate minimum/maximum coefficients for all five
-channels. Preparation is lazy and cached privately against the original worker
-baseline. Outcome mixtures and replay source contributions retain their weights;
-Mystic contributions retain the baseline Vitality scale. Evaluation uses the
-baseline damage plus the dot product of attack deltas and the coefficients.
-The response records physical zero-clamp and attack-range normalization bounds.
-Both sides of attack normalization are supported, including maximum attack that
-follows minimum attack. Void minimum/maximum deltas contribute to the equipped
-primary attribute. The response records separate weighted bounds for normalization
-before and after adding Void, preserving whether each maximum follows its own
-endpoint or the minimum. Void and ordinary attack can change together within
-those bounds. Raw-sourced talents can remain eligible when their resolved
-amounts are identical, such as already capped bonuses. Dependency strings are indexed
-once per original baseline, visiting shared objects once. Attack and rate eligibility
-checks query that index instead of traversing the baseline hits separately for every
-changed input. Only string values are indexed; object keys do not count as references.
-Variants crossing those bounds, formulas depending on changed inputs, healing or
-accumulator timelines, changed non-attack stats, and combat-changing variants use
-the existing calculator. Published/cloned baselines lack the private response and
-also use the existing calculation. Aggregation can change floating-point addition
-order; it does not change the baseline or sampled damage formulas.
-
-Critical and affinity damage-bonus variants retain the existing per-action
-calculation. The main-page comparison workload does not request direct variants
-for these bonuses, so the rotation response does not prepare dedicated coefficients.
-
-Pure damage-boost attunement comparisons use the same private rotation response.
-Each matching hit contributes `damage / (1 + attunementBonus)` times the data-defined
-bonus multiplier; recorded replays propagate source coefficients. A single changed
-attunement is eligible only when its definition changes damage bonus alone and the
-shared multiplier stays positive. Pure physical/formless penetration attunements use coefficients prepared from
-the same per-hit outcome formula, with intersected bounds for resistance branches
-and positive physical penetration multipliers. Branch crossings and mixed-stat
-attunements retain the ordinary calculation. Unmatched tags contribute zero.
-
-Rotation-wide rate comparisons reuse the same private damage response. Eligible
-baselines group outcome coefficients by fixed stat context and rate rules;
-guarantees, caps, and restricted routes resolve once per group through the ordinary
-rate function. Shared stat preparation applies each variant's ordinary/effective
-rate deltas and verifies that non-rate damage inputs remain identical. Replay
-source weights and Mystic Vitality scaling propagate into the group coefficients.
-The result adds weighted rate differences to the original baseline damage.
-Hawkwing, Concentration, seasonal state, expected-effect distributions, healing,
-accumulators, rate-dependent formulas/conversions, and combat-changing variants
-retain sequence/full calculation. Group preparation and eligibility are lazy and
-baseline-local; repeated eligible comparisons traverse groups rather than actions.
-Floating-point aggregation can change the last bits of comparison results.
-
-## Runtime Inner Way damage ownership
-
-Skill and DOT `damageGroup` metadata names an Inner Way owner. Timeline construction
-creates one read-only `damageGroup` row for each such selected Inner Way, even with
-zero procs. Generated actions use that group's stable row ID as their damage owner;
-they do not retain the attack that caused the proc for attribution. Fivefold Bleed
-shares its owner across DOT states, threshold bursts, and expiration bursts, so
-equivalent probability states from different attacks can merge. Temporary branch
-identities still preserve conditional post-burst behavior.
-
-The shared calculator credits group totals instead of cast totals without changing
-combat timestamps or formulas. `rotationDisplay.ts` places non-expandable group
-summaries after the regular rotation list. Group-owned internal actions never
-become display entries, even if a previous session expanded their group.
-The React editor indexes owner-to-row relationships once per timeline.
-These runtime rows never enter saved rotation steps,
-cooldown waits, attachment anchors, or fight-start selection.
-
-Before publishing a baseline, `compactInnerWayResults.ts` combines single-action
-group damage rows only when their skill, exact timestamp, damage context, resolved
-unit damage, and outcome metadata agree. Damage and hit weights and resolved
-channel totals are summed. No timestamp buckets or probability pruning are used.
-This runs after triggers, outcome effects, attribution, and metrics have resolved;
-it cannot combine threshold/expiration branches before their different T6 behavior.
-The worker cache retains the original timeline. Published baselines carry
-`compactedInnerWayResults`; a comparison using one after a cache miss rebuilds
-the event timeline rather than replaying merged hits. Editor merging treats
-calculated group-owned rows as authoritative so structural rows cannot restore
-discarded contributions or replace summed weights. This reduces result/display
-work, not the cost of constructing the original probability event timeline.
-
-## Data previews
-
-A preview is a named set of alternate game records the user can select, letting a
-build be measured against a different tuning of the same skills rather than only
-against the tuning that ships in `data/`. `data/preview/<id>/` mirrors the folders
-under `data/`, and `data/preview/previews.json` lists which previews exist and the
-name each is offered under.
-
-`gameData/previews.ts` owns the resolution. `combatDefinitionsFor` returns the
-shipped data for no selection, and otherwise lays the preview over it, caching one
-result per id. Merge depth follows how each registry is keyed:
-
-| Registry             | Key                 | What a preview supplies              |
-| -------------------- | ------------------- | ------------------------------------ |
-| Skills               | Skill category      | Whole records within that category   |
-| Buffs, debuffs, DOTs | Record id           | The whole record                     |
-| Inner Ways           | Definition and tier | Individual tiers within a definition |
-| Martial arts         | Weapon id           | The whole definition                 |
-
-A preview supplies a version of a record rather than a delta, so a previewed
-record reads exactly as it would in `data/` and an omitted field is genuinely
-absent rather than inherited. A preview cannot introduce an Inner Way the shipped
-data does not define, which keeps the selectors enumerating the same names.
-
-Records resolve in one order: shipped data, then the preview, then the user's own
-Skill Editor overrides. The preview therefore sets the baseline a user edits
-against, and an explicit user override still wins over it.
-
-The resolved set is passed to the calculation bundle, the graduation bundles, and
-the Skill Editor rather than being read from module state, so every consumer sees
-the same records. Because the resolved records are part of the worker bundle and of
-the graduation and editor fingerprints, changing the selection invalidates cached
-results rather than reusing a baseline calculated under another preview.
-
-## Browser persistence
-
-All user settings and editable records use `localStorage`, so they persist across
-reloads, tabs, and browser sessions. `getPersistentItem()` migrates a value from
-the former same-named `sessionStorage` key when no durable value exists, then
-removes the session copy. Existing durable data takes precedence over a stale
-session copy. App startup eagerly applies this migration to every remaining
-application-owned session key before React state is initialized; unrelated
-same-origin session keys are left untouched.
-
-| State                                           | Storage                                          |
-| ----------------------------------------------- | ------------------------------------------------ |
-| Character stat overrides                        | `localStorage`, `wwm-stat-overrides-v1`          |
-| Explicitly selected locale                      | `localStorage`, `wwm-locale`                     |
-| Custom character profiles                       | `localStorage`, `wwm-character-profiles-v1`      |
-| Build list, shared gear, and per-build loadouts | `localStorage`, `wwm-build-list-v1`              |
-| Active build IDs by combat path                 | `localStorage`, `wwm-active-build-by-path-v1`    |
-| Skill editor overrides                          | `localStorage`, `wwm-skill-editor-session-v1`    |
-| Selected data preview                           | `localStorage`, `wwm-preview-selection-v1`       |
-| Combat path                                     | `localStorage`, `wwm-path-session-v1`            |
-| Dev layout preview                              | `localStorage`, `wwm-layout-preview-session-v1`  |
-| Attunement overrides                            | `localStorage`, `wwm-attunement-overrides-v1`    |
-| Weapons and default ping                        | `localStorage`, `wwm-settings-session-v1`        |
-| Build setup overrides                           | `localStorage`, `wwm-build-setup-overrides-v1`   |
-| Food                                            | `localStorage`, `wwm-food-session-v1`            |
-| Divinecraft                                     | `localStorage`, `wwm-divinecraft-session-v1`     |
-| Script                                          | `localStorage`, `wwm-script-session-v1`          |
-| Global buff/debuff controls                     | `localStorage`, `wwm-global-debuffs-session-v1`  |
-| Rotation list                                   | `localStorage`, `wwm-rotation-list-session-v1`   |
-| Active rotation IDs by combat path              | `localStorage`, `wwm-active-rotation-by-path-v1` |
-| Custom simulation percentiles                   | `localStorage`, `wwm-simulation-percentiles-v1`  |
-
-The former global active-build and active-rotation IDs migrate into the current
-combat path when that path has no saved selection in the new per-path maps.
-A stored `empty` selection is discarded on read, from both the per-path maps and
-the former global keys. `empty` is the placeholder preset that paths without
-real builds or rotations point at, so a stored `empty` records that the path was
-opened before it had presets rather than a deliberate pick. Discarding it lets a
-path that ships its first build or rotation resolve its configured default even
-while it is still work in progress, instead of pinning earlier visitors to the
-placeholder. Loaders validate enough shape to fall back to defaults and include migrations
-for older percentage, penetration, attunement, rotation, per-build inventory,
-single-inventory gear, and session-wide build setup formats. Non-zero values from the former raw character and attunement
-storage keys migrate to overrides, preserving existing manual inputs. Calculated
-metrics and timelines are not persisted. Bundled default builds and rotations
-are reconstructed from repository data and omitted from browser persistence;
-formerly edited default rotations migrate to custom copies. A malformed custom
-rotation is skipped independently so it cannot discard other saved rotations,
-and initial load never replaces unreadable storage with an empty list.
-Legacy consecutive Drunken Poet 1-through-5 steps migrate to the conditional
-five-hit composite, including remapping fight-start and attached-action anchors
-to the composite's flattened action indexes.
-Standalone Inner Way, legacy gear-set, bow/ring, and arsenal selections migrate
-only when the unified build-setup override has never been saved. Once that
-override exists—even as an empty object—the active build supplies every
-non-overridden setup default and legacy keys are ignored.
-
-Superseded browser formats are read through the typed adapters in
-`src/application/persistence/legacy/`. Each adapter owns its historical key and
-schema and returns a typed value for the current loader; current loaders retain
-domain normalization and migration policy. Legacy payloads are never passed
-through a current-format schema, so format-specific migrations remain
-independent and regression-tested.
-
-Build export produces a versioned JSON snapshot of shared gear and custom build
-loadouts, including each build's Inner Ways, weapon and armor sets, bow/ring set, and arsenal.
-Import validates that snapshot and appends it to the current state,
-remapping colliding gear and build IDs without replacing existing data or
-duplicating bundled default presets.
-The official-dashboard import is a separate boundary adapter: a user-installed
-bookmarklet copies role gear JSON from the authenticated official origin, then
-`officialGearImport.ts` maps official slots and stat IDs into a normal build
-snapshot. That snapshot enters the same validator and collision-safe merge path
-as a file import. The large official ID table is loaded only when the user
-submits the modal, keeping it out of the initial application chunk.
-
-Rotation export similarly produces a versioned JSON snapshot of custom rotation
-records. Rotation import validates skill and event step shapes, appends custom
-rotations with collision-safe IDs, preserves the active rotation, and skips
-bundled default rotations. Older rotations with absolute manual-event timestamps
-are migrated to fight-relative timestamps using their stored start anchor.
-Legacy fixed-time Move and Exhausted events are then attached to the nearest
-skill start, direct action, or directly declared triggered-skill action and moved
-immediately before that target skill. Legacy Exhausted `before` attachments are
-migrated to post-action `after` attachments. Legacy attached Take Damage records
-without an explicit battle-start reference are converted to fixed time; modern
-battle-start records preserve explicit attachments when the editor reattaches them.
-
-Character Profile export produces a versioned JSON snapshot containing only
-custom profiles. Each profile contains character and attunement override maps,
-Inner Ways, and final weapon-set/armor-set/bow-ring/arsenal selections. Food, Divinecraft,
-global buff/debuff controls, and Script controls remain independent
-session state and are not stored in character profiles.
-The implicit `Calculated` profile is reconstructed in the UI and is never
-persisted or exported. Import validates stat keys and setup shapes, discards
-unknown or non-finite override values, appends valid profiles, and remaps
-colliding IDs without changing the currently applied profile.
-
-`data/default-setup.json` supplies first-load Inner Ways, food, and Divinecraft
-plus fallback build setup values for older build records. Bundled builds define Inner Ways and setup choices
-in their own path-grouped `data/build/**/*.json` records. Each path declares one
-`buildGroup`, one explicit `status`, and `defaultBuild` and `defaultRotation`
-preset IDs in `data/path.json`. Paths without presets explicitly reference the
-development-only empty build and rotation. A compatible persisted selection
-takes precedence; otherwise changing or loading a path selects its declared
-default before considering other eligible presets. The preset-validation gate
-requires every available path to declare existing, non-test defaults belonging
-to that path before a production build can complete. Default-build visibility
-follows the folder mapping rather than being inferred from the preset's
-martial-art pair.
-
-## Character stat pipeline
-
-The authoritative stage contract is [Stat snapshot pipeline](stat-pipeline.md).
-`calculateStatsWithEffects()` builds the raw and character-sheet snapshots;
-calculation adds global, skill, and current combat contributions:
+上面的目录树通过两个导入前缀访问，它们在 `aliases.ts` 中声明，并在 `tsconfig.app.json` 中同步镜像：`@` 解析到 `src`，`@gamedata` 解析到 `data`。`vite.config.ts` 与 `vitest.config.ts` 共用同一份映射，因此应用、测试和计算探针对同一说明符的解析完全一致。字符串别名只在 `/` 边界处匹配，因此 `@tabler/icons-react` 这类作用域包不受影响。`import.meta.glob` 是唯一的例外：Vite 不会解析 glob 模式中的别名，因此 `src/gear.ts` 和 `src/application/rotationCatalog.ts` 保留相对路径模式，而在其他地方仍按名称导入相同的文件。
+
+`public/` 中的图标由 `npm run icons:build` 从 `script/logo/logo.png` 生成；`npm run icons:preview` 会按每个展示位置所用的各种尺寸，分别在浅色和深色背景上绘制结果。这些图标被提交到仓库中，而不是在部署时构建，因为它们属于站点标识的一部分，而不属于某次构建。
+
+徽标是金色线稿，其浅色高光与浅色浏览器标签页之间的对比度仅为 1.12:1，在那里根本看不见，而且没有任何浏览器会为此重新给图标着色。因此，每个图标都绘制在一块底板上，底板颜色与 `theme-color` meta 声明的 `#11131a` 相同：这样，图稿中每种色调的对比度都落在 5.7:1 到 14.9:1 之间；又因为底板与深色标签页颜色一致，它在深色标签页上会融入背景，而不会给徽标套上一圈边框。源图会先裁剪到墨迹边界，徽标的视觉尺寸大部分由此而来；每个嵌入图像都经过调色板量化，这能节省剩余字节数的约三分之二。
+
+战斗流派图标位于 `src/assets/path-icons/` 下，通过 `vite-imagetools` 以 `?w=56&h=56&format=webp` 导入；生产构建会输出优化后的 56px WebP 资源，而不是复制 512px 的 PNG 源文件。`gameData/pathIcons.ts` 为每个 `PathId` 绑定一个图标，并且是唯一指明源文件名的地方，因此 `data/path.json` 不包含任何图片字段，选择器直接根据其正在遍历的 `PathId` 进行渲染。
+
+帖与天工选择器的图片位于 `src/assets/script/` 和 `src/assets/divinecraft/` 下。`gameData/setupImages.ts` 通过 `?quality=85&format=webp` 将游戏数据中的文件名映射为导入后的 WebP URL。构建会为响应式选择器保留源图尺寸，并输出经过压缩、带哈希的资源，而不是从 `public/` 复制原始 PNG。
+
+## 界面分层
+
+`src/ui/` 只包含通用、可复用的界面基础组件（primitive）。基础组件保持与领域无关：它渲染任意子元素，不持有任何游戏或应用状态，也不从应用、功能或领域模块导入任何内容。功能组件拥有各自的局部界面，并组合使用 `src/ui/` 中的基础组件。应用服务负责跨功能的行为，可以导入界面基础组件，但功能模块之间不得相互导入。`src/App.tsx` 是立即加载的组合外壳：它协调共享状态并渲染各个功能，而可复用的领域服务位于 `src/application/` 下。依赖方向是单向的：功能可以使用应用服务和基础组件；应用服务不得导入功能界面；界面不得导入上述任何一层。
+
+### 基础组件契约（`src/ui/<Name>/{index.tsx, style.module.css}`）
+
+基础组件在同一个文件夹中拥有可复用的行为及其基础呈现。当 `index.tsx` 变得过大、难以保持可读时，该文件夹可以容纳更多文件（例如 `types.ts`、`helpers.ts` 或子组件）——在基础组件自己的文件夹内将其拆分为多个文件是预期的做法，优于让单个文件不断膨胀。基础组件渲染任意子元素，不持有任何游戏或应用状态，也不从应用、功能或领域模块导入任何内容。
+
+CSS 模块与其他任何界面组件一样，只拥有一小套可复用的规则，并使用全局加载的 `src/styles/tokens.css` 中共享的自定义属性。可复用的外观选项以显式的基础组件 props 和模块内的局部类来表达，而不是重新创建全局类。例如，`Button` 拥有 primary、secondary 和 danger 三种变体及其悬停状态、small 尺寸，以及一种纯图标呈现：它的块尺寸取自与之组合的尺寸，并自行居中，因此纯图标操作与同尺寸的带标签按钮一样高。纯图标按钮将其说明文字放在 `aria-label` 和 `title` 中，而不是作为按钮文本显示。放在自身标签旁边的重置按钮保留 `stat-reset-button` 的小圆点样式，因为与带标签控件等高的带边框控件会挤占该标签的空间。按钮基础组件的 `data-button` 标记仅用于让领域布局规则能够定位基础组件实例；它并不提供全局的按钮样式回退。`Panel` 和 `PanelHeading` 暴露对应的 `data-panel` 与 `data-panel-heading` 钩子，供稳定的应用选择器使用，而它们生成的模块类保持私有。`ButtonGroup` 拥有一组互斥选项：它把分隔线颜色作为自身背景，透过一像素的间隙显露出来，因此无论网格如何换行，相邻选项之间都只隔着一条线；并且它通过以 `fr` 为最大值的 `auto-fit` 轨道（而不是固定的列数）让每个选项平分可用宽度。`ButtonGroupOption` 将选项名称作为标签，其余内容作为其下方的注释，因此名称承担主要分量，注释在字号和亮度上降一级；二者绝不会作为同级元素渲染。为每个选项展示图片而非名称和注释的面板不属于选项组，保留各自的呈现方式。
+
+`Tooltip` 通过 portal 将其浮动框渲染到 `document.body` 上，正是这一点让它能够脱离触发元素那些会滚动或裁剪内容的祖先元素——配装编辑器、循环表格、单轴滚动的面板——在这些地方，如果浮动框留在触发元素自身的树中，就会在区域边缘被截断，或者溢出并覆盖其后的内容。浮动框为 `position: fixed`，并依据触发元素在视口中的矩形进行定位，优先显示在上方，空间不足时显示在下方；每当页面滚动或尺寸变化时都会重新测量。由于测量需要浮动框已经存在，它在被定位之前的那一帧会以不可见状态渲染。锚点是一个真实的 inline-flex 盒子，而不是 `display: contents` 盒子：不生成任何盒子的元素既没有可测量的矩形，也没有属于自己的指针事件来挂接显示逻辑；并且浮动框只在触发元素处于悬停或聚焦状态时才会渲染。使用方的类可以对浮动框的内容进行布局，但不得掌管浮动框的显示方式或显隐：基于触发元素编写的规则，已无法命中不在其内部的浮动框。
+
+在基础组件之上一层的领域特定类，仍可以使用相同的设计 token 调整布局或特定上下文中的外观。基础组件不会暴露第二套自定义属性主题 API，不会把 token 值重复写成字面量回退值，也不要求全局的 token 桥接。
+
+在 CSS 层叠（`tokens, base, ui, layout, components, utilities`）中，`src/ui/` 位于基础规范化层之上、应用层之下。`main.tsx` 必须在导入 `App` 之前导入 `styles/index.css`，这样该声明才能在组件 CSS Modules 求值之前确立层级顺序。因此，基础组件的默认样式优先于元素规范化样式，而应用类仍可对其进行细化，无需陷入优先级之争。图标包为 `@tabler/icons-react`，在调用处按单个图标导入；不再新增手绘 SVG。
+
+Lint 加固的范围限定在该文件夹内，并在根目录的 lint 检查之后显式调用：`src/ui/.oxlintrc.json` 通过 `extends` 在根基线之上启用 `suspicious` 和 `pedantic` 类别；`src/ui/.stylelintrc.json` 扩展上游的 `stylelint-config-standard`，不做任何本地规则覆盖。
+
+图标永远不会有对应的基础组件：不存在 `ui/Icon`。调用处直接导入 `@tabler/icons-react` 图标，以便打包保持按单个图标进行；`styles/base.css` 中的 `.tabler-icon` 类将图标尺寸保持为 `1em`。不再新增手绘 SVG。
+
+## 本地化边界
+
+`locales/translations.csv` 是权威的翻译来源。提取脚本会发现界面消息键以及可翻译的 JSON 和属性标签，然后在 `public/locales/` 下生成语言区域清单，以及每个语言区域各一个 JSON 文件。启动时，应用会加载用户保存的语言区域；若未保存，则回退到浏览器的语言区域；最终回退到英语。只有用户的显式选择才会被持久化保存。
+
+本地化始终停留在主线程的呈现边界上。worker、计算数据包、缓存标识、已存储的配装、已存储的循环以及游戏数据 ID 中永远不包含本地化后的值。翻译目录的工作流与校验规则请参阅 `localization.md`。
+
+伤害、治疗以及由它们得出的每秒速率，由 `src/application/formatting.ts` 中的 `formatThroughput` 和 `formatThroughputDelta` 呈现；它们从 `getLocale()` 获取当前语言区域，并将数字交给 `Intl.NumberFormat` 处理。有两条规则是该模块自己的，而非来自 `Intl`。只有当数量级达到 `10000` 时才会出现千位分隔符，因为一个短到一眼就能数清的数字，并不会因为被拆分而更易读，而且拆分会让两个大小相近的数字不再占据相同的宽度。阈值依据舍入后的数量级来判断，因此一个舍入后跨过阈值的值，会按照它舍入后所变成的那个数字来分组。此外，零差值写作 `0` 而不是 `+0.00`，因为给一个不存在的值加上符号只是噪声，还会宣称一个方向，而颜色所表达的却是没有变化。
+
+除非调用处另有要求，数量级值都显示两位小数；`BuildTab` 就为配装的主要速率指定了其他位数。百分比、属性值和持续时间不是读者需要相互权衡比较的数量级值，仍使用 `formatNumber`，它不感知语言区域。关键的区别在于：`Intl` 会对一个值的最短十进制表示进行舍入，而 `toFixed` 不会——`1.005` 在其中一方得到 `1.00`，在另一方得到 `1.01`——因此，决定差值着色的舍入结果是从格式化器的输出中读回的，而不是单独计算；并且读回时使用固定的语言区域，以保证文本可被解析。
+
+## 应用与界面状态
+
+`App.tsx` 持有共享的角色状态：
+
+- 角色属性的最终值覆盖
+- 定音的最终值覆盖
+- 可复用的角色配置，包含上述覆盖映射以及「主页」标签页的设置
+- 两把已装备的武器
+- 所选的战斗流派及其可选的武器锁定
+- 配装列表、共用装备库，以及每个战斗流派各一个当前配装 ID
+- 所选的破阵配置
+- 全局解析后的属性与派生属性
+- 为当前循环发布的最新指标
+
+食物、帖和天工是由父组件持有的 React 状态，从持久化存储初始化。主页的选择器、角色属性准备以及循环数据包使用同一份选择快照；存储仅用于持久化。角色属性的记忆化（memoization）显式依赖于属性覆盖、设置（包括武器和破阵）、已穿戴装备的效果、已解析的配装设置、上述三项选择以及战斗流派。流派决定心法和套装的可用性。`innerWayEntriesForTag` 按数据中的显示名称对可用的心法排序，因此 `innerWayDefinitions` 注册表的键顺序不属于界面契约，调整其顺序也不会改变选择器中的顺序。选择的有效性、重数条件和计算都以 ID 为键。在为 worker 数据包生成指纹之前，先解析这张属性表：新的指纹无法修复已过时的预备属性。定音有自己的派生管线；全局增益/减益以及有条件的战斗效果仍作为循环的输入，而不是无条件的角色属性表加成。
+
+它渲染七个标签页：
+
+1. 主页
+2. 配装
+3. 秒伤分析
+4. 循环编辑器
+5. 模拟
+6. 技能编辑器
+7. 设置
+
+循环编辑器按需加载：在首次访问其标签页时加载，此后保持挂载状态并通过 CSS 隐藏，从而保留其局部状态。之所以延迟加载，是因为它是应用中最大的模块，而且一旦应用自行解析当前循环的对比项，它就再没有任何界面其他部分尚未具备的工作要做了。它不在其他延迟加载标签页的空闲预加载之列，否则就会把延迟加载它所节省的开销又还回去。
+
+主页、秒伤分析和模拟标签页从 `rotationStore` 读取已发布的循环；它是一个通过选择器读取的 zustand store。这些标签页渲染最新发布的不可变指标，而不是各自独立计算。
+
+在 PC 版模式下，配装或循环编辑器会将页面外壳限制在可见视口内。页头、标签栏和页脚保持可见，而配装管理器和循环表格使用剩余高度并在内部滚动。单元格内容换行时，循环编辑器仍保留其表头和单行网格，因此不会引入水平滚动条。手机版模式及其他标签页保留常规的文档滚动。
+
+### 循环行窗口化
+
+循环步骤列表采用窗口化渲染，但只在完成测量之后才开始。由于单元格内容会换行，行高各不相同，而窗口化列表只知道它实际渲染过的行的高度。用平均值为其余行预留空间并不稳定：每新测量一行，就会替换掉一个估计值，并使总高度变动（实际值 − 平均值），于是滚动范围来回摆动，浏览器会钳制 `scrollTop`，列表看起来就像被弹了回去，最后一行无法到达。因此，列表会先完整渲染，测量每一行，然后才开始窗口化；从此以后，总高度是精确的，不再变动。
+
+行高在提交（commit）阶段收集，每个已挂载的行收集一次；当某行通过 `ResizeObserver` 检测到尺寸变化时会再次收集。两条路径都会合并为每帧一次的状态更新。窗口化 hook 中的 `ROW_GAP` 必须与列表 CSS 的 `gap` 一致，否则占位填充就无法再还原真实的行间节奏。
+
+列集合发生变化会让每个单元格重新换行，因此 `layoutKey` 携带已解析的网格模板，并在其变化时使测量结果失效。这意味着每次列变化都要付出一次完整测量的代价——在攻击型目标与非攻击型目标之间切换时正是如此——而且这是无法避免的，因为之后每一行的高度确实都不同了。测量结果会标记其测量时所处的布局，因此过时的布局会被忽略，而不是由某个 effect 清除。
+
+每个显示条目都有一个稳定的 `displayEntryKey`，以 `data-window-key` 的形式附加在渲染出的行上。最后一行标记为 `data-window-last`，因为 `:last-child` 现在指的是窗口恰好结束处的那一行。滚动锚定和编辑后的焦点会把编写的步骤索引解析为该键，并先调用 `scrollToKey`，这样位于当前窗口之外的目标会先被拉入视图，再测量其位置。删除一行时，仍会锚定到相邻的*已渲染*行，这是正确的，因为只有被删除的行可见时才需要锚点，而可见行的相邻行都落在预渲染（overscan）范围之内。
+
+当完全无法获取行高时——处于隐藏状态，或在没有布局的测试环境中——整个列表保持完整渲染，因此在不存在布局度量的情况下，不会有任何行消失。这也是现有的编辑器测试在 jsdom 下仍然覆盖完整列表的原因。
+
+当前查看的配装与当前生效的配装是两个独立的概念。只有生效的配装才会把装备属性、定音、武器与防具套装、弓玦套装以及武库计入计算。同样的查看/生效之分也适用于循环；被编辑的循环只有在同时处于生效状态时，才会全局发布指标。所有内置循环模板都显式存储了延迟（ping），包括空白的规划模板，因此修改「设置」中的延迟不会改变它们的时间轴。大多数模板使用 40 ms；威流派的木桩模板使用 30 ms。模板的延迟显示在一个禁用的输入框中，文字呈弱化样式。继承「设置」的自定义循环会以弱化的输入框占位符显示当前默认值。自定义循环可以覆盖延迟；显式覆盖会使用「主页」标签页的已修改字段高亮和重置控件。这一反馈仅限于延迟字段本身，在输入过程中即会出现，早于提交或重建时间轴。重置会移除覆盖值，回到「设置」中的延迟。编辑器的 worker 计算会静默更新，不显示正在计算的状态消息。两个延迟输入框都会保留本地草稿，直到按下 Enter 或失去焦点，然后钳制到 0–999 ms；自定义循环中留空的字段会继承「设置」。
+
+内置循环模板是不可变的编辑器来源。切换、激活或创建另一个循环时，只有当前一个条目是用户创建的，才会把当前编辑器内容写回。
+
+配装和循环的激活状态按每个战斗流派分别独立存储。由父组件持有的单一流派切换流程，会在改变任何可见状态之前，先解析出目标流派下兼容的配装和循环。若保存的选择缺失或不兼容，则回退到该流派配置的默认值。切换会使上一批计算失效，清除所有已缓存的计算，同时装入流派、武学、配装和循环，然后交由常规的指纹调度启动一批替代计算。清除操作会同时作用于 store 和 worker，因为 worker 的基线缓存和编辑器时间轴缓存只存在于持有它们的 worker 内部，所以终止 worker 池是释放这部分内存的唯一途径。指纹覆盖整个数据包，因此另一个流派的结果永远不可能被当作当前流派的结果读取，而且流派一旦改变，就不会再有任何东西去访问它们；保留它们只会占用内存。若切换解析到的正是已选中的流派（选择该流派的武学时就是如此），则不会改变任何指纹，因此也不会清除任何内容。循环编辑器会在这一流派边界处重新挂载；它不会通过之后某个子组件的 effect 来协调新的流派。计算指纹显式包含已装备武学的有序对，因此即便循环在其他方面完全相同，只要来自不同的武学选择，就不能共享缓存结果。
+
+循环编辑使用一套独立的基线预览调度。输入变化会立即渲染，同时一个短暂的防抖会在构建 worker 数据包并为其生成指纹之前，合并快速连续的编辑。若主线程的基线缓存中有匹配条目，则直接发布而无需重新计算；缓存未命中时，则作为低优先级的 worker 任务排队。结果在完成时进入缓存，但只有最近一次请求的指纹才能替换编辑器预览。在较新的任务运行期间，上一次已完成的预览保持可见。预览结果会记录其产生时的计算上下文，因此工具栏能够区分仍然描述当前输入的结果与即将被待处理计算替换的结果。在这样的结果出现之前，工具栏会报告计算状态，而不是显示一个归零的结果，因为总计为零看起来像是一个答案，而实际上答案尚未产生；一旦有了结果，在计算其替代结果期间，它会一直留在屏幕上。
+
+计算状态以两种形式报告：附带其测得的完成比例，或者在计算不发布中间步骤时不显示百分比。基线计算不报告步骤，因此它被描述为正在进行，而不是停滞在零百分比；对比类别则报告其变体中已完成的比例，并将已派发的变体按其报告的进度计为部分完成，这样在某个类别的前几个变体运行期间，它不会显得停滞不前。两者是同一个基础组件，区别只在于是否传入进度，而且所有调用方共用同一套措辞，因此无论状态出现在哪里，读起来都完全一样。所以，属性标签页和循环工具栏会以同样的方式描述同一个待处理的基线。编辑器从不请求对比变体；只有在「主页」标签页可见时，才会请求当前循环的对比。手动事件行会将其编写的开始时间作为输入框公开。输入一个时间会把该事件切换为相对于战斗的显式计时，同时保留其旧锚点，但仅用于编辑器导航；上一个/下一个事件控件会移除该显式时间，并将事件重新附着到所选动作上。「切换武学」和「延迟」作为「动作」选项呈现，分别命名为「动作: 切换武学」和「动作: 延迟」以与该分组保持一致，并保留其原有的仅作用于开始时刻的语义和顺序语义。步骤选择器按技能分类对选项分组：依次列出每个已装备武学的分类，然后是奇术、通用和机关，排在「事件」和「动作」分组之前。开战标记和持久化保存的开始时刻仅限于有序行或实时附着的行；固定时间的行无法确立开战锚点。指纹中属于循环的部分包括其解析后的延迟、步骤、目标气血、练习目标、队伍人数、敌人数量、无限精元、开战锚点以及事件时间参照。由持续时间控制的技能步骤，在编辑器显示、锚点计时、顺序调度以及任何具名的跟踪效果中，都使用同一个编写的输入值；省略的有界输入使用其配置的最大值，而必填输入会拒绝没有持续时间的编写/导入步骤。其由数据定义的上限会在上述使用方之前应用。被触发的技能可以指定一个来源效果，使延迟的连锁始终绑定到其最初的那次施加。其显示名称被有意排除在外，因为重命名不可能改变计算结果。
+
+循环可以选择性地存储目标最大气血。若未存储，目标气血状态默认为 99%，但伤害不会使其减少。集中的基线计算随后会按时间轴顺序遍历伤害动作，减去每个已结算的伤害结果，并随 worker 时间轴一起发布目标气血快照。没有伤害的行和动作会继承最近一次的目标气血比例，而不是回退到时间轴初始的 100% 状态。自身气血、目标气血和目标真气是彼此独立的时间轴状态。真气降至零时施加气竭；该减益由数据定义的 `"expire"` 动作会在当前这次施加到期时恢复真气，因此持续时间的刷新仍具有决定性。附着的手动事件既可以指向一个技能动作，也可以指向一个固定时间的「承受伤害」动作。编辑器在存储的循环顺序中，将附着事件保持在其锚点的紧前方，而时间轴的排序顺序决定在同一时间戳上，其效果是在所选动作之前还是之后结算。
+
+自动气血（Auto HP）已被移除。加载或导入旧版循环时，会丢弃其 `autoHP` 标志，同时保留编写的气血事件、目标最大气血以及开战锚点。模拟器不会根据循环未来的持续时间推断气血变化。目标气血遵循显式的气血事件，或在提供了最大气血时随伤害变化；否则保持在常规的 99% 默认值。
+
+每个循环都存储一个从 `data/boss.json` 中选择的 `targetType` 练习目标。该文件是目标显示名称、其 `Dummy` 或 `Boss` 类型以及攻击模式的唯一来源。已移除的 `dummyAttack` 标志是这项设置以前的二值形式；存储值为 `true` 的会迁移为 `DummyAttack`，其他任何值都迁移为 `Dummy`，因此以前保存的循环会保持完全相同的时间轴。时间轴将解析后的目标作为 `targetType` 条件目标暴露给数据，使定义能够以交战对象而非技能 ID 作为自身的生效条件。`vsBossDmg` 对每个练习目标都生效。
+
+`Dummy` 和 `DummyAttack` 都算作首领，因此首领身份是隐含的，而不是一个需要检测的属性。所以，如果某个机制的出处说明它“对首领”生效，就不得以 `targetType` 作为其生效条件，因为匹配 `Boss` 会把两种木桩都排除在外。应当无条件地编写这类机制，与 `vsBossDmg` 的应用方式完全相同。`targetType` 应保留给真正需要区分不同练习目标的条件，例如会发动攻击的目标，或抗性配置不同的目标。
+
+开战锚点同时也是施加到目标身上的一切内容的边界。事件循环在到达锚点时设置一个 `battleStarted` 布尔值；目标的 `apply`/`extend` 动作、由触发器驱动的目标施加、数据条件以及有条件的子动作选择，读取的都是这同一个实时状态。条件检查不会通过遍历来源行来判断战斗状态。开战前（prepull）施放所产生的延迟后续动作，可以在战斗开始后对目标施加效果；`sourceRowId` 会独立保留其伤害归属和因果关联。当锚点指定的是某个步骤内的一个动作时，战斗将在该动作解析出的时间点开始，早于共享该时刻的伤害动作或目标效果动作，包括定时的交战效果以及来自其他行的延迟后续动作。在锚点之前已处理的更早事件仍属于开战前。开战前的伤害和无条件的自身效果不受影响；只是目标无法被触及。自身效果可以要求 `battleStarted` 以排除开战前阶段，例如战斗中的命中计数器。在其锚定的首次命中之前选定的释放方式，可以选择脱战路线，并在该次命中开启战斗后继续保留。
+
+目标的 `attackPattern` 数组声明了由它生成的「承受伤害」事件。每个条目为 `{ firstDelay, interval, count, damage }`：第一次出现在战斗开始后 `firstDelay` 秒，之后每隔 `interval` 秒重复一次，每次同时造成 `count` 次命中，每次命中的伤害为 `damage`。多个条目各自独立重复，因此未来的首领可以混合不同的节奏。空数组表示从不攻击。当前的 `DummyAttack` 条目使用 `5.5 / 6 / 2 / 200`。这些行带有 `automatic: "targetAttack"`，并在「战斗结束」之前停止。与带有 `AvoidsTakeDamage` 标签的技能重叠的「承受伤害」事件会结算为零，并且不会触发承受伤害触发器；施放区间包含两端边界，因此施放时间为零的规避技能能保护其所在的精确时间戳。手动编写的零伤害「承受伤害」事件仍会触发防御响应以及常规的承受伤害生命周期。其他「承受伤害」事件使用常规的自身气血与承受伤害触发器管线。可选的 `infiniteVitality` 标志会把精元标记为无限的时间轴资源：其显示值为 `∞`，并跳过其常规的获取、回复和消耗，而普通的资源条件仍继续使用角色受上限约束的最大值。
+
+每个规范化后的循环都存储 `enemyCount`，这是一个正整数，新记录和旧版记录的默认值均为 1。循环编辑器将「敌人数量」放在「延迟」之前；编辑在失去焦点或按下 Enter 时提交，随循环一起持久化保存，并参与 worker 指纹计算。时间轴将其作为灯儿亮和大唐歌的数值条件暴露出来；它不会使总伤害成倍增加。
+
+每个规范化后的循环还存储 `groupSize`，取值为 `1`、`5` 或 `10`，在编辑器中分别显示为「单人」「组队」或「团队」。缺失或无效的旧版值会迁移为 `1`。带有 `group: true` 的技能会将其报告的治疗量乘以这一受益人数，但只有一份进入被跟踪的自身气血状态。而 `target: "player"` 的施加则会分配一份独立到期的效果副本：先分配给自己，再依次分配给队友。一旦每个被代表的玩家都拥有一份副本，再次施加时会替换剩余持续时间最短的那份副本。
+
+每个规范化后的循环还存储 `divinecraftDamage`，这是一个布尔值，在编辑器中显示为「延迟」之后的一个复选框。取消勾选时，所选天工只提供其属性加成和治疗触发；记录中省略该字段则表示计入伤害。该标志作为覆盖值传给 `selectedSetupEffects`，而不是从时间轴中读取，因此为该循环构建的每个设置对比变体都会继承它。循环作为一个整体参与 worker 指纹计算，因此切换该选项会使缓存结果失效。
+
+时间轴构建时，会在排序后的第一行旁记录一份可审计的数值资源台账。worker 使用台账中已消耗的精元和最终精元，将任何作用于整个循环的奇术伤害可持续性修正仅应用于发布的总伤害和秒伤。动作明细和循环编辑器保留其原始计算值；界面不会自行推导或应用这一修正。
+
+永久性设置中的 `resourceRegenerationBonus` 条目由现有的自然资源数值积分循环使用。`calculations/resourceRegeneration.ts` 会在以上限比例表示的阈值处切分恒定速率区间，包括由同时发生的消耗导致的越过阈值。直接的资源动作仍单独处理。涉及这些加成的对比会重建时间轴，因为资源最大值的变化可能移动阈值，并改变后续的消耗和伤害。
+
+当前武学和实际所持的武器同样是时间轴状态。它们从左侧已装备的武学开始，在每个可施放的 `MartialArts` 技能开始时，依据该技能的数据字段自动切换，并在通用技能、奇术技能和被触发技能期间保持不变。仅作用于开始时刻的武学事件可以在施放前显式切换它们。普通条件可以检查这两个值，并且行和动作会对它们进行快照，从而使阴阳迷踪步·影闪避这样的奇术后续动作能够派发特定于武器的伤害定义。
+
+## 按概率施加的周期伤害
+
+按概率施加的 DOT 复用触发施加机制和周期事件调度器。动作的概率可以是数值，也可以使用现有的 `switch` 值解析器，依据当前的条件状态和生效中的条件标志求值。期望路径与采样路径解析出的都是同一个值；模拟中的时间轴重建检测既能识别数值型概率，也能识别对象型概率。由数据定义的 `onMaxStack` 消耗并触发转换，在普通效果施加和由触发器驱动的效果施加中都会同步执行，先移除状态和待结算的跳伤，再将爆发加入队列。期望跟踪器使用相同的阈值判定，只重置达到阈值的分支，并按所得的爆发概率对普通的被触发伤害技能加权。现有的 `time: "expire"` 动作同样支持由概率触发的伤害。具体的到期调度带有最新一代（latest-generation）标识，因此刷新到同一时间戳不会造成动作重复。自然到期会在状态修剪之前进行校验，与该时钟边界上的其他动作相互独立。期望 DOT 分支为每个效果保留一个待处理的到期唤醒，该唤醒从各有序列表的表头中选出。施加、分支释放和微小状态合并都会就地更新这个唤醒。唤醒触发时，匹配的归属方提供其当前概率，并调度下一个仍然有效的到期。实时到期动作复用效果动作执行器，而不会发布到期检查行。`ExpectedPeriodicTracker` 扩展了结果概率基础设施，增加了关于层数、共享到期时间、伤害归属方以及临时分支标识的分布。在每个分支和归属方内部，按层数索引的有序列表保存到期时间和绝对概率；未生效部分的质量是一个标量。施加时自上而下遍历各层，就地缩放施加失败的部分，并将成功的质量按每个目标层数聚合为一个新条目。由共享数值数组支撑的索引链表会循环利用槽位，无需为每个状态分配对象。打包数组（packed array）仍可通过诊断用的 `expectedPeriodicStorage` 输入使用。微小状态压缩只收集已释放的稀有状态，并跨归属方和截止时间按层数对其分组。只有真正发生合并的条目才会被移除并在回收的内存池（arena）中重建；概率不可忽略的状态和单例状态保留其存储。空的层列表会被移除。层的遍历顺序会被缓存，直到有层列表被添加或移除，从而避免在读取跳伤、到期和伤害快照时反复排序。来源概率仍保持为混合，而到期时间和待结算跳伤字段取平均值；层数保持不变。分支释放使用一个前向游标合并有序列表，并为当前到期时间的后续动作提供直接追加到尾部的快速路径，避免重复的前缀搜索。精确节奏的状态还携带从下一次跳伤时间戳到绝对概率质量的映射。节奏不影响所支持的施加、阈值或到期转换，因此不同节奏的状态共享这些转换，而它们的跳伤调度除微小状态的加权时间合并外始终保持精确。期望时间轴包含所有可能跳伤的并集，并分别带有伤害权重和命中权重。这些有限的概率分支不会消耗普通事件循环的预算。若不使用下文所述的微小状态近似，DOT 的边缘层数分布是精确的；下游的期望状态计算使用边缘命中权重，而不是每次触发、资源上限和其他随机增益的联合分布。模拟则会重建具体的时间轴，包括命中时的资源获取。伤害与触发的随机抽取按时间先后的执行顺序进行，每个动作/施加一次，不会重放。所恨年年复用该跟踪器，来处理与其毒（Poison）由同一次概率判定施加的、持续时间更长的防御减益。动作快照携带加权的伤害效果备选项，由中央伤害公式对每种层数结果求值。关联的毒跳伤会依据其自身的节奏/存续时间对这些权重进行条件化，从而在不引入第二个概率引擎的情况下保留触发之间的相关性。关联的减益同样使用共享的跳伤时钟，避免为每次施加维护节奏映射。期望时间轴和采样时间轴都会遵循包含端点的最终 DOT 跳伤。选择或比较一个可以添加这些事件的心法时，必须重建时间轴。在每个效果的跟踪器内部，分布按临时分支标识进行分区。爆发后的条件施加只会分离并变换其自身的分区；无关的分区保留其状态、节奏映射和合并索引。普通施加仍会变换所有分区。释放一个分支时，只会把它的状态合并到无条件分区中，并保留绝对质量、到期时间、节奏和归属方。由时钟驱动的跳伤和到期查询会检查所有适用的状态；这并不是一个针对无关增益或资源的全局联合概率引擎。`tests/periodic-branch-isolation.test.ts` 覆盖了重叠分支、条件概率、特定归属方的到期以及概率守恒。`script/probe/benchmark-fivefold-bleed.mjs` 针对密集的不同节奏命中，测量时间轴运行时间、输出行数、峰值战斗状态数以及已执行的跳伤/到期检查次数。精确分解在不修剪稀有结果的前提下降低了转换开销。泣血和青衣毒选择启用 `periodic.expectedTickAlignment: "battle"`。期望时间轴在战斗第 1 秒、第 2 秒等时刻使用同一个共享节奏，每个生效的边界对应一条按概率加权的 DOT 行。新的施加会等待下一个严格更晚的边界；刷新则保留原边界。到期时间和阈值时间不进行取整，已到期或已被消耗的分支不贡献跳伤质量。与战斗对齐的跟踪器只存储一个共享的跳伤游标，而不是每个状态的节奏映射。每个生效状态的概率直接提供跳伤质量。一个标量形式的待处理概率会把新施加的质量排除在当前尚未处理的边界之外；它随条件转换一起缩放，并在共享时钟前进时清零。这样无需记录各次跳伤的时间戳，就能保留同一时间戳上刷新/施加的先后顺序。精确节奏的期望跟踪器保留其加权节奏映射。这有意地近似了跳伤计时以及下游对 DOT 敏感的效果，但单靠这一网格并不会近似层数/到期转换或条件爆发概率。采样时间轴忽略该选项，并保留精确的周期节奏。通用的精确节奏路径仍可用于其他周期定义。共享时钟的期望跟踪器还会在层数相同时，合并概率低于 `1e-5` 的已释放状态，而不论其到期时间或伤害归属方。合并后的状态保留总质量和来源归属，并使用加权平均的到期时间；临时的条件分支在其后续动作完成之前保持隔离。被取代的到期唤醒会被移除，而不只是留着以零质量触发。这近似了到期计时，并可能影响之后的层数/触发转换；但它从不修剪概率。精确节奏的跟踪器使用相同的稀有状态策略；采样模拟保持不变。关于诊断用的退出选项、取整规则和实测精度，请参阅[微小状态合并及其基准测试](rotation-event-loop.md#tiny-expected-state-merging)。期望 DOT 调度为每个生效的效果保留一个待处理的跳伤唤醒。施加会更新该唤醒的时间/因果顺序，而不是重建未来的跳伤行。只有在唤醒触发时，才会解析当前的跳伤概率并产出一条伤害行；随后调度器选择下一个符合条件的跳伤。这也使精确节奏无需枚举其完整的未来并集即可得到支持。跳伤唤醒和到期唤醒都会保留生效效果的标识，因此移除/重新施加不会让过时的调度复活。这些内部检查不会消耗普通触发链的安全预算。
+
+普通 DOT 和采样 DOT 同样只保留其下一次跳伤。在其动作之后的一个完成标记，会依据当前的到期时间调度下一次跳伤。保持节奏的刷新会通过保留的队列引用更新待结算跳伤的归属和顺序，而无需枚举未来的跳伤或扫描整个队列。重置节奏或移除效果会使旧的后继链失效。关于同一时刻的归属和到期边界，请参阅[事件循环参考](rotation-event-loop.md)。
+
+阈值爆发和到期爆发会保留一个临时的期望状态分支标识，直到其伤害触发全部完成。对来源 DOT 的再次施加会以这些分支为条件进行，从而保留已消耗/已到期状态之间的相关性，又不会对爆发概率加权两次。可选的、由数据定义的 `onMaxStack.triggerTags` 只为生成的实例添加技能标签。这使普通的伤害触发条件能够区分同一技能的阈值爆发与到期爆发，而无需重复其伤害定义。
+
+周期性效果与普通动作使用相同的事件循环终点。「战斗结束」会排除位于其时间戳上的伤害。若没有「战斗结束」，则在最后一个有序条目完成时结束战斗，时间点位于同一时刻的最终动作和因果后续动作之后。末尾显式的「延迟」会延长这一窗口；DOT、被触发的技能、重放以及生成的目标攻击都无法延长它。不需要额外进行抑制反馈的截止处理。
+
+<a id="prepared-attack-comparisons"></a>
+
+## 预处理的攻击对比
+
+复用战斗事件的对比变体可以复用单次命中的伤害表达式。
+`damage.ts` 依据常规伤害公式预先准备外功通道与四个属性通道，以及四种结果路径。
+对比局部缓存会保留这些表达式，而共享的属性流水线为每个变体提供实际攻击区间与结果概率。
+该缓存用于攻击/概率类属性变体，并包含所有固定的公式输入，
+包括穿透、加成、定音、动态状态和已解析的效果；
+读取可变攻击/概率输入的公式会绕过该缓存。期望效果混合
+与已记录伤害保留常规的序列遍历与顺序。
+每个预处理的命中缓存四个结果通道向量。当只有结果概率
+变化时，求值会解析共享的概率规则并对这些向量重新加权，
+而不重复攻击、穿透、乘数或归零钳制计算。
+改变实际攻击端点或实际会心伤害会重建全部
+四个向量。现有的固定上下文缓存仍会因其他乘数
+与动态状态的变化而失效。依赖概率的增益与已记录伤害继续走
+常规序列；此捷径不会冻结它们的概率状态。
+
+对于仅改变攻击的变体，`rotationDamageResponse.ts` 还会额外累积一个
+仿射循环响应，为全部五个通道分别记录最小/最大系数。
+准备过程是惰性的，并针对原始 worker 基线私有缓存。
+结果混合与重放来源的贡献保留其权重；
+奇术贡献保留基线的精元缩放比例。求值使用
+基线伤害加上攻击增量与系数的点积。
+该响应记录外功归零钳制与攻击区间归一化的边界。
+攻击归一化的两侧均受支持，包括跟随最小攻击的最大攻击。
+无相最小/最大增量计入所装备的主属性。
+该响应分别记录加入无相之前与之后归一化的加权边界，
+保留每个最大值是跟随其自身端点还是跟随最小值。
+在这些边界内，无相攻击与普通攻击可以同时变化。
+当解析后的数值相同时（例如已封顶的加成），以原始数值为来源的天赋
+仍可保持符合条件。依赖字符串针对每个原始基线只建立一次索引，
+共享对象只访问一次。攻击与概率的资格检查
+查询该索引，而不是针对每个变化的输入分别遍历基线命中。
+只有字符串值会被索引；对象键不计为引用。
+越过这些边界的变体、依赖已变化输入的公式、治疗或
+累加器时间线、非攻击属性发生变化的变体以及改变战斗的变体使用
+现有计算器。已发布/克隆的基线不含该私有响应，
+同样使用现有计算。聚合可能改变浮点加法
+顺序；它不会改变基线或采样伤害公式。
+
+会心与会意伤害加成变体保留现有的逐动作
+计算。主页面的对比工作负载不会为这些加成请求直接变体，
+因此循环响应不会为其准备专用系数。
+
+纯增伤定音的对比使用同一私有循环响应。
+每个匹配的命中贡献 `damage / (1 + attunementBonus)` 乘以数据定义的
+加成乘数；已记录的重放会传递来源系数。只有当某个定音的定义
+仅改变伤害加成，且共享乘数保持为正时，单个变化的定音才符合条件。
+纯外功/无相穿透定音使用由同一单次命中结果公式准备的系数，
+并针对抗性分支与为正的外功穿透乘数使用取交集后的边界。
+跨越分支的情况与混合属性定音保留常规计算。不匹配的标签贡献为零。
+
+全循环范围的概率对比复用同一私有伤害响应。
+符合条件的基线按固定属性上下文与概率规则对结果系数分组；
+保底、上限与受限路径通过常规概率函数在每组中只解析一次。
+共享的属性准备会应用每个变体的常规/实际概率增量，
+并验证非概率伤害输入保持不变。重放
+来源权重与奇术精元缩放会传递到分组系数中。
+结果是在原始基线伤害上加上加权的概率差值。
+飞隼、看破、四时无常状态、期望效果分布、治疗、
+累加器、依赖概率的公式/转换以及改变战斗的变体
+保留序列/完整计算。分组准备与资格判定是惰性且
+仅限于该基线的；重复的符合条件对比遍历的是分组而非动作。
+浮点聚合可能改变对比结果的最后几位。
+
+## 运行时心法伤害归属
+
+技能与 DOT 的 `damageGroup` 元数据指定一个心法作为归属方。构建时间线时，
+会为每个这样被选用的心法创建一条只读的 `damageGroup` 行，即使
+其触发次数为零。生成的动作使用该分组稳定的行 ID 作为伤害归属方；
+它们不会为归因而保留引发该触发的攻击。极乐泣血
+在 DOT 状态、阈值爆发与到期爆发之间共享归属方，因此
+来自不同攻击的等价概率状态可以合并。临时分支
+标识仍会保留爆发后的条件行为。
+
+共享计算器将伤害计入分组总计而非施放总计，且不改变
+战斗时间戳或公式。`rotationDisplay.ts` 将不可展开的分组
+摘要放在常规循环列表之后。分组所属的内部动作永远不会
+成为显示条目，即使之前的会话展开过其分组。
+React 编辑器针对每条时间线只建立一次归属方到行的索引。
+这些运行时行永远不会进入已保存的循环步骤、
+冷却等待、附着锚点或开战选择。
+
+在发布基线之前，`compactInnerWayResults.ts` 仅在单动作
+分组伤害行的技能、精确时间戳、伤害上下文、已解析的
+单位伤害以及结果元数据全部一致时才将其合并。伤害权重、命中权重以及已解析的
+通道总计会相加。不使用时间戳分桶或概率剪枝。
+该步骤在触发、结果效果、归因与指标都已解析之后运行；
+它不可能在阈值/到期分支表现出不同的 T6 行为之前将它们合并。
+worker 缓存保留原始时间线。已发布的基线携带
+`compactedInnerWayResults`；在缓存未命中后使用此类基线的对比会重建
+事件时间线，而不是重放已合并的命中。编辑器合并时将
+计算得出的分组所属行视为权威，因此结构行无法恢复
+已丢弃的贡献或替换已求和的权重。这减少的是结果/显示
+方面的工作量，而不是构建原始概率事件时间线的开销。
+
+<a id="data-previews"></a>
+
+## 数据预览
+
+预览是一组带名称、可供用户选择的替代游戏记录，使
+配装可以按同一批技能的另一套数值调校来衡量，而不仅限于
+`data/` 中随附的调校。`data/preview/<id>/` 镜像
+`data/` 下的文件夹结构，`data/preview/previews.json` 列出存在哪些预览以及
+各预览供选择时显示的名称。
+
+`gameData/previews.ts` 负责解析。未选择预览时，`combatDefinitionsFor` 返回
+随附数据，否则将预览叠加在其上，并为每个 id 缓存一份
+结果。合并深度取决于各注册表的键：
+
+| 注册表          | 键         | 预览提供的内容       |
+| --------------- | ---------- | -------------------- |
+| 技能            | 技能类别   | 该类别内的完整记录   |
+| 增益、减益、DOT | 记录 id    | 整条记录             |
+| 心法            | 定义与重数 | 某个定义内的单个重数 |
+| 武学            | 武器 id    | 完整定义             |
+
+预览提供的是记录的一个版本而非增量，因此预览中的
+记录读起来与它在 `data/` 中完全一致，省略的字段确实
+不存在，而不是被继承。预览不能引入随附
+数据未定义的心法，从而保证选择器枚举的名称保持一致。
+
+记录按固定顺序解析：先是随附数据，然后是预览，最后是用户自己在
+技能编辑器中的覆盖。因此预览决定了用户编辑时
+所依据的基线，而用户的显式覆盖仍优先于预览。
+
+解析后的集合会传递给计算数据包、毕业率数据包以及
+技能编辑器，而不是从模块状态中读取，因此所有使用方都能看到
+相同的记录。由于解析后的记录属于 worker 数据包以及
+毕业率与编辑器指纹的一部分，更改选择会使缓存
+结果失效，而不会复用在其他预览下计算出的基线。
+
+## 浏览器持久化
+
+所有用户设置与可编辑记录都使用 `localStorage`，因此它们在页面重新加载后、
+跨标签页以及跨浏览器会话都会保留。当不存在持久值时，`getPersistentItem()` 会从
+以前同名的 `sessionStorage` 键迁移该值，然后
+删除会话副本。已有的持久数据优先于过时的
+会话副本。应用启动时，会在 React 状态初始化之前，立即对剩余的每个
+应用自有会话键执行此迁移；同源下无关的
+会话键保持不变。
+
+| 状态                                 | 存储                                             |
+| ------------------------------------ | ------------------------------------------------ |
+| 角色属性覆盖                         | `localStorage`，`wwm-stat-overrides-v1`          |
+| 显式选择的语言区域                   | `localStorage`，`wwm-locale`                     |
+| 自定义角色配置                       | `localStorage`，`wwm-character-profiles-v1`      |
+| 配装列表、共享装备与各配装的装配方案 | `localStorage`，`wwm-build-list-v1`              |
+| 按战斗流派区分的当前配装 ID          | `localStorage`，`wwm-active-build-by-path-v1`    |
+| 技能编辑器覆盖                       | `localStorage`，`wwm-skill-editor-session-v1`    |
+| 已选择的数据预览                     | `localStorage`，`wwm-preview-selection-v1`       |
+| 战斗流派                             | `localStorage`，`wwm-path-session-v1`            |
+| 开发布局预览                         | `localStorage`，`wwm-layout-preview-session-v1`  |
+| 定音覆盖                             | `localStorage`，`wwm-attunement-overrides-v1`    |
+| 武器与默认延迟                       | `localStorage`，`wwm-settings-session-v1`        |
+| 配装设置覆盖                         | `localStorage`，`wwm-build-setup-overrides-v1`   |
+| 食物                                 | `localStorage`，`wwm-food-session-v1`            |
+| 天工                                 | `localStorage`，`wwm-divinecraft-session-v1`     |
+| 帖                                   | `localStorage`，`wwm-script-session-v1`          |
+| 全局增减益控制                       | `localStorage`，`wwm-global-debuffs-session-v1`  |
+| 循环列表                             | `localStorage`，`wwm-rotation-list-session-v1`   |
+| 按战斗流派区分的当前循环 ID          | `localStorage`，`wwm-active-rotation-by-path-v1` |
+| 自定义模拟百分位数                   | `localStorage`，`wwm-simulation-percentiles-v1`  |
+
+当当前战斗流派在新的按流派映射中没有已保存的选择时，以前全局的当前配装 ID 与
+当前循环 ID 会迁移到该流派。
+读取时，已存储的 `empty` 选择会被丢弃，无论它来自按流派映射还是
+以前的全局键。`empty` 是尚无真实配装或循环的流派
+所指向的占位模板，因此已存储的 `empty` 记录的是该流派在
+拥有模板之前就已被打开过，而不是用户有意的选择。丢弃它可以让
+发布了首个配装或循环的流派解析出其配置的默认值，即使
+该流派仍在开发中，而不是把早先访问过的用户固定在
+占位模板上。加载器会校验足够的结构以便回退到默认值，并包含针对
+旧版百分比、穿透、定音、循环、按配装装备库、
+单一装备库装备以及会话级配装设置格式的迁移。以前原始角色与定音
+存储键中的非零值会迁移为覆盖，从而保留已有的手动输入。计算得出的
+指标与时间线不会持久化。内置的默认配装与循环
+会根据仓库数据重建，不写入浏览器持久化存储；
+以前编辑过的默认循环会迁移为自定义副本。格式错误的自定义
+循环会被单独跳过，因此不会导致其他已保存的循环被丢弃，
+初始加载也绝不会用空列表替换无法读取的存储。
+旧版中连续的太白醉月第 1 至第 5 击步骤会迁移为带条件的
+五击组合，包括将开战锚点与附着动作锚点重新映射到
+该组合展开后的动作索引。
+独立的心法、旧版装备套装、弓玦与武库选择仅在
+统一的配装设置覆盖从未保存过时才会迁移。一旦该
+覆盖存在（即使只是空对象），当前配装就会提供所有
+未被覆盖的设置默认值，旧版键则被忽略。
+
+已被取代的浏览器格式通过
+`src/application/persistence/legacy/` 中带类型的适配器读取。每个适配器负责其历史键与
+schema，并为当前加载器返回带类型的值；当前加载器保留
+领域规范化与迁移策略。旧版数据载荷绝不会经过
+当前格式的 schema，因此特定于格式的迁移保持
+相互独立，并有回归测试覆盖。
+
+配装导出会生成共享装备与自定义配装
+方案的带版本 JSON 快照，包括每个配装的心法、武器套装与防具套装、弓玦套装以及武库。
+导入会校验该快照并将其追加到当前状态，
+对冲突的装备 ID 与配装 ID 重新映射，既不替换现有数据，也不
+重复内置的默认模板。
+官方仪表板导入是一个独立的边界适配器：用户安装的
+书签小工具（bookmarklet）从已登录的官方源复制角色装备 JSON，然后
+由 `officialGearImport.ts` 将官方槽位与属性 ID 映射为普通的配装
+快照。该快照与文件导入一样，进入相同的校验器和防冲突合并路径。
+体积较大的官方 ID 表仅在用户
+提交该弹窗时才加载，从而不会进入应用的初始代码块（chunk）。
+
+循环导出同样会生成自定义循环
+记录的带版本 JSON 快照。循环导入会校验技能步骤与事件步骤的结构，以防冲突的 ID
+追加自定义循环，保留当前循环，并跳过
+内置的默认循环。使用绝对手动事件时间戳的旧循环
+会借助其已存储的起始锚点迁移为相对于战斗的时间戳。
+随后，旧版的固定时间移动事件与气竭事件会附着到最近的
+技能起始、直接动作或直接声明的触发技能动作上，并被移到
+该目标技能的紧前方。旧版气竭的 `before` 附着会
+迁移为动作之后的 `after` 附着。没有显式开战参照的旧版附着式承受伤害记录
+会转换为固定时间；新版的
+开战参照记录在编辑器重新附着时会保留显式附着。
+
+角色配置导出会生成仅包含
+自定义配置的带版本 JSON 快照。每个配置包含角色与定音的覆盖映射、
+心法，以及最终的武器套装/防具套装/弓玦/武库选择。食物、天工、
+全局增减益控制以及帖控制仍是独立的
+会话状态，不会存入角色配置。
+隐式的 `Calculated` 配置在界面中重建，永远不会被
+持久化或导出。导入会校验属性键与设置结构，丢弃
+未知或非有限的覆盖值，追加有效的配置，并重新映射
+冲突的 ID，而不改变当前应用的配置。
+
+`data/default-setup.json` 提供首次加载时的心法、食物与天工，
+以及供旧配装记录使用的回退配装设置值。内置配装
+在各自按流派分组的 `data/build/**/*.json` 记录中定义心法与设置选项。每个流派
+在 `data/path.json` 中声明一个 `buildGroup`、一个显式的 `status`，以及 `defaultBuild` 与 `defaultRotation`
+模板 ID。没有模板的流派会显式引用
+仅用于开发的空配装与空循环。兼容的已持久化选择
+优先；否则，切换或加载流派时会先选择其声明的
+默认值，然后才考虑其他符合条件的模板。模板校验关卡
+要求每个可用流派都声明存在的、非测试的且属于
+该流派的默认值，生产构建才能完成。默认配装的可见性
+遵循文件夹映射，而不是根据模板的
+武学组合推断。
+
+## 角色属性流水线
+
+权威的阶段约定见[属性快照管线](stat-pipeline.md)。
+`calculateStatsWithEffects()` 构建原始快照与角色面板快照；
+计算过程再加入全局、技能与当前战斗的贡献：
 
 ```text
 base inputs / solved override offsets
@@ -1026,1186 +527,549 @@ base inputs / solved override offsets
   -> actionStats (current combat contributions)
 ```
 
-Equipped gear contributes one data-derived `rawStat` effect to this same pipeline.
-Direct Critical Rate is capped at `0.2` (20%) in this shared pipeline and again
-when effective per-action values are resolved, so displayed stats, overrides,
-setup effects, and damage calculations cannot bypass the cap. The complete
-snapshot retains its uncapped input so removing contributions remains correct.
-With no overrides, the simulation base is the empty character and all displayed
-stats come from the innate character system, character talents, gear, Inner
-Ways, martial-art talents, arsenal, bow/ring set, weapon and armor sets, food, and
-Divinecraft.
+已装备的装备向同一流水线贡献一个由数据派生的 `rawStat` 效果。
+直接会心率在此共享流水线中被限制为 `0.2`（20%），并在
+解析每个动作的实际数值时再次限制，因此显示的属性、覆盖、
+设置效果与伤害计算都无法绕过该上限。完整
+快照保留其未封顶的输入，因此移除贡献时结果仍然正确。
+在没有覆盖的情况下，模拟基础为空角色，所有显示的
+属性都来自角色固有系统、角色天赋、装备、心法、
+武学天赋、武库、弓玦套装、武器套装与防具套装、食物以及
+天工。
 
-`data/system.json` keeps innate `baseStats`, ordered `enhancementStats`,
-Solo-Level-keyed cumulative `talentStatsBySoloLevel`, regional
-Oddity totals under region-keyed `oddityStats` separate. Its `baseAttributes` field stores a
-nested source-attribute to target-stat multiplier map. The shared
-`baseAttributeEffects.ts` adapter converts that map to ordinary formula effects.
-Each Oddity region stores one summed raw-stat effect. An optional `minBreakthrough`
-gates the entire region; Qingzhou applies from breakthrough 18. Regions without a
-gate always apply. Attribute conversions are regular formula effects in the
-shared pipeline, so Power, Agility, Momentum, Body, and Defense gained from any
-source use the same conversion rules.
-`data/breakthrough.json` groups the selected enemy profile and its
-`levelBonusStats` under the breakthrough number. Changing breakthrough therefore
-updates enemy inputs and replaces the level-derived Precision and five base
-attributes through the same shared effect pipeline. Breakthrough 17 is selected
-on every page load. The user may switch to Breakthrough 18 for the current page
-session, but Breakthrough is not written to browser storage or character profiles.
-Each breakthrough declares its own `soloLevel` for Inner Way stat tables.
-`innerWayDefinitionForSoloLevel` resolves those tables to numeric raw-stat
-effects before character-sheet and worker calculation. Breakthroughs 17 and 18
-select Solo Levels 17 and 18. The live rotation rule memo depends on Solo Level,
-so switching breakthrough replaces the Inner Way bonuses and invalidates the
-normal calculation inputs. These levels are independent of martial-art rank.
-Each breakthrough also declares `martialArtTalentRank`: breakthrough 17 uses
-rank 13 and breakthrough 18 uses rank 14. The shared `martialArtEffectsForRank` selector reads the
-two-dimensional `talent[rank]` array for each distinct equipped martial art and
-passes its effects into the existing setup pipeline. Ranks 0–12 are empty;
-ranks 13 and 14 contain complete datamined talent selections and supported effects. Empty or absent ranks grant no
-talents. Rank selection reads the breakthrough field directly rather than
-deriving a rank from enemy level or the datamine's world-level unlock requirements.
-Character talents resolve the exact Solo Level entry through
-`systemStatEffectsForProgression`; missing totals throw rather than borrowing another
-level. Each entry is a complete cumulative raw-stat effect, applied once in the
-shared character-sheet and worker setup pipeline. The level-18 total uses the
-grey variant progression; the normal variant export stops at level 17.
-Changing rank therefore changes the setup effects used to build stats, worker
-inputs, and calculation fingerprints; timeline-affecting talents are selected
-before constructing a new baseline.
-The hidden base stat `heavensWillRegen` is also resolved through this pipeline.
-It is passed into the timeline as the per-second regeneration rate for the
-numeric `HeavensWill` resource rather than exposed as an editable combat stat.
-The resource's universal initial value of two and maximum of four are stored in
-`system.json` and passed through `TimelineBuildInput.initialResources` and
-`TimelineBuildInput.resourceMaximums`. Passive regeneration starts at the
-resolved fight-start anchor, so prepull time does not generate Heaven's Will;
-passive regeneration and explicit resource actions share the same cap.
-Innate Max HP is stored directly in `baseStats`; its `101929` value excludes the
-`25980` HP from four Tier 96 Purple armor pieces that was present in the observed
-`127909` value. Armor base HP remains a separate equipped-gear contribution,
-while talent, Oddity, Body, and Defense HP retain their individual sources.
+`data/system.json` 将固有的 `baseStats`、有序的 `enhancementStats`、
+以单人等级（Solo Level）为键的累计 `talentStatsBySoloLevel`，以及以地区为键的
+`oddityStats` 下的地区奇物（Oddity）总计分开保存。其 `baseAttributes` 字段存储一个
+从来源属性到目标属性的嵌套乘数映射。共享的
+`baseAttributeEffects.ts` 适配器将该映射转换为普通的公式效果。
+每个奇物地区存储一个汇总后的原始属性效果。可选的 `minBreakthrough`
+控制整个地区是否生效；青州（Qingzhou）自破阵 18 起生效。没有该门槛的
+地区始终生效。属性转换是
+共享流水线中的常规公式效果，因此从任何
+来源获得的劲、敏、势、体与防御都使用相同的转换规则。
+`data/breakthrough.json` 将所选的敌方配置及其
+`levelBonusStats` 按破阵档位编号分组。因此，更改破阵档位会
+更新敌方输入，并通过同一共享效果流水线替换由等级派生的精准与五项基础
+属性。每次加载页面时都会选择破阵 17。
+用户可以在当前页面会话中切换到破阵 18，但破阵档位不会写入浏览器存储或角色配置。
+每个破阵档位都为心法属性表声明自己的 `soloLevel`。
+`innerWayDefinitionForSoloLevel` 在角色面板与 worker 计算之前，将这些表解析为数值型原始属性
+效果。破阵 17 与 18
+分别选择单人等级 17 与 18。实时循环规则的缓存（memo）依赖单人等级，
+因此切换破阵档位会替换心法加成，并使
+常规计算输入失效。这些等级与武学天赋等级无关。
+每个破阵档位还声明 `martialArtTalentRank`：破阵 17 使用
+等级 13，破阵 18 使用等级 14。共享的 `martialArtEffectsForRank` 选择器为每门不同的已装备武学读取
+二维 `talent[rank]` 数组，并将其效果传入
+现有的设置流水线。等级 0–12 为空；
+等级 13 与 14 包含完整的数据挖掘天赋选择及已支持的效果。为空或缺失的等级不授予任何
+天赋。等级选择直接读取破阵档位字段，而不是
+根据敌方等级或数据挖掘中的世界等级解锁要求推导等级。
+角色天赋通过
+`systemStatEffectsForProgression` 解析对应单人等级的精确条目；缺少总计时会抛出错误，而不是借用其他
+等级的数值。每个条目都是一个完整的累计原始属性效果，在
+共享的角色面板与 worker 设置流水线中只应用一次。18 级总计使用
+灰色变体（grey variant）的成长数据；常规变体的导出数据止于 17 级。
+因此，更改等级会改变用于构建属性、worker
+输入与计算指纹的设置效果；影响时间线的天赋会在
+构建新基线之前选定。
+隐藏的基础属性 `heavensWillRegen` 也通过此流水线解析。
+它作为数值型 `HeavensWill` 资源的每秒回复速率传入时间线，
+而不是作为可编辑的战斗属性公开。
+该资源通用的初始值 2 与最大值 4 存储在
+`system.json` 中，并通过 `TimelineBuildInput.initialResources` 与
+`TimelineBuildInput.resourceMaximums` 传入。被动回复从
+解析后的开战锚点开始，因此开战前的时间不会产生天志；
+被动回复与显式资源动作共用同一上限。
+固有气血最大值直接存储在 `baseStats` 中；其值 `101929` 不包含
+观测值 `127909` 中来自四件 96 阶紫色防具的
+`25980` 气血。防具的基础气血仍是单独的已装备装备贡献，
+而来自天赋、奇物、体与防御的气血保留各自的来源。
 
-Editing a Main-tab field creates a final-value override. The field is marked as
-modified and gains an individual reset control. Gear-set, bow/ring, and arsenal
-changes similarly override the active build's selections. Inner Way selections
-use the same build baseline and resettable override behavior. Reset clears all
-character, attunement, and build-setup overrides. `calculateStatsWithOverrides()` repeatedly runs the
-shared pipeline and solves the simulation base offset required to produce every
-overridden final value. This means later baseline input changes cannot move an
-override, while overridden source stats still feed formula-derived stats.
+编辑「主页」标签页中的字段会创建一个最终值覆盖。该字段会被标记为
+已修改，并获得单独的重置控件。装备套装、弓玦与武库的
+更改同样会覆盖当前配装的选择。心法选择
+使用相同的配装基线与可重置的覆盖行为。重置会清除所有
+角色、定音与配装设置覆盖。`calculateStatsWithOverrides()` 会反复运行
+共享流水线，并求解产生每个
+被覆盖最终值所需的模拟基础偏移量。这意味着之后基线输入的变化无法改变
+覆盖值，而被覆盖的来源属性仍会参与由公式派生的属性。
 
-The complete character-sheet `stats` is sent to the worker alongside `rawStats`
-and solved base offsets. Each complete snapshot retains `effectiveStatBonuses` as
-additive derivation inputs, separate from ordinary fields. Food changes effective
-attack without changing ordinary or displayed editable attack. Each stage resolves
-all effective entries before adding their totals and normalizing ranges/rates.
-Comparison variants copy that sheet and apply changed ordinary and effective
-contribution deltas separately, then recompute effective fields. They do not reconstruct
-the baseline sheet from unconditional effects. Modified stats therefore remain
-responsive in delta calculations.
+完整的角色面板 `stats` 会与 `rawStats`
+以及求解出的基础偏移量一起发送给 worker。每个完整快照都将 `effectiveStatBonuses`
+作为加算的派生输入保留，与普通字段分开。食物改变实际
+攻击，但不改变普通攻击或界面上显示的可编辑攻击。每个阶段都会先解析
+所有实际条目，再累加其总计并对区间/概率进行归一化。
+对比变体复制该面板，分别应用已变化的普通贡献增量与实际
+贡献增量，然后重新计算实际字段。它们不会根据
+无条件效果重建基线面板。因此，已修改的属性在增量计算中
+仍能正确响应。
 
-The compact Character Profile selector treats `Calculated` as an immutable
-reset profile. Loading it clears character, attunement, and build-setup
-overrides, thereby restoring the active build's setup. It does not change Food,
-Divinecraft, global buff/debuff controls, or Script controls. A custom profile stores
-the user's current final-value character and attunement overrides plus the final
-weapon-set, armor-set, bow/ring, arsenal, and Inner Way selections. Loading
-one replaces that complete state. Profiles can be created, renamed, duplicated,
-deleted, exported, and imported through the management dialog. While a custom
-profile is selected, every subsequent profile-owned Main-tab change is written directly back
-to that profile. Changes to independent session controls do not affect profile
-matching. Changes made while `Calculated` is selected instead move the
-selector to `Unsaved changes`; the restored Reset button loads `Calculated`
-again without opening the selector.
+紧凑型角色配置选择器将 `Calculated` 视为不可变的
+重置配置。加载它会清除角色、定音与配装设置
+覆盖，从而恢复当前配装的设置。它不会改变食物、
+天工、全局增减益控制或帖控制。自定义配置存储
+用户当前的最终值角色覆盖与定音覆盖，以及最终的
+武器套装、防具套装、弓玦、武库与心法选择。加载
+某个自定义配置会替换这一完整状态。配置可以通过管理对话框创建、重命名、复制、
+删除、导出与导入。选中自定义
+配置时，之后每一项由配置管理的「主页」标签页更改都会直接写回
+该配置。对独立会话控件的更改不影响配置
+匹配。而在选中 `Calculated` 时进行的更改会使
+选择器切换到 `Unsaved changes`；重新出现的重置按钮会再次加载 `Calculated`，
+而无需打开选择器。
 
-Gear attunements are the calculated attunement baseline and remain keyed by
-definition ID. Damage resolution maps weapon definitions to penetration and
-maps tag-matching armor definitions to the standalone `attunementDMGBonus`
-multiplier. Every Armor-tagged definition shares the `attunement.armor` maximum
-roll from the active level in `data/stat.json`; weapon attunements retain definition-ID
-priority values. Armor definitions also carry the owning martial-art tag from
-`data/martial-art/*.json`. The UI requires both the current path tag (when one
-exists) and at least one selected martial-art tag; Mixed skips only the path
-check. Shared Weapon-tagged penetration fields remain available for every
-weapon. Hidden values and overrides remain intact in the calculation, and
-attunement priority variants use the same visible-field filter.
-An attunement override replaces its final displayed baseline value, but priority
-variants still add their tested amount to that value.
+装备定音是计算所用的定音基线，并仍以
+定义 ID 为键。伤害解析将武器定义映射为穿透，并将
+标签匹配的防具定义映射为独立的 `attunementDMGBonus`
+乘数。每个带 Armor 标签的定义共用 `data/stat.json` 中当前等级的
+`attunement.armor` 最大词条数值；武器定音保留按定义 ID 区分的
+优先级数值。防具定义还带有来自
+`data/martial-art/*.json` 的所属武学标签。界面要求同时满足当前流派标签（若
+存在）以及至少一个已选武学标签；混搭只跳过流派
+检查。共享的带 Weapon 标签的穿透字段对所有
+武器保持可用。隐藏的数值与覆盖在计算中保持不变，
+定音优先级变体使用相同的可见字段过滤器。
+定音覆盖会替换其最终显示的基线值，但优先级
+变体仍会在该值上加上其测试数值。
 
-Gear-set definitions carry both path and martial-art eligibility `tags`. Main,
-Build, and setup-effect resolution require every selected martial-art tag plus
-the current non-Mixed path tag. Hidden stored tiers are retained so switching
-back restores the prior selection.
+装备套装定义同时携带流派与武学资格 `tags`。「主页」、
+「配装」与设置效果的解析都要求满足每个已选武学标签以及
+当前的非混搭流派标签。隐藏的已存储档位会被保留，因此切换
+回来时会恢复之前的选择。
 
-`effectiveStats.ts` owns minimum/maximum normalization, Void/Formless folding,
-Judgement Resistance, effective-rate caps, and final outcome rates. Damage code
-receives the already-derived character object and only recalculates it when an
-action has temporary `stat` or `effectiveStat` effects.
+`effectiveStats.ts` 负责最小/最大归一化、无相（Void/Formless）折算、
+判定抗性、实际概率上限以及最终结果概率。伤害代码
+接收已派生好的角色对象，仅当某个
+动作带有临时的 `stat` 或 `effectiveStat` 效果时才重新计算它。
 
-## Combat timeline
+## 战斗时间线
 
-`buildRotationTimeline()` implements the [incremental event-loop design](rotation-event-loop.md):
-ordered input, sorted timed input, an expanded-event priority queue, and resolved
-timeline output. It expands one ordered item at a time, never future casts.
-Alongside buffs, debuffs, distance, and current HP, it tracks a map of named
-numeric resources. Resource actions update that map in event order, and each
-action snapshot carries the resource values used by action and setup-effect
-requirements. Optional resource-regeneration rates accrue from elapsed timeline
-time before each ordered event is processed.
-System-defined resource-event rules are evaluated by the same ordered queue.
-Setup and Inner Way resource-cost candidates are normalized and filtered once
-per timeline build. Each spend still checks the requested resource and evaluates
-requirements against live combat state. Active buff cost rules remain dynamic,
-and candidates retain their original accumulation order.
-They cover universal gains such as Vitality from attacks and actual Max-HP
-loss, while ordinary skill actions handle explicit costs and gains.
-Actions may wrap their requirement operands with `resolveAt: "skillStart"`.
-The timeline evaluates and stores that boolean when the owning skill component
-begins, then uses the stored result when the action executes. This keeps delayed
-resource consumption and similar mechanics bound to their release-start state.
-It produces four row kinds:
+`buildRotationTimeline()` 实现了[增量事件循环设计](rotation-event-loop.md)：
+有序输入、按时间排序的定时输入、展开事件的优先队列，以及解析后的
+时间线输出。它一次只展开一个有序项，从不展开未来的施放。
+除增益、减益、距离与当前气血外，它还跟踪一个具名
+数值资源的映射。资源动作按事件顺序更新该映射，每个
+动作快照都携带动作与设置效果的需求条件所使用的资源值。
+可选的资源回复速率会在处理每个有序事件之前，根据已流逝的时间线
+时间进行累积。
+系统定义的资源事件规则由同一有序队列评估。
+设置与心法的资源消耗候选项在每次构建时间线时
+只规范化并过滤一次。每次消耗仍会检查所请求的资源，并根据实时战斗状态
+评估需求条件。当前增益的消耗规则保持动态，
+候选项保留其原始累积顺序。
+它们涵盖通用的获取，例如来自攻击和实际气血最大值
+损失的精元，而普通技能动作负责处理显式的消耗与获取。
+动作可以用 `resolveAt: "skillStart"` 包裹其需求条件的操作数。
+时间线会在所属技能组件
+开始时求值并存储该布尔值，然后在动作执行时使用存储的结果。这使延迟的
+资源消耗及类似机制始终绑定到其释放开始时的状态。
+它会产生四种行：
 
-- `rotation`: an explicit skill or manual event
-- `trigger`: a skill inserted by a trigger action
-- `dot`: generated DOT actions
-- `periodic`: generated non-DOT buff or debuff actions
+- `rotation`：显式的技能或手动事件
+- `trigger`：由触发动作插入的技能
+- `dot`：生成的 DOT 动作
+- `periodic`：生成的非 DOT 增益或减益动作
 
-Each accepted base cast or explicit Delay schedules a next-item marker at its
-resolved completion time. Cast-time changes update that marker and current-cast
-actions; future ordered rows do not yet exist. A trigger with `queueTime`
-reserves its input at the earlier marker and can extend the owning row's
-completion through the queued skill's delayed start and returned actions. A
-Delay consumes its configured duration without producing actions or effects and
-extends combat when it is the last item. Move rows run before a
-following skill's cast start, direct action, or triggered-skill action. Exhausted
-rows run after their attached direct or triggered action. Both are rescheduled
-with that target. Take Damage and other timed manual-event `startTime`
-values are offsets from the selected fight-start anchor and consume no cast time.
-The builder records fight start when the selected event is reached, then activates
-the fight-relative encounter schedule. Internal timestamps never shift for display;
-the UI subtracts the published `battleStartTime`. There is no convergence pass.
-The event queue is a stable priority queue ordered by timestamp and then by a
-lexicographic causal order. Ordinary insertions and removals update its binary
-heap directly. Cast-time changes can mutate several queued timestamps at once;
-those mutations mark the queue dirty and rebuild the heap once before the next
-event is removed. An insertion sequence preserves the previous stable order
-when both ordering keys are equal.
-Fixed-time and Move events have priority over skills, triggers, and DOTs at the
-same timestamp, while Exhausted attachments sort immediately after their target
-action. Within
-each row, cast start still precedes its zero-time actions. This lets casts,
-actions, triggers, DOTs, and other periodic effects interleave while preserving
-causal order.
-Timestamps within `0.0001s` are treated as equal so rounded rotation data and floating-point arithmetic
-cannot place a displayed equal-time skill ahead of its event.
+每个被接受的基础施放或显式「延迟」都会在其
+解析后的完成时间调度一个下一项标记。施放时间的变化会更新该标记与当前施放的
+动作；未来的有序行此时尚不存在。带有 `queueTime` 的触发
+会在较早的标记处预留其输入，并可通过排队技能的延迟开始
+与返回的动作延长所属行的完成时间。
+「延迟」会消耗其配置的时长，但不产生动作或效果；
+当它是最后一项时会延长战斗。移动行在其后
+技能的施放开始、直接动作或触发技能动作之前运行。气竭
+行在其附着的直接动作或触发动作之后运行。两者都会随
+该目标一起重新调度。承受伤害及其他定时手动事件的 `startTime`
+值是相对于所选开战锚点的偏移量，不消耗施放时间。
+构建器在到达所选事件时记录开战时间，然后激活
+相对于战斗的遭遇时间表。内部时间戳永远不会为显示而平移；
+界面会减去发布的 `battleStartTime`。不存在收敛遍历。
+事件队列是一个稳定的优先队列，先按时间戳排序，再按
+字典序的因果顺序排序。普通的插入与移除会直接更新其二叉
+堆。施放时间的变化可能同时修改多个已排队的时间戳；
+这些修改会将队列标记为脏，并在移除下一个
+事件之前重建一次堆。当两个排序键都相等时，插入序号会
+保持先前的稳定顺序。
+在同一时间戳下，固定时间事件与移动事件优先于技能、触发与 DOT，
+而气竭附着则紧随其目标
+动作之后排序。在
+每一行内，施放开始仍先于其零时刻动作。这使施放、
+动作、触发、DOT 及其他周期性效果能够交错进行，同时保持
+因果顺序。
+相差在 `0.0001s` 以内的时间戳被视为相等，因此取整后的循环数据与浮点运算
+不会把显示为同一时刻的技能排到其事件之前。
 
-Inner Way triggers can retain a rolling hit window and an independent proc
-cooldown within each timeline build. Window state is bounded by the configured
-hit count and updated on eligible damage events, including during cooldown.
-Probability-weighted expected damage is excluded from these windows; ordinary
-DPS evaluation is unchanged. This uses the existing trigger action executor and
-charge-reset wakeup path, with no additional scheduled polling events.
+心法触发可以在每次构建时间线时保留一个滚动命中窗口和一个独立的触发
+冷却。窗口状态受配置的
+命中次数限制，并在符合条件的伤害事件上更新，冷却期间也是如此。
+按概率加权的期望伤害不计入这些窗口；常规的
+秒伤评估保持不变。这使用现有的触发动作执行器与
+充能重置唤醒路径，不额外调度轮询事件。
 
-The timeline owns mutable simulation state while it is being built:
+时间线在构建过程中持有可变的模拟状态：
 
-- active player buffs
-- active target debuffs
-- current target distance, initially 1m
-- absolute self HP initialized from calculated Max HP, plus its derived ratio
-- stacks, maximum stacks, and expirations
-- per-definition duration refresh behavior for stacked effects
-- skill, action, and effect cooldowns
-- action-time state snapshots
+- 当前生效的玩家增益
+- 当前生效的目标减益
+- 当前目标距离，初始为 1m
+- 以计算得出的气血最大值初始化的自身气血绝对值，及其派生的比例
+- 层数、最大层数与到期时间
+- 可叠层效果按定义区分的持续时间刷新行为
+- 技能、动作与效果的冷却
+- 动作时刻的状态快照
 
-The editor and calculator share the timeline's skill-cooldown state. An
-unavailable explicit cast waits for its ready time, and a live cooldown reset can
-wake it earlier. Before-cast attachments resolve only once the cast is ready.
-Elapsed waits appear as protected automatic Delay rows in the shared timeline,
-with no authored step index. Their durations reflect early cooldown resets and
-the combat cutoff. They describe time already spent waiting and never enter
-the event queue or authored rotation steps.
-Legacy generated waits are removed on load/import with start indexes remapped.
-Unavailable triggered skills are rejected
-because they do not consume rotation time.
+编辑器与计算器共享时间线的技能冷却状态。
+不可用的显式施放会等待其就绪时间，而实时的冷却重置可以
+提前唤醒它。施放前附着仅在施放就绪后才解析。
+已流逝的等待在共享时间线中显示为受保护的自动「延迟」行，
+没有编写的步骤索引。其时长反映了提前的冷却重置与
+战斗截止。它们描述的是已花在等待上的时间，永远不会进入
+事件队列或编写的循环步骤。
+旧版生成的等待会在加载/导入时移除，并重新映射起始索引。
+不可用的触发技能会被拒绝，
+因为它们不消耗循环时间。
 
-One skill-cooldown state map, keyed by skill or shared group, stores either a
-shared usage window or sorted independent charge recovery timestamps. Explicit
-casts, triggered casts, and component cooldown recording use the same tracker.
-The ordinary cooldown-ready requirement reads the tracker's next availability,
-so a skill with any charge remaining is ready. Partial `clearCD` actions restore
-the requested number of uses and preserve other pending recoveries; full resets
-clear the state. Restores use the existing waiting-cast rescheduling mechanism,
-and an independent cast's cooldown modifier affects only its newly spent charge.
+一个以技能或共享组为键的技能冷却状态映射，存储
+共享的使用窗口，或已排序的独立充能恢复时间戳。显式
+施放、触发施放与组件冷却记录使用同一个跟踪器。
+常规的冷却就绪需求条件读取跟踪器的下一次可用时间，
+因此只要还剩任意充能，技能即为就绪。部分 `clearCD` 动作会恢复
+所请求的使用次数，并保留其他待恢复的充能；完全重置
+则清除该状态。恢复使用现有的等待施放重新调度机制，
+独立施放的冷却修饰符只影响其新消耗的那一次充能。
 
-Setup `skillStart` triggers reuse the action trigger executor once per accepted
-cast, before its timed actions, without inserting a visible action. Their
-per-setup cooldown state is shared across matching skills. A `skillStart` trigger
-matches the started skill's own definition tags, never the merged tag set, so a
-raised skill that inherited its parent's tags cannot satisfy the parent's own
-start-of-cast effects. Buff duration setup
-rules resolve in both ordinary and trigger-driven applications. Triggered skill
-rows carry the originating cast's `buffSourceSkillTags` separately from damage
-ownership and damage tags, allowing duration bonuses to follow nested triggers
-even when a triggered skill changes its damage group. These rules execute within
-the shared worker timeline; comparisons that change them require a rebuilt
-timeline rather than reusing baseline effect snapshots.
+设置中的 `skillStart` 触发会在每次被接受的
+施放中、其定时动作之前复用一次动作触发执行器，且不插入可见动作。它们
+按设置区分的冷却状态在匹配的技能之间共享。`skillStart` 触发
+只匹配所开始技能自身的定义标签，绝不匹配合并后的标签集合，因此
+由父技能生成并继承了其标签的技能无法满足父技能自身的
+施放开始效果。增益持续时间的设置
+规则在普通施加与触发驱动的施加中都会解析。触发技能
+行将发起施放的 `buffSourceSkillTags` 与伤害
+归属及伤害标签分开携带，使持续时间加成即使在
+触发技能改变其伤害分组时也能沿嵌套触发传递。这些规则在
+共享的 worker 时间线中执行；改变这些规则的对比需要重建
+时间线，而不能复用基线效果快照。
 
-Direct incoming damage reductions reuse setup/innerway requirements and tracked
-self-effect definitions in the timeline. They read pre-hit HP and stacks before
-defensive resolution and take-damage triggers. Light and Shadow Alike is enabled
-for Deluge and uses the existing segmented damage/healing values and opposing
-tracked stacks; it changes HP and combat events, so its variants rebuild the
-timeline through `altersTimeline`.
+直接的承伤减免复用时间线中的设置/心法需求条件与被跟踪的
+自身效果定义。它们在
+防御结算与承伤触发之前读取受击前的气血与层数。明晦同尘
+对霖流派启用，使用现有的分段伤害/治疗数值与相对立的
+被跟踪层数；它会改变气血与战斗事件，因此其变体通过 `altersTimeline` 重建
+时间线。
 
-Triggered attacks use explicit authored tags. Scarlet Spin and Dreamwrought Bubbles
-raise separate Resonance definitions, with `MartialArt` and `Heavy`/`Charged`
-respectively. Both retain `Umbrella` and `ReturningUmbrella` bonuses and share the
-Resonance breakdown category. Start-of-cast triggers
-use the same event tags as other setup triggers; Resonance never carries the
-Perfect Catch identity. Explicit threshold `triggerTags` remain supported.
+触发攻击使用显式编写的标签。红消香断与玲珑泡影
+各自生成独立的共鸣定义，分别带有 `MartialArt` 与 `Heavy`/`Charged`。
+两者都保留 `Umbrella` 与 `ReturningUmbrella` 加成，并共用
+共鸣的明细分类。施放开始触发
+使用与其他设置触发相同的事件标签；共鸣永远不带有
+完美接伞的身份。显式的阈值 `triggerTags` 仍受支持。
 
-Main-tab global-effect controls seed permanent tracked player buffs or target
-debuffs into this initial state at their configured stack count. They therefore
-use ordinary effect-definition and requirement resolution, appear in timeline
-state, and share the same unique tracked entry with any matching application
-from the rotation. Floating Grace selects either its base Mixed definition or
-its stronger Deluge definition through `initialBuffs`. Reapplication cannot
-expire or duplicate a permanent seeded effect. Wings support likewise seeds a
-permanent selection marker: other paths receive weighted attack and Cloudshear
-bonuses; Wings instead changes local Radiant Drum duration through existing
-effect-definition modifiers. The selection is persisted with the other global
-controls and comparison variants rebuild their timelines.
-Effect definitions with `global: true` instead enter through setup effects.
-`global: { equippedMartialArt: "infernalTwinblades" }` includes a rule only
-when that martial art is equipped in either slot, before sending setup effects
-to the worker. Its inner requirements still determine which attacks benefit.
-They are evaluated at each damage action without creating a visible or expiring
-tracked buff and are omitted from manual Buff choices.
+「主页」标签页中的全局效果控件会按其配置的层数，将永久的被跟踪玩家增益或目标
+减益预置到此初始状态中。因此，它们
+使用常规的效果定义与需求条件解析，出现在时间线
+状态中，并与循环中任何匹配的施加
+共用同一个唯一的被跟踪条目。一念浮生通过 `initialBuffs` 选择其基础的混搭定义或
+更强的霖定义。重新施加无法使
+永久预置的效果到期或重复。翊辅助同样预置一个
+永久的选择标记：其他流派获得加权的攻击与裁云
+加成；翊则通过现有的
+效果定义修饰符改变本地的烁鼓持续时间。该选择与其他全局
+控件一起持久化，对比变体会重建其时间线。
+带有 `global: true` 的效果定义则改为通过设置效果进入。
+`global: { equippedMartialArt: "infernalTwinblades" }` 仅当该武学装备在任一槽位时，
+才会在将设置效果发送给 worker 之前纳入该规则。其内部需求条件仍决定哪些攻击受益。
+它们在每个伤害动作时评估，不会创建可见或会到期的
+被跟踪增益，也不会出现在手动增益选项中。
 
-At cast start, modifiers are selected, stack-scaled modifier values are resolved
-from that pre-action state, and cast/action times are adjusted. Resolved
-cast-wide effects remain fixed even if an action in the cast later consumes the
-source stacks. A segmented timing modifier resolves `actionTime` separately for
-the original cast time and each original action time, allowing data-defined
-timing bands without skill-specific code. Casts record their start distance, and each action records its
-own distance snapshot. At each action, expired effects are pruned, requirements
-are checked, and the state
-snapshot is recorded before the action mutates state. Damage-triggered setup and
-Inner Way rules then run, followed by the action's trigger, periodic-effect
-application, consume, extend, or cooldown behavior. Tracked effects with a
-top-level `action` array enqueue those actions after each accepted application
-or reapplication. Rejected applications, including effect-cooldown and
-`reapply: false` cases, do not enqueue effect actions. Tracked effects with a
-`periodic` definition schedule their nested actions in the same global queue.
-Refreshing can either preserve or restart the cadence according to
-`resetOnRefresh`; consuming the final stack cancels pending periodic rows. DOTs
-use this shared scheduler and differ only in row classification, damage rules,
-and source-cast presentation.
+施放开始时，会选定修饰符，根据该动作前状态解析按层数缩放的修饰符数值，
+并调整施放/动作时间。已解析的
+整次施放范围效果保持固定，即使该次施放中的某个动作之后消耗了
+来源层数。分段计时修饰符会分别针对
+原始施放时间与每个原始动作时间解析 `actionTime`，从而无需技能专用代码
+即可实现数据定义的计时区段。施放记录其开始时的距离，每个动作记录其
+自身的距离快照。在每个动作处，会先剔除已到期的效果、检查需求条件，
+并在动作修改状态之前记录状态
+快照。随后运行由伤害触发的设置与
+心法规则，再执行该动作的触发、周期效果
+施加、消耗、延长或冷却行为。带有
+顶层 `action` 数组的被跟踪效果会在每次被接受的施加
+或重新施加之后将这些动作加入队列。被拒绝的施加（包括效果冷却与
+`reapply: false` 的情况）不会将效果动作加入队列。带有
+`periodic` 定义的被跟踪效果会在同一全局队列中调度其嵌套动作。
+刷新时可根据
+`resetOnRefresh` 保持或重新开始节奏；消耗最后一层会取消待处理的周期行。DOT
+使用这一共享调度器，区别仅在于行分类、伤害规则
+与来源施放的呈现方式。
 
-The simulator has a 5,000-event safety limit to prevent accidental infinite
-trigger chains. Exceeding it raises an error rather than publishing a truncated
-timeline with a misleading duration. This accommodates Wind's complete authored
-sequence with Hellfire ticks and automatic Enhanced Rodent Rampage attacks.
+模拟器设有 5,000 个事件的安全上限，以防止意外的无限
+触发链。超出上限会抛出错误，而不是发布一条时长具有误导性的截断
+时间线。该上限足以容纳风流派完整编写的
+序列，包括业火跳伤与自动的强化鼠鼠生威攻击。
 
-Setup and Inner Way triggers are indexed by event name once for each timeline
-pass. A damage, healing, or incoming-damage action evaluates only the rules for
-that event while retaining their original data order. A practice target queues
-its next generated hits dynamically and needs no preliminary duration pass.
-Fight-start detection activates its dependent clocks in the same traversal.
+设置与心法触发在每次时间线遍历中按事件名称只建立一次
+索引。伤害、治疗或承伤动作只评估
+该事件的规则，同时保留其原始数据顺序。练习目标会动态地将
+其下一次生成的命中加入队列，无需预先进行时长遍历。
+开战检测在同一次遍历中激活其相关的计时器。
 
-### Input latency (ping)
+### 输入延迟（ping）
 
-Settings persists a non-negative finite ping in milliseconds in the existing
-user-settings record, defaulting to 40 ms for new and legacy settings. Rotations
-may store an optional ping override. An absent override inherits Settings;
-zero explicitly disables latency. Rotation save, duplication, export, and import
-preserve overrides, and invalid overrides are discarded without replacing the
-rotation.
+「设置」会在现有的
+用户设置记录中持久化一个以毫秒为单位的非负有限 ping 值，新设置与旧版设置的默认值均为 40 ms。循环
+可以存储一个可选的 ping 覆盖。未设置覆盖时继承「设置」中的值；
+0 表示显式禁用延迟。循环的保存、复制、导出与导入
+都会保留覆盖，无效的覆盖会被丢弃，而不会替换该
+循环。
 
-The application resolves inherited ping into each immutable worker rotation
-before fingerprinting. Active calculations, editor previews, comparison timelines,
-graduation runs, and Monte Carlo snapshots therefore use the same latency.
-The low-level timeline accepts explicit milliseconds; omitted ping there is zero
-for callers without application settings. DPS regression fixtures explicitly
-record their configured ping.
+应用会在计算指纹之前，将继承的 ping 解析到每个不可变的 worker 循环中。
+因此，当前计算、编辑器预览、对比时间线、
+毕业率运行与蒙特卡洛快照都使用相同的延迟。
+底层时间线接受显式的毫秒值；对于没有应用设置的调用方，
+在该层省略 ping 即为零。秒伤回归测试夹具会显式
+记录其配置的 ping。
 
-After an ordered skill becomes cooldown-ready, its start is scheduled at ready
-time plus ping / 1000, including the first skill. Attached events follow the
-delayed start/actions. Cast modifiers do not scale latency. Timed events and
-resource regeneration continue during the gap, and Battle End can prevent the
-cast from starting. Cooldown Delay rows report only cooldown waiting; latency
-is an additional gap.
+有序技能冷却就绪后，其开始时间被调度为就绪
+时间加上 ping / 1000，第一个技能也不例外。附着事件跟随
+延迟后的开始/动作。施放修饰符不会缩放延迟。定时事件与
+资源回复在该间隔期间继续进行，「战斗结束」事件可以阻止该次
+施放开始。冷却「延迟」行只报告冷却等待；输入延迟
+是额外的间隔。
 
-A selected sub-action dispatches with its own skill definition's latency. Its
-primary/fallback choice is locked at dispatch; cast-start values and modifiers
-resolve when it starts after the latency gap. Skipped components consume no ping.
-Composite row duration includes component gaps and pushes later components and
-ordered skills accordingly. Triggered skills, DOTs, periodic actions, and explicit
-Delay events do not pay input latency.
+被选中的子动作以其自身技能定义的延迟进行派发。其
+主选/回退选择在派发时锁定；施放开始数值与修饰符
+在其经过延迟间隔后开始时解析。被跳过的组件不消耗 ping。
+组合行的时长包含各组件间隔，并相应推后后续组件与
+有序技能。触发技能、DOT、周期动作与显式
+「延迟」事件不承担输入延迟。
 
-## Damage calculation
+## 伤害计算
 
-`calculateDamageBreakdown()` is a pure per-action calculation. Its input contains
-the action, resolved character, attunement, enemy, equipped weapons, skill tags,
-active effects, and a DOT flag. It returns expected Physical, Bellstrike,
-Stonesplit, Silkbind, and Bamboocut damage plus outcome rates.
+`calculateDamageBreakdown()` 是一个纯函数式的逐动作计算。其输入包含动作、已解析的角色、定音、敌人、已装备的武器、技能标签、生效中的效果以及一个 DOT 标志。它返回外功、鸣金、裂石、牵丝和破竹的期望伤害，以及各结果的概率。
 
-The function computes abrasion, normal, critical, and affinity variants, then
-rate-weights each component. See `damage-formula.md` for the exact formula and
-bonus categories. Common global HP bonuses multiply every damage component,
-while channel-specific global bonuses such as Qi Imbalance's Bellstrike bonus
-are applied only to that returned component.
+该函数计算擦伤、普伤、会心和会意四种变体，然后按概率对每个分量加权。确切公式与加成类别参见 `damage-formula.md`。通用的全局气血伤害加成会乘到每个伤害分量上，而特定通道的全局加成（例如真气失衡的鸣金加成）只作用于返回结果中的对应分量。
 
-`calculateSimulatedDamageBreakdown()` uses the same internal formula with its
-attack-roll mode set to `simulate`. It selects one outcome and samples the
-normal/critical attack ranges instead of rate-weighting expected variants.
+`calculateSimulatedDamageBreakdown()` 使用相同的内部公式，但将攻击判定模式设为 `simulate`。它会选定一种结果，并在普伤/会心的攻击区间内采样，而不是按概率对各期望变体加权。
 
-`calculateHealingBreakdown()` is the parallel pure action calculator for
-`type: "heal"`. It consumes the same resolved stats, tags, attunements, and
-hit-time effects, but returns only Physical, Silkbind, and total healing.
-Healing has Normal and Critical outcomes only. The worker aggregates healing
-beside damage and publishes total healing, HPS, and independently sorted
-healing breakdown rows through the same baseline result.
+`calculateHealingBreakdown()` 是与之对应、面向 `type: "heal"` 的纯动作计算器。它使用相同的已解析属性、标签、定音和命中时效果，但只返回外功、牵丝和治疗总量。治疗只有普伤和会心两种结果。worker 将治疗与伤害并列汇总，并通过同一个基线结果发布治疗总量、秒疗以及独立排序的治疗明细行。
 
-The timeline applies one per-recipient copy of resolved healing to absolute Self
-HP before calculating overhealing. Simulations roll every recipient separately
-rather than multiplying one shared outcome. Other recipients of a group heal are
-assumed full and each contribute one-fifth of their own healing number to World
-to Sword. Every recipient emits a separate accumulator event. A single-target
-periodic heal assigned to a teammate
-also assumes that teammate is full, but contributes its complete healing rather
-than the group-heal one-fifth weight. Buff accumulators subscribe to named events.
-Rodent's coordinated attacks instead use hidden stack buffs and the shared
-`onMaxStack` trigger. Each Rampage buff declares a reactive `trigger` using the
-setup-trigger action contract. Its `oncePerSkill` filter accepts the first damage
-hit of each attack stage, including multi-action components, and excludes
-probability-weighted expected proc rows. One stack is added for other martial
-arts and two for Infernal/Mortal; two stacks consume the counter and launch Rodent.
-Each counter's `parentEffect` binds its expiry and attribution to its Rampage
-buff. Refresh preserves progress and follows the new expiry/source; removing or
-replacing the parent clears progress. These counters do not require live damage
-values and do not invoke the accumulator-based comparison rebuild guard.
-World to Sword snapshots
-its threshold from fully buffed Physical/Silkbind attack at its own cast event, accepts `overheal`, and
-checks only on overheal or a Qi Blade's delayed `QiBladeCheck`. Expected and
-simulation modes both reset the accumulator after a launch. Healing received
-during the cooldown remains stored until the delayed check can launch the next
-blade. The calculated timeline carries a
-finite listener's remaining trigger count into the editor's tracked buff state,
-independently of the buff's normal expiration time.
+时间轴先将已结算的治疗按每名接收者各一份应用到绝对自身气血上，再计算溢出治疗。模拟会为每名接收者分别判定，而不是将一个共享结果按人数相乘。群体治疗的其他接收者被视为满血，各自将其自身治疗数值的五分之一计入万物为锋。每名接收者都会发出一个独立的累积器事件。分配给队友的单体周期性治疗同样假定该队友满血，但计入其完整治疗量，而非群体治疗的五分之一权重。增益累积器订阅具名事件。鼠鼠的协同攻击则改用隐藏的层数增益和共享的 `onMaxStack` 触发器。每个鼠鼠生威增益都按照配置触发器（setup-trigger）的动作约定声明一个响应式 `trigger`。其 `oncePerSkill` 过滤器接受每个攻击阶段的第一次伤害命中（包括多动作技能的组成动作），并排除按概率加权的期望触发行。其他武学每次叠加 1 层，泥犁三垢/粟子游尘每次叠加 2 层；达到 2 层时消耗该计数器并发出鼠鼠。每个计数器的 `parentEffect` 将其到期时间与归属绑定到对应的鼠鼠生威增益。刷新时保留进度，并跟随新的到期时间/来源；移除或替换父效果会清空进度。这些计数器不需要实时伤害值，也不会触发基于累积器的对比重建守卫。万物为锋在其自身施放事件时，依据完全增益后的外功/牵丝攻击对阈值做快照，接受 `overheal`，且仅在溢出治疗或气刃延迟触发的 `QiBladeCheck` 时进行检查。期望模式与模拟模式都会在发射后重置累积器。冷却期间受到的治疗会一直保留，直到延迟检查能够发射下一道气刃。计算得到的时间轴会把有限次监听器的剩余触发次数带入编辑器所跟踪的增益状态，且与该增益的常规到期时间相互独立。
 
-After an ordinary hit resolves, the centralized damage sequence emits a typed,
-synchronous damage event containing its final damage, action-specific tags, and
-the immutable combat-state snapshot for that action. Active Inner Way listeners
-are data-defined and evaluated against this event. A successful listener may
-spawn a parameterized `Replayed` skill; its delayed actions capture the source
-hit's final damage as a number.
+普通命中结算后，集中式伤害序列会发出一个带类型的同步伤害事件，其中包含该命中的最终伤害、动作专属标签以及该动作不可变的战斗状态快照。生效中的心法监听器由数据定义，并针对此事件进行求值。监听器成功时可以生成一个参数化的 `Replayed` 技能；其延迟动作会以数值形式捕获源命中的最终伤害。
 
-The average calculator and simulator capture damage within their own live
-traversal. Replay actions therefore follow randomized source damage during
-Monte Carlo runs while bypassing normal multipliers and outcomes. The shared replay resolver additionally applies the dedicated numeric replayDmgBonus from requirement-filtered hit-time effects; Wildstride is its sole authored source. Generated
-replay rows participate in duration, target-HP progression, Battle End cutoff,
-timeline display, and breakdown attribution. They do not emit damage events,
-which makes the event graph acyclic.
+平均计算器与模拟器都在各自的实时遍历中捕获伤害。因此，在蒙特卡洛运行中，重放动作会跟随随机化的源伤害，同时绕过常规乘数与结果判定。共享的重放解析器还会应用来自经需求筛选的命中时效果中专用的数值 replayDmgBonus；目前数据中只有步乱（樽）定义了该加成。生成的重放行参与持续时间、目标气血推进、「战斗结束」截止、时间轴显示以及明细归属。它们不发出伤害事件，因此事件图是无环的。
 
-## Calculation bundle and worker
+## 计算包与 worker
 
-The Rotation Editor currently composes a `RotationSimulationBundle`. It contains:
+循环编辑器目前会组装一个 `RotationSimulationBundle`，其中包含：
 
-- the baseline `TimelineBuildInput`
-- start anchor
-- character stats, derived stats, attunement, enemy, and weapons
-- one-stat-line variants
-- attunement variants
-- Inner Way removal variants
-- arsenal, bow/ring, food, Divinecraft, weapon-set, and armor-set comparisons
-- target-debuff comparisons
-- equipped gear stats and attunements
+- 基线 `TimelineBuildInput`
+- 起始锚点
+- 角色属性、派生属性、定音、敌人和武器
+- 单条属性词条变体
+- 定音变体
+- 心法移除变体
+- 武库、弓玦、食物、天工、武器套装和防具套装对比
+- 目标减益对比
+- 已穿戴装备的属性与定音
 
-Baseline bundles omit every comparison variant. Comparison bundles contain the
-same baseline inputs plus all variants, but the worker consumes an already
-cached baseline instead of rebuilding its timeline or recalculating its DPS.
-The main thread does not run the rotation simulation.
+基线计算包不含任何对比变体。对比计算包包含相同的基线输入以及全部变体，但 worker 会使用已缓存的基线，而不是重新构建其时间轴或重新计算其秒伤。主线程不运行循环模拟。
 
-`rotationWorkerTransport.ts` owns a small pool of persistent module workers. Its
-queue policy is:
+`rotationWorkerTransport.ts` 管理一个由常驻模块 worker 组成的小型池。其队列策略为：
 
-1. If idle, dispatch immediately.
-2. If a job is running, retain pending requests in priority order.
-3. A newer pending request with the same key replaces the stale request.
-4. Active baseline work has highest refresh priority, followed by active
-   comparisons and then inactive baselines.
-5. Equal-priority work remains first-in, first-out.
+1. 空闲时立即派发。
+2. 若有任务正在运行，则按优先级顺序保留待处理请求。
+3. 键相同的较新待处理请求会替换过时的请求。
+4. 使用中循环的基线工作刷新优先级最高，其次是使用中循环的对比，再次是非使用中循环的基线。
+5. 优先级相同的工作保持先进先出。
 
-Changing the active rotation's baseline, comparison, or graduation fingerprint
-supersedes the calculation batch before requesting replacement work. Completed
-store results remain cached; pending requests are removed and running workers
-are terminated. Equivalent inputs and tab visibility changes keep the batch.
+使用中循环的基线、对比或毕业率指纹发生变化时，会先取代当前计算批次，再请求替代工作。已完成的 store 结果仍保留在缓存中；待处理请求会被移除，正在运行的 worker 会被终止。等价的输入以及标签页可见性的变化会保留该批次。
 
-Switching path also supersedes the batch, which terminates the workers and rejects
-their pending requests, so a comparison cannot resolve against a baseline from a
-superseded state. Each slot keeps its own baseline cache, because a shared set
-would let one slot's cached baseline answer another's comparison.
+切换流派同样会取代该批次，从而终止 worker 并拒绝其待处理请求，因此对比不可能基于已被取代状态下的基线完成。每个槽位都保留自己的基线缓存，因为共享的缓存集合会让一个槽位缓存的基线去回答另一个槽位的对比。
 
-`rotationWorker.ts` has no React, browser-storage, or zustand dependency. It owns
-a bounded in-memory baseline cache keyed by the bundle's fingerprint. A
-comparison job reads that exact entry and posts only the completed metrics.
+`rotationWorker.ts` 不依赖 React、浏览器存储或 zustand。它持有一个以计算包指纹为键、容量有界的内存基线缓存。对比任务读取与之完全对应的条目，并只回传已完成的指标。
 
-The Simulation tab receives an immutable baseline-only snapshot for the active
-rotation. Starting a simulation creates a separate `simulationWorker.ts`
-instance. That worker builds the combat timeline once, repeatedly samples its
-damage and healing entries, reports progress, sorts completed runs by DPS, and returns the
-best, P99, P95, P90, P75, and median runs. Cancel terminates that disposable worker;
-it cannot disturb the persistent deterministic worker or its queue. Simulation
-results are UI-local and are not published as `RotationMetrics` or persisted.
-Like the Rotation Editor, the Simulation subtree remains mounted while another
-tab is visible, so an in-progress worker and its completed-result history
-survive tab switches. New results are prepended and individual records can be
-deleted without affecting the worker or other records. Each result retains the
-calculation-context and rotation key, rotation and build names, run count, and
-duration captured when that run started. Records matching the current
-fingerprint are marked Current; other records remain visible and are marked
-Outdated.
-Users can add custom percentiles in `[0, 100)`, including decimal values, except
-for the locked preset rows P99, P95, P90, P75, and P50/Median. The completed
-worker result retains its DPS-sorted runs, so adding or removing a display row
-updates every retained result immediately without changing fingerprint status.
-Custom row choices persist in browser storage; simulation history itself
-remains component memory and is not stored.
-Healing simulations independently sample each recipient's Normal/Critical
-outcome and uniform ±8% final-healing fluctuation. They publish HPS plus
-recipient-weighted Normal and Critical healing percentages on the same
-DPS-ranked run records. Damage outcomes publish shares of the run's total
-damage, with replay damage credited to normal, so the four always total 100%.
-Deterministic rotation results remain unchanged.
+「模拟」标签页会收到使用中循环的一个仅含基线的不可变快照。开始模拟时会创建一个独立的 `simulationWorker.ts` 实例。该 worker 构建一次战斗时间轴，反复对其伤害与治疗条目进行采样，报告进度，按秒伤对已完成的运行排序，并返回最佳、P99、P95、P90、P75 和中位数运行结果。取消操作会终止这个一次性 worker；它不会干扰常驻的确定性 worker 或其队列。模拟结果仅存在于界面本地，不会作为 `RotationMetrics` 发布，也不会持久化。与循环编辑器一样，在其他标签页可见时，「模拟」子树仍保持挂载，因此进行中的 worker 及其已完成结果的历史记录在切换标签页后依然保留。新结果插入到最前面，单条记录可以单独删除，且不影响 worker 或其他记录。每条结果都保留该次运行开始时捕获的计算上下文键与循环键、循环与配装名称、运行次数以及持续时间。与当前指纹匹配的记录标记为「当前」；其他记录仍然可见，并标记为「已过时」。用户可以在 `[0, 100)` 范围内添加自定义百分位数（可含小数），但锁定的内置行 P99、P95、P90、P75 和 P50/中位数除外。已完成的 worker 结果保留按秒伤排序的各次运行，因此添加或删除显示行会立即更新每条保留的结果，而不改变其指纹状态。自定义行的选择保存在浏览器存储中；模拟历史本身仅保存在组件内存中，不会被存储。治疗模拟会为每名接收者独立采样普伤/会心结果，以及均匀分布的 ±8% 最终治疗量波动。它们在同一批按秒伤排名的运行记录上发布秒疗，以及按接收者加权的普伤与会心治疗占比。伤害结果发布的是各结果占该次运行总伤害的份额，重放伤害计入普伤，因此四项之和始终为 100%。确定性的循环结果保持不变。
 
-## Baseline and variant calculation
+## 基线与变体计算
 
-`calculateRotationBaseline()` performs work in this order:
+`calculateRotationBaseline()` 按以下顺序执行工作：
 
-1. Build the baseline timeline once.
-2. Resolve the selected start anchor and duration through Battle End, or through
-   the final action when no Battle End event exists.
-3. Create baseline damage entries and one detailed breakdown per damage action
-   at or after the anchor and no later than Battle End; keep excluded actions in
-   the timeline display.
-4. Calculate baseline total damage and DPS once.
-5. Produce per-skill, per-cast, skill-category, and physical/attribute breakdowns.
+1. 构建一次基线时间轴。
+2. 解析所选的起始锚点，以及截至「战斗结束」的持续时间；若不存在「战斗结束」事件，则截至最后一个动作。
+3. 为位于锚点及其之后、且不晚于「战斗结束」的每个伤害动作创建基线伤害条目和一份详细明细；被排除的动作仍保留在时间轴显示中。
+4. 计算一次基线总伤害与秒伤。
+5. 生成按技能、按施放、按技能类别以及按外功/属性划分的明细。
 
-Per-cast breakdown rows group repeated casts by skill. Damage from triggered
-skills and owned DOT ticks is attributed to the explicit cast identified by
-`sourceRowId`, then summed into its skill group. Inner Way-triggered skills carry
-`triggerSource: "innerWay"` and receive their own grouped row instead; Morale
-Chant is the current example. Each timed cast contributes damage divided by its
-effective cast time. When the next explicit skill is Deflect, its effective cast
-time is added to the preceding cast's time sample. Deflect and every other skill
-with no attributed damage are omitted from this breakdown. The row shows the
-arithmetic mean of the remaining cast DPS values, average damage per cast,
-summed total damage, and average cast time. These damage values sit beneath a
-shared Damage header. Each group also records the gross Vitality consumed by
-its casts and divides attributed damage by that total. Deluge displays this
-Per Vit value before DPS and sorts the rows by the inclusive Per Vit value;
-zero-cost skills show no Per Vit value and follow Vitality-consuming skills.
-Attributed buff-inclusive values are calculated for DPS, Per Vit, the per-cast
-average, and total damage.
-Zero-time-only damaging groups leave DPS undefined. Outside Deluge, rows sort
-by average DPS descending.
+按施放明细的各行会按技能对重复施放进行分组。触发技能和所属 DOT 跳伤造成的伤害归属于由 `sourceRowId` 标识的显式施放，再汇总到其技能分组中。由心法触发的技能带有 `triggerSource: "innerWay"`，改为获得各自独立的分组行；易水歌就是当前的例子。每次计时施放贡献的是其伤害除以有效施放时间。若下一个显式技能是卸势，则卸势的有效施放时间会加到前一次施放的时间样本中。卸势以及其他所有没有归属伤害的技能都不会出现在此明细中。每行显示其余各次施放秒伤值的算术平均值、每次施放的平均伤害、合计总伤害以及平均施放时间。这些伤害数值位于共享的「伤害」表头之下。每个分组还会记录其施放所消耗的精元总量（毛值），并用归属伤害除以该总量。霖会在秒伤之前显示这个「每点精元」值，并按包含增益归属伤害的「每点精元」值对各行排序；零消耗技能不显示「每点精元」值，并排在消耗精元的技能之后。秒伤、每点精元、每次施放平均伤害以及总伤害都会计算包含归属增益伤害的数值。仅在零耗时施放中造成伤害的分组，其秒伤保持未定义。除霖以外，各行按平均秒伤降序排序。
 
-Tracked effects retain the cast row that applied them. A skill with
-`collectBoostDamage` passes that target effect ID and its cast row into buffs it
-applies. When the named effect becomes active directly or through a later buff
-application, each affected hit is recalculated with that effect removed. Only
-the difference is attributed to the source cast; rotation total damage and the
-damaged skill's own breakdown do not change. Flute names `Flute`, while Ghostly
-Step names `MysteryDMGBoost`; the intermediate `Mystery` or `MysteryUmbra` buff
-carries Ghostly Step's source until Perfect Dodge applies the named damage buff.
-That application names its enabling self-buff using `boostDamageSource`; a
-direct map lookup transfers ownership without depending on iteration order.
-The two Ghostly Step variants consume each other's enabling buff before
-applying their own.
-Both skills therefore use the same tracked-effect and counterfactual path.
-Their per-cast Damage and Average DPS cells show direct values followed by
-parenthesized values that include the attributed buff damage; sorting uses the
-inclusive DPS.
+被跟踪的效果会保留施加它们的施放行。带有 `collectBoostDamage` 的技能会把该目标效果 ID 及其施放行传入它所施加的增益。当该命名效果直接生效，或通过之后施加的增益生效时，每次受影响的命中都会在移除该效果的情况下重新计算。只有差值归属于来源施放；循环总伤害以及受影响技能自身的明细都不会改变。箫指定的是 `Flute`，而阴阳迷踪步指定的是 `MysteryDMGBoost`；中间的 `Mystery` 或 `MysteryUmbra` 增益会携带阴阳迷踪步的来源，直到完美闪避施加该命名伤害增益。这次施加通过 `boostDamageSource` 指明使其生效的自身增益；直接的映射查找即可转移归属，而不依赖迭代顺序。两种阴阳迷踪步变体在施加自己的增益之前，会先消耗对方的使能增益。因此这两个技能使用相同的效果跟踪与反事实计算路径。它们在按施放明细中的「伤害」与「平均秒伤」单元格先显示直接数值，后跟括号内包含归属增益伤害的数值；排序使用包含增益伤害的秒伤。
 
-`calculateRotationComparisons()` then evaluates priority and setup variants
-against the cached timeline, damage entries, duration, total damage, and
-breakdown. `calculateRotationSimulation()` remains as a combined entry point for
-focused probes and callers that need both phases at once.
+随后，`calculateRotationComparisons()` 基于已缓存的时间轴、伤害条目、持续时间、总伤害和明细来评估优先级变体与配置变体。`calculateRotationSimulation()` 作为组合入口保留，供针对性探针以及需要一次完成两个阶段的调用方使用。
 
-Each baseline and event-changing variant has one live combat traversal. Shared
-formulas resolve damage and healing inside the event executor, immediately update
-HP and collectors, and dispatch listeners through the same queue. Final totals
-consume retained results. Event-invariant variants reuse action snapshots and
-evaluate their own formulas without replaying combat. Monte Carlo runs with
-event feedback use the same live executor; event-invariant runs can sample stored
-entries. No structural discovery or separate damage-event executor remains.
+每个基线以及会改变事件的变体都只进行一次实时战斗遍历。共享公式在事件执行器内部结算伤害与治疗，立即更新气血与收集器，并通过同一个队列派发监听器。最终总计使用保留下来的结果。不改变事件的变体复用动作快照并求值各自的公式，而无需重新模拟战斗。带有事件反馈的蒙特卡洛运行使用同一个实时执行器；不改变事件的运行可以对已存储的条目进行采样。结构探查和独立的伤害事件执行器均已不复存在。
 
-Outcome-triggered buff schedules are built with the baseline damage stream and
-stored by damage-entry ID. A comparison variant that changes stats, setup
-effects, Inner Way rules or conditions, or the timeline rebuilds the schedule.
-This deliberately includes indirect Affinity changes such as Momentum formulas
-instead of trying to infer dependencies from field names. Only variants that
-cannot alter per-hit outcomes, such as current attunement-only variants, reuse
-the baseline schedule. The baseline result also exposes the arithmetic mean
-of Hawkwing's expected pre-hit stack values across ordinary damage actions for
-the DPS summary. Delays, healing, and replay damage do not enter that display
-average. Each ordinary damage action also exposes its expected pre-hit stack to
-the timeline as a synthetic Hawkwing buff plate. Because that plate represents a
-probability-weighted state rather than a concrete timed buff, it appears only
-when the expected stack is above zero and its tooltip displays only the average
-stack, without a remaining duration. Simulation runs do not use this probability
-schedule and maintain their own sampled stack state.
+由结果触发的增益日程随基线伤害流一同构建，并按伤害条目 ID 存储。改变属性、配置效果、心法规则或条件、或者时间轴的对比变体会重建该日程。这有意涵盖了间接的会意变化（例如势的公式），而不是试图从字段名推断依赖关系。只有不会改变逐次命中结果的变体（例如当前仅涉及定音的变体）才会复用基线日程。基线结果还会为秒伤汇总提供飞隼在各普通伤害动作上命中前期望层数的算术平均值。延迟、治疗和重放伤害不计入该显示平均值。每个普通伤害动作还会将其命中前期望层数作为合成的飞隼增益标牌提供给时间轴。由于该标牌表示按概率加权的状态，而非具体的计时增益，因此仅当期望层数大于零时才会显示，其提示框也只显示平均层数，不显示剩余持续时间。模拟运行不使用这一概率日程，而是维护各自采样得到的层数状态。
 
-Outcome mechanics are separated by responsibility. `hawkwing.ts` owns
-Hawkwing's stack/expiry distribution and setup-effect parsing;
-Hawkwing expected tracking retains active states in an expiry-sorted array and
-inactive probability as a scalar. Expected stacks are cached between transitions;
-reads remove expired prefixes instead of rebuilding the entire distribution.
-Numeric stack/expiry keys consolidate identical branches during transitions,
-and the merged result remains an array rather than a second rebuilt map.
+结果机制按职责拆分。`hawkwing.ts` 负责飞隼的层数/到期分布以及配置效果解析；飞隼的期望跟踪将生效状态保存在按到期时间排序的数组中，并将未生效概率保存为一个标量。期望层数在状态转移之间被缓存；读取时移除已到期的前缀，而不是重建整个分布。数值型的层数/到期键会在状态转移期间合并相同的分支，合并结果仍为数组，而不是另行重建的映射。
 
-`insightfulStrike.ts` owns Focus decay, Concentration conversion, and its Inner
-Way trigger parsing. Its expected state includes Focus, the per-branch decay
-deadline, and Concentration expiry. Inactive states use an array; active states
-use a min-heap ordered by expiry and a cached total probability. Pre-hit reads
-expire only the heap head, and Focus decay runs when the next hit splits states.
-Tiny resulting branches merge into one weighted state per activity category,
-without timing buckets. Exactly identical states consolidate using numeric
-Focus, decay-deadline, and expiry keys; significant states retain their values.
-`probabilityStateMerging.ts` owns the common 0.1 ms clock, `1e-5` threshold,
-0.1-second timing buckets, and probability-weighted merging for expected state
-models. Callers select grouping and timing restrictions. Insightful
-Strike uses the same threshold and weighted arithmetic with unrestricted timing
-within each activity category after splitting. Hawkwing,
-resource cooldowns, DOT expiry/cadence states, and Seasonal Edge Yield histories
-use the same helper. Periodic trackers merge rare states separately per stack without
-timing buckets; stack counts stay fixed and source ownership is a weighted mixture. Fractional
-debuff stacks resolve through neighboring authored stack-effect tables. There
-is no separate Focus-decay-lifetime condition.
-Expected and sampled trackers share the same decay and gain transitions. `outcomeTriggeredBuffs.ts` contains only the shared 0.1 ms
-clock and schedule primitives. The rotation calculator coordinates the two
-mechanics and adds their resolved pre-hit effects to the ordinary unconditional
-damage-effect snapshot. This keeps the probability transitions reviewable
-without placing game-specific state machines inside the damage formula.
+`insightfulStrike.ts` 负责凝神值衰减、看破转换以及其心法触发器解析。其期望状态包括凝神值、每个分支的衰减截止时间以及看破到期时间。未生效状态使用数组；生效状态使用按到期时间排序的最小堆和一个缓存的总概率。命中前读取只会使堆顶到期，凝神值衰减则在下一次命中拆分状态时执行。由此产生的微小分支会按活动类别各合并为一个加权状态，不使用时间分桶。完全相同的状态通过数值型的凝神值、衰减截止时间和到期时间键进行合并；概率不可忽略的状态则保留各自的数值。`probabilityStateMerging.ts` 负责期望状态模型通用的 0.1 ms 时钟、`1e-5` 阈值、0.1 秒时间分桶以及按概率加权的合并。调用方自行选择分组与时间限制。凝神章使用相同的阈值与加权运算，并在拆分后于每个活动类别内不限制时间。飞隼、资源冷却、DOT 到期/节奏状态以及四时无常「秋」的历史记录都使用同一个辅助函数。周期性跟踪器按层数分别合并罕见状态，不使用时间分桶；层数保持固定，来源归属则为加权混合。非整数的减益层数通过数据中定义的相邻层数效果表进行解析。不存在单独的凝神值衰减生命周期条件。期望跟踪器与采样跟踪器共用相同的衰减与获取转移。`outcomeTriggeredBuffs.ts` 只包含共享的 0.1 ms 时钟与日程原语。循环计算器协调这两种机制，并将它们解析出的命中前效果加入普通的无条件伤害效果快照。这样既能让概率转移便于审查，又无需在伤害公式内部放置游戏专属的状态机。
 
-Local Vite development builds wrap each deterministic worker request in a
-calculation benchmark and emit a collapsed `[Damage benchmark]` console table.
-The table separates top-level timeline construction, damage-pipeline, timing,
-and metrics/breakdown costs. Its nested damage-event rows retain the complete
-ordered traversal as a parent measurement and split out target-state
-propagation, real damage resolution, listener cooldown and requirement checks,
-replay construction, replay queue insertion, and post-hit target-HP updates.
-The real-damage parent is further divided into per-hit stat resolution, effect
-and attunement aggregation, outcome-rate conversion, damage-variant evaluation,
-and final outcome weighting. Variant evaluation reports physical and attribute
-channel math as nested children so repeated attribute-effect scans remain
-visible without being double-counted in the formula remainder.
-Stat resolution separately reports effect detection and shared stat-pipeline
-execution. Effect aggregation reports damage-effect fields, resolved channel
-snapshots, matching attunements, and shared multiplier construction.
-Effect resolution follows `rawStats → stats → buffedStats → skillStats →
-actionStats`, as specified in [Stat snapshot pipeline](stat-pipeline.md).
-The worker receives the complete sheet; variants apply contribution deltas to
-a copy. Selected global stat contributions form the next baseline. Skill-tag
-rules are cached per signature. Only timeline-dependent buffs, debuffs,
-resources, HP/Qi state, distance, and action modifiers require hit-time context.
+本地 Vite 开发构建会将每个确定性 worker 请求包裹在一个计算基准测试中，并输出一个折叠的 `[Damage benchmark]` 控制台表格。该表格分别列出顶层的时间轴构建、伤害流水线、计时以及指标/明细的开销。其嵌套的伤害事件行将完整的有序遍历保留为父级测量项，并从中拆分出目标状态传播、实际伤害结算、监听器冷却与需求检查、重放构建、重放入队以及命中后的目标气血更新。实际伤害这一父级项又进一步细分为逐次命中的属性解析、效果与定音聚合、结果概率转换、伤害变体求值以及最终结果加权。变体求值将外功通道与属性通道的运算作为嵌套子项报告，使重复的属性效果扫描保持可见，同时不会在公式剩余部分中被重复计算。属性解析分别报告效果检测与共享属性流水线的执行。效果聚合报告伤害效果字段、已解析的通道快照、匹配的定音以及共享乘数的构建。效果解析遵循 `rawStats → stats → buffedStats → skillStats →
+actionStats`，详见[属性快照管线](stat-pipeline.md)。worker 接收完整的属性表；变体在其副本上应用贡献差值。选定的全局属性贡献构成下一个基线。技能标签规则按签名缓存。只有依赖时间轴的增益、减益、资源、气血/真气状态、距离以及动作修正项才需要命中时上下文。
 
-Unconditional finite numeric fields from tracked buffs and debuffs are split
-from their definitions and maintained as a timeline-state aggregate at effect
-lifecycle transitions. Damage contexts carry the aggregate separately, while
-conditional or dynamic rules remain in the regular effect list. This removes
-stable tracked-effect field probes from each hit without tying the reusable
-timeline to a particular character-stat baseline.
-Definition modifiers are indexed by target at simulation startup. Targets with
-only unconditional modifiers are merged in setup/Inner Way order once and reused
-for both tracked contributions and effect application. Thus Samsara starts with
-its selected Echoes bonus already included. Targets with conditional modifiers
-retain their complete ordered modifier list and resolve it against live state;
-fixed modifiers are not moved across conditional ones. Modifier contributions
-remain owned by the tracked buff for expiry, removal, and damage attribution.
-Trigger registration also prepares validated action arrays and outcome names,
-and separates permanent and buff-owned trigger lists. Rules without triggers do
-not enter dispatch. Cooldowns, hit windows, ownership, requirements, chances,
-and probability-weighted action amounts remain live, with original action order.
-All preparation is local to one simulation: a new run or setup variant prepares
-from its own inputs, without a cross-run cache or mutation of catalog definitions.
-The damage-field scan caches whether each immutable effect object has any
-supported damage fields. Empty objects and trigger/resource-only effects skip
-that scan; their other consumers still receive the original effects. Mixed
-objects and dynamic damage values remain on the ordinary per-hit path, and
-shared reduction groups are resolved before filtering.
-Lifecycle-only updates reuse the aggregate when the ordered effect keys,
-recipients, and prepared contribution identities are unchanged. Names, stack
-metadata, and the canonical requirement key are reused when their inputs are
-unchanged as well. Expiry and source ownership still belong to the new immutable
-snapshot: its earliest expiry and self-recipient view must reflect that snapshot.
-Stack, membership, recipient, or contribution changes invalidate the corresponding
-derived state; changed iteration order forces reaggregation to preserve exact sums.
-Setup and Inner Way stat or damage fields with requirements limited to action
-tags and the equipped martial-art pair are additionally cached per effective
-action-tag signature while damage entries are built. Stat fields produce the
-skill-static stat and derived-stat snapshot; numeric damage fields join the
-aggregate. State-dependent rules and non-stat residual fields remain in the
-per-hit list. Multi-action component tags therefore receive independent cache
-entries instead of inheriting the displayed parent skill's tags.
-Damage attunement matching uses a weak cache owned by the attunement input
-object, with a JSON signature of the complete effective skill-tag list inside
-each entry. It stores matching keys and static definitions in the input's
-original key order, including zero-valued entries. Hits still read current
-attunement values and perform each multiplication/addition in the original
-order; totals are not cached. In particular, Formless Penetration accumulation
-still starts from the hit's character-stat value. Input key sets are immutable
-within worker snapshots; replacement inputs and changed tag signatures get
-independent match lists. Weak ownership lets an input and its match lists be
-garbage-collected together.
-Derived remainder rows reconcile unclassified work without adding nested replay
-measurements twice under their listener parent. Timeline queue ordering,
-effect-trigger evaluation, and active-effect resolution retain their own call
-counts. The collector is gated by `import.meta.env.DEV`; production workers
-bypass collection and do not log benchmark output.
-The development table reports skill-static cache misses separately, then splits
-the remaining damage-effect aggregation into aggregate initialization, the
-residual per-hit scan, and dynamic-value resolution nested within that scan.
+被跟踪的增益和减益中无条件的有限数值字段会从其定义中拆分出来，并在效果生命周期转换时作为时间轴状态聚合值进行维护。伤害上下文单独携带该聚合值，而有条件或动态的规则仍保留在常规效果列表中。这样就去掉了每次命中对稳定的被跟踪效果字段的探测，同时不会把可复用的时间轴绑定到某个特定的角色属性基线上。定义修正项会在模拟启动时按目标建立索引。仅含无条件修正项的目标会按配置/心法顺序合并一次，并同时复用于被跟踪的贡献与效果施加。因此，轮回在开始时就已包含所选的余响加成。含有条件修正项的目标保留其完整的有序修正项列表，并依据实时状态进行解析；固定修正项不会越过条件修正项调整位置。修正项贡献在到期、移除和伤害归属方面仍归被跟踪的增益所有。触发器注册还会预先准备经过校验的动作数组和结果名称，并将永久触发器列表与增益所属的触发器列表分开。没有触发器的规则不会进入派发。冷却、命中窗口、归属、需求、几率以及按概率加权的动作数值仍保持实时计算，并保持原有的动作顺序。所有预处理都仅限于单次模拟：新的运行或配置变体会依据自身输入进行预处理，不使用跨运行缓存，也不修改目录中的定义。伤害字段扫描会缓存每个不可变效果对象是否含有任何受支持的伤害字段。空对象以及仅含触发器/资源的效果会跳过该扫描；它们的其他使用方仍会收到原始效果。混合对象和动态伤害值仍走普通的逐次命中路径，共享的减免分组会在过滤之前解析。当有序效果键、接收者以及预处理贡献的标识均未改变时，仅涉及生命周期的更新会复用该聚合值。名称、层数元数据以及规范化的需求键在其输入同样未变时也会被复用。到期时间与来源归属仍属于新的不可变快照：其最早到期时间与自身接收者视图必须反映该快照。层数、成员、接收者或贡献的变化会使相应的派生状态失效；迭代顺序的变化会强制重新聚合，以保持求和结果精确一致。对于需求仅限于动作标签和已装备武学组合的配置及心法属性字段或伤害字段，在构建伤害条目时还会按有效动作标签签名额外缓存。属性字段生成技能静态的属性与派生属性快照；数值型伤害字段并入聚合值。依赖状态的规则以及非属性的剩余字段仍保留在逐次命中列表中。因此，多动作技能各组成动作的标签会获得独立的缓存条目，而不是继承所显示父技能的标签。伤害定音匹配使用一个由定音输入对象持有的弱缓存，每个条目内含完整有效技能标签列表的 JSON 签名。它按输入原有的键顺序存储匹配的键与静态定义，包括值为零的条目。命中时仍读取当前的定音数值，并按原有顺序执行每一次乘法/加法；总计不会被缓存。尤其是，无相穿透的累加仍从该次命中的角色属性值开始。输入的键集合在 worker 快照内不可变；替换后的输入以及变化后的标签签名会获得独立的匹配列表。弱持有使输入及其匹配列表能够被一同垃圾回收。派生的剩余项行用于核对未归类的工作，且不会在监听器父级下重复计入嵌套的重放测量。时间轴队列排序、效果触发求值以及生效效果解析都保留各自的调用次数。收集器受 `import.meta.env.DEV` 控制；生产环境的 worker 会跳过收集，也不输出基准测试日志。开发表格会单独报告技能静态缓存未命中，然后将其余的伤害效果聚合拆分为聚合值初始化、剩余的逐次命中扫描，以及嵌套在该扫描中的动态值解析。
 
-Event-invariant stat and attunement variants reuse the baseline timeline and its
-effect snapshots. The current conservative guard forces a rebuild when the
-variant supplies its own timeline, setup effects, Inner Way rules or conditions,
-when the rotation has target HP, when Inner Way rules carry a damage listener, or
-when the baseline was compacted into fallback results. It also rebuilds when the
-baseline timeline itself contains healing, replay, accumulator, or recording
-applications. Supplying setup effects therefore forces a rebuild even when the
-caller supplies no replacement timeline, so this fast path is narrower than it
-sounds. Wind's coordinated Rodent counters use ordinary internal buffs and do
-not block reuse. The full Wind dummy preset still rebuilds because it also
-applies Rodent Hunt recording and World to Sword and contains replay actions.
-See [the Wind performance audit](wind-innerway-performance.md) for measurements
-and scope. Inner Way definitions also
-declare `altersTimeline`; every current
-Inner Way sets it to true, so removal variants conservatively rebuild the
-timeline because triggers, cooldowns, durations, stacks, and cast times may
-change. Setup candidates reuse
-the baseline timeline when they only change stats. Weapon and armor set
-definitions declare `altersTimeline`; a set comparison provides a replacement
-timeline when any timeline-changing set has a different tier between the
-current and replacement selections. This checks both the incoming set and sets
-removed to satisfy the four-piece limit. Cleftpeak and Formbend currently opt
-in. Rain Whisper also opts in because its Critical Healing bonuses can change
-overhealing and healing-triggered events. Every
-replacement timeline resolves its own start anchor and duration for DPS; only
-timeline-reusing variants share the baseline duration.
+不改变事件的属性变体与定音变体复用基线时间轴及其效果快照。当前的保守守卫会在以下情况下强制重建：变体提供了自己的时间轴、配置效果、心法规则或条件；循环设置了目标气血；心法规则带有伤害监听器；或基线已被压缩为回退结果。当基线时间轴本身包含治疗、重放、累积器或记录类施加时，也会重建。因此，即使调用方没有提供替代时间轴，只要提供了配置效果就会强制重建，所以这条快速路径比听起来要窄。风的鼠鼠协同计数器使用普通的内部增益，不会阻止复用。完整的风木桩模板仍会重建，因为它还施加了鼠鼠追命记录和万物为锋，并包含重放动作。测量数据与适用范围参见[风流派性能审计](wind-innerway-performance.md)。心法定义还会声明 `altersTimeline`；当前每个心法都将其设为 true，因此移除变体会保守地重建时间轴，因为触发器、冷却、持续时间、层数和施放时间都可能改变。配置候选项在仅改变属性时复用基线时间轴。武器套装与防具套装定义会声明 `altersTimeline`；当任一会改变时间轴的套装在当前选择与替换选择之间档位不同时，套装对比会提供一个替代时间轴。这既检查新加入的套装，也检查为满足四件上限而被移除的套装。断岳和易相目前已启用此项。时雨也启用了此项，因为其会心治疗加成可能改变溢出治疗以及由治疗触发的事件。每个替代时间轴都会为秒伤解析自己的起始锚点和持续时间；只有复用时间轴的变体才共享基线持续时间。
 
-Setup comparison bundles omit the currently selected arsenal, bow/ring set,
-food, Divinecraft, global-effect state, and Bitter Seasons tier. The Main tab
-already renders those choices as active, so calculating an identical baseline
-variant would only produce a redundant zero-difference result. Weapon and armor
-set comparison generation likewise omits the currently selected tier.
+配置对比计算包会省略当前选中的武库、弓玦套装、食物、天工、全局效果状态以及所恨年年重数。「主页」标签页已将这些选择显示为生效状态，因此计算一个与基线相同的变体只会产生冗余的零差值结果。武器套装与防具套装对比的生成同样会省略当前选中的档位。
 
-Each priority row stores absolute and percentage changes for both DPS and HPS.
-The Stats Priority panel has a local Max / Relayed / Max + Relayed display mode,
-defaulting to Max. Relayed rows linearly scale the cached Max roll, DPS/HPS delta,
-and both percentage changes by the shared `relayedAffixMultiplier` (currently 0.94).
-These are predictions, not recalculated variants; the mode is not part of
-worker requests or calculation fingerprints. Combined mode ranks separate Max and
-Relayed rows together, marking only Relayed affix names with the Build tab's up-arrow
-icon rather than text labels. Attunement and Inner Way priorities are unchanged.
-All priority rows sort by DPS change first and use HPS change as the tie-breaker.
-Character-stat and attunement priorities use descending order. Inner Ways are
-removed, so their rows use ascending order to show the largest lost DPS first,
-then the largest lost HPS when DPS changes are equal.
-Character and attunement priority variants are generated only for fields visible
-under the current weapon/path selection. In particular, Art of Heng/Mo follows
-the selected weapon families and non-Mixed attunement priority keeps the two
-shared Weapon entries plus matching path-tagged armor entries.
+每个优先级行都存储秒伤与秒疗的绝对变化量和百分比变化。「属性优先级」面板有一个本地的「最大值」/「承音」/「最大值 + 承音」显示模式，默认为「最大值」。「承音」行会用共享的 `relayedAffixMultiplier`（当前为 0.94）对缓存的最大值词条数值、秒伤/秒疗差值以及两项百分比变化进行线性缩放。这些是预测值，而非重新计算的变体；该模式不属于 worker 请求或计算指纹的一部分。组合模式会将独立的「最大值」行和「承音」行放在一起排名，并且只用「配装」标签页中的上箭头图标（而非文字标签）标记承音词条名称。定音与心法优先级不受影响。所有优先级行先按秒伤变化排序，秒疗变化作为并列时的决胜依据。角色属性与定音优先级使用降序。心法是以移除方式评估的，因此其行使用升序，先显示损失秒伤最大的项；秒伤变化相同时，再先显示损失秒疗最大的项。角色属性与定音优先级变体只针对当前武器/流派选择下可见的字段生成。具体而言，横刀/陌刀武学增伤跟随所选的武器类别；非混搭的定音优先级会保留两个共享的武器条目，以及带有匹配流派标签的防具条目。
 
-## Result publication
+## 结果发布
 
-Each public baseline result contains:
+每个公开的基线结果包含：
 
 - `RotationMetrics`
-- baseline timeline
-- anchor time and duration
-- per-action breakdown map containing damage and, for heal actions, healing
+- 基线时间轴
+- 锚点时间与持续时间
+- 按动作划分的明细映射，包含伤害；对于治疗动作，还包含治疗量
 
-The centralized rotation breakdown also reports Buff Coverage and Debuff
-Coverage for effect definitions marked `showCoverage`. Average stacks are
-action-weighted: their denominator contains only resolved, non-replay damage and
-healing actions with non-zero output. Delays, movement, resource changes,
-applications, replay damage, and other actions that cannot be affected by
-tracked effects do not affect that average. Debuffs marked both `showCoverage` and `shared: true`
-also report Max Stack Coverage: the percentage of combat time at their maximum
-stack count, including shared one-stack debuffs. The timeline integrates
-maximum-stack intervals across applications, consumption, refreshes and expiry,
-clipped to the fight window. Chance debuffs integrate the probability of being at
-maximum stacks. Lower-stack uptime does not contribute. Non-shared debuffs such as
-Soulbreak report average stacks only. The rotation editor preserves worker-computed
-expected debuff stacks when merging calculated action states and displays them as
-fractional-stack badges without a remaining-time countdown. Skill rows use the
-earliest damage action state, matching expected buff badges. These are transient worker-result fields, not stored user data.
+集中式循环明细还会为标记了 `showCoverage` 的效果定义报告增益覆盖率和减益覆盖率。平均层数按动作加权：其分母只包含已结算、非重放且输出不为零的伤害与治疗动作。延迟、移动、资源变化、施加、重放伤害以及其他不受被跟踪效果影响的动作都不会影响该平均值。同时标记了 `showCoverage` 和 `shared: true` 的减益还会报告满层覆盖率：即处于最大层数的时间占战斗时间的百分比，包括共享的单层减益。时间轴会跨越施加、消耗、刷新与到期，对满层区间进行积分，并裁剪到战斗窗口内。几率型减益则对处于满层的概率进行积分。较低层数的覆盖时间不计入。失魂落魄等非共享减益只报告平均层数。循环编辑器在合并计算得到的动作状态时，会保留 worker 计算出的期望减益层数，并将其显示为非整数层数徽标，不带剩余时间倒计时。技能行使用最早的伤害动作状态，与期望增益徽标的做法一致。这些是临时的 worker 结果字段，而非存储的用户数据。
 
-The Main-tab DPS panel derives Graduation Rate from the current DPS divided by
-the highest DPS among the path's `graduated` build presets under the same
-rotation, breakthrough, food, Divinecraft, Script, and global buff/debuff
-state. Every configured preset is calculated through the ordinary deterministic
-worker pipeline, and the maximum completed throughput becomes the denominator. A
-fingerprint of that environment, the path, the graduate preset IDs, and active
-skill overrides keys a bounded cache. A new environment schedules the required
-calculations; build-only changes reuse the cached denominators. No Monte Carlo
-simulation is involved.
+「主页」标签页的秒伤面板以当前秒伤除以该流派 `graduated` 配装模板在相同循环、破阵、食物、天工、帖以及全局增减益状态下的最高秒伤，得出毕业率。每个已配置的模板都通过普通的确定性 worker 流水线计算，已完成结果中的最高吞吐量即作为分母。由该环境、流派、毕业模板 ID 以及生效中的技能覆盖组成的指纹，用作一个有界缓存的键。新环境会调度所需的计算；仅涉及配装的变化会复用缓存的分母。整个过程不涉及蒙特卡洛模拟。
 
-A throughput reading is a request kind of its own, neither a baseline nor a
-comparison. It runs the same calculation, because only a full run yields a damage
-pipeline to measure, but it keeps nothing but the numbers it is weighed by: the
-worker returns DPS, HPS and total damage and nothing else, so the megabytes of a
-timeline are never copied back to the main thread for a figure that is only ever
-compared. A graduated preset is read this way to be weighed against the best
-graduated preset, a build against the active one, and a gear item against the item
-the same slot already has equipped.
+吞吐量读数是一种独立的请求类型，既不是基线，也不是对比。它运行相同的计算，因为只有完整运行才能得到可供测量的伤害流水线；但它只保留用于比较的数值：worker 仅返回秒伤、秒疗和总伤害，别无其他，因此不会为了一个只用于比较的数字，把数兆字节的时间轴复制回主线程。毕业模板以这种方式读取，以便与最佳毕业模板比较；配装以此与使用中的配装比较；装备则以此与同一部位已穿戴的装备比较。
 
-That last one measures a build whose loadout names a different item in one slot.
-It is a full reading rather than a comparison variant because a swap re-resolves the
-sheet, including the armour set tiers whose four points the swapped piece competes
-for, and a variant that only patched the stats would be measuring a sheet the game
-cannot produce. The swap is written the way equipping an item is written, so the
-predicted difference is the difference clicking Equip reaches. That holds where the
-build's `equipped` map names the gear it wears, which is every build a reader can
-equip on; a preset's gear is the game's and is read from the preset rather than the
-map, so a swap on one resolves to the reference's own sheet and would read `0` on every
-card. The inventory is closed on those builds, which is what keeps that unreachable
-rather than merely unlikely. Because a reading is
-a whole rotation, the inventory asks only for the cards a reader can see: each card
-observes itself against the viewport and reports when it is on screen, and the set of
-on-screen candidates bounds what opening a slot costs. A candidate that scrolls away
-stops being asked for but is not recalled if it is already running, because two cards
-can resolve to the same measurement and cancelling on un-observe would tear down a
-reading something else is waiting for. Readings are held in the dozens, which is enough to cover
-a slot's candidates and the builds the list shows, and which the bound evicts in insertion order
-once a reader has moved on.
+最后一种测量的是在某一部位换成另一件装备的配装。它是完整读数而非对比变体，因为替换会重新解析属性表，其中包括被替换部件所争夺四件名额的防具套装档位；而只修补属性的变体测量的将是游戏中不可能出现的属性表。替换的写入方式与穿戴装备的写入方式相同，因此预测出的差值就是点击「穿戴」后实际得到的差值。这一点在配装的 `equipped` 映射列出其所穿戴装备时成立，而用户能够在其上穿戴装备的所有配装都满足这一点；模板的装备来自游戏本身，是从模板而非该映射中读取的，因此在模板上做替换会解析为参照配装自身的属性表，每张卡片都会显示 `0`。在这些配装上装备库是关闭的，正是这一点让这种情况无法出现，而不只是不太可能出现。由于每个读数都是一整轮循环的计算，装备库只为用户能看到的卡片发起请求：每张卡片都会观察自身相对于视口的位置，并在出现在屏幕上时上报；屏幕上的候选集合决定了打开一个部位的开销上限。滚出视野的候选会停止被请求，但若其计算已在运行，则不会被撤回，因为两张卡片可能解析为同一次测量，在取消观察时撤回请求会拆掉另一方仍在等待的读数。读数最多保留数十个，足以覆盖一个部位的候选以及列表中显示的配装；用户离开后，这一上限会按插入顺序将其逐出。
 
-Asking is the expensive half and the reader is what causes it, so the two are kept apart. Which
-candidates a slot asks about changes on every scroll, but what any one of them measures to does
-not, since a candidate's sheet is a function of the build, the slot, the item, the environment and
-the rotation. Rebuilding a bundle is not free even where the reading is already held, because a
-reading cannot be requested until its key exists and that key is the bundle's own fingerprint. So
-the bundle behind each key is kept while the inputs it was resolved from are the same objects, and
-a card arriving costs one bundle rather than one per card on screen. The swap a candidate is
-measured as is kept the same way, since a swap rebuilt on every render would make every candidate
-look new and no bundle would ever be reused. Both are keyed weakly, on the sheet and on the build
-respectively, so what they hold is dropped with what it was resolved from rather than outliving it.
-A different build, sheet, item list or rotation invalidates all of them, which is right: the
-reference moved, so every candidate's number against it is stale.
+请求是开销较大的那一半，而引发请求的是用户，因此两者被分开处理。一个部位要请求哪些候选会随每次滚动而变化，但其中任一候选的测量结果不会变，因为候选的属性表取决于配装、部位、装备、环境和循环。即使读数已被保存，重建计算包也并非没有开销，因为在读数的键存在之前无法请求该读数，而这个键正是计算包自身的指纹。因此，只要解析出计算包的输入仍是同一批对象，每个键背后的计算包就会被保留；新出现一张卡片只需构建一个计算包，而不是为屏幕上的每张卡片各构建一个。候选所对应的替换也以同样方式保留，因为若每次渲染都重建替换，每个候选看起来都会是新的，任何计算包都不会被复用。两者都使用弱引用键，分别以属性表和配装为键，因此它们所持有的内容会随其解析来源一同被丢弃，而不会比来源存活得更久。配装、属性表、装备列表或循环一旦不同，这些缓存就会全部失效，这是正确的：参照已经变化，因此每个候选相对于它的数值都已过时。
 
-A reading names the baseline whose key it shares, so it is routed to the worker
-already holding that baseline and answered from it without running anything. That
-is what makes reading the active build free: its baseline is already calculated
-for the rotation editor, and the identical bundle produces the identical key. A
-reading writes nothing back, so it never occupies a place in a baseline cache
-either. `data/path.json` declares `defaultBuild` and a `graduated` preset array
-separately so the build loaded by default does not have to be one of the builds
-used as graduation denominators.
+读数会指明与其共享键的基线，因此会被路由到已持有该基线的 worker，并直接由其作答，无需运行任何计算。这正是读取使用中配装不产生开销的原因：其基线已为循环编辑器计算过，而相同的计算包会生成相同的键。读数不会回写任何内容，因此也从不占用基线缓存中的位置。`data/path.json` 分别声明 `defaultBuild` 和 `graduated` 模板数组，因此默认加载的配装不必是用作毕业率分母的配装之一。
 
-The Rotation Editor retains its complete last-built timeline, including generated
-rows and calculated values, while a new draft is pending. `editorTimelinePreview.ts`
-maps retained controls to the latest draft step identities; removed steps become
-read-only until the replacement arrives. Repeated field edits preserve that identity.
-Only the initial load uses authored placeholders. A status notice marks stale values.
-After a 100 ms debounce, the existing deterministic worker calculates a complete
-baseline directly from authored input. Results
-are accepted only for the same rotation ID, combat-context key, and draft object
-revision. A new edit cancels that editor's queued or running structural request;
-unrelated queued work remains scheduled. Saving and further edits do not wait for this request. Results never
-replace draft steps or remap editing state. Unreached steps after Battle End remain
-editable placeholders without expanded combat actions.
-The worker retains up to eight complete preview baselines, keyed by the normalized bundle
-fingerprint, for one-use reuse by the following baseline request without recalculation. Superseding
-busy work still terminates the worker; an idle worker retains this cache.
-Calculated state and action damage are overlaid only for a matching fingerprint;
-the previous aggregate totals may remain visible while recalculation is pending.
-Base skills have collapsible action groups. Except for data-defined Inner Way
-damage groups, triggered skills and DOTs do not add skill rows; their damage actions inherit the originating base skill's expansion
-state and contribute to its displayed damage total. A DOT application records
-that source cast, and a later refresh or extension transfers all subsequent ticks
-to the cast that performed it. Nested DOTs inherit the original base cast.
-Fivefold Bleed and Morale Chant instead appear in top-level Inner Way groups;
-expanding an attack never reveals their actions or includes them in its damage.
-A multi-action skill likewise remains one base row. Its component actions are
-flattened into that row, while each sequential component retains its own tags,
-start-time modifier evaluation, and effective cast duration. Component damage
-and triggers remain owned by the base row.
-A displayed damage action without a breakdown was before the start anchor and
-has an empty damage cell.
-Every complete baseline input bundle, including stats, all setup selectors,
-effective skill, buff, debuff, and DOT definitions, and rotation content,
-receives a deterministic fingerprint. The editor keeps a
-bounded in-memory baseline cache keyed by that fingerprint. Each comparison is
-split into a single variant request and cached under the pair of the baseline
-fingerprint and a fingerprint of that variant's category, group, and input.
-Rotation combat content includes its full ordered steps, events, attachments,
-timings, and start anchor; the display-only rotation name is excluded so a
-rename does not invalidate damage results.
-Baseline and variant results enter these caches immediately when their worker
-request completes, including partial batches that are later superseded.
-Switching viewed or active rotations reuses matching entries immediately. A
-cached baseline can seed a fresh worker when some variants are still missing.
-These caches are intentionally not written to browser storage.
+在新草稿等待计算期间，循环编辑器会保留其上一次构建的完整时间轴，包括生成的行与计算得到的数值。`editorTimelinePreview.ts` 将保留的控件映射到最新草稿步骤的标识；被移除的步骤在替代结果到达之前变为只读。对字段的重复编辑会保留该标识。只有初次加载时才使用基于已编写内容的占位项。状态提示会标出已过时的数值。经过 100 ms 防抖后，现有的确定性 worker 会直接依据编写的输入计算完整的基线。只有循环 ID、战斗上下文键和草稿对象修订版本都相同时，结果才会被接受。新的编辑会取消该编辑器排队中或运行中的结构请求；无关的排队工作仍保持调度。保存与后续编辑都不会等待此请求。结果绝不会替换草稿步骤或重新映射编辑状态。「战斗结束」之后未到达的步骤仍为可编辑的占位项，不展开战斗动作。worker 最多保留八个完整的预览基线，以规范化的计算包指纹为键，供紧随其后的基线请求一次性复用，而无需重新计算。取代忙碌中的工作仍会终止该 worker；空闲的 worker 会保留此缓存。只有指纹匹配时才会叠加显示计算得到的状态与动作伤害；在重新计算期间，之前的汇总总计可能仍然可见。基础技能拥有可折叠的动作组。除由数据定义的心法伤害分组外，触发技能和 DOT 不会新增技能行；它们的伤害动作继承来源基础技能的展开状态，并计入其显示的伤害总计。DOT 施加会记录其来源施放，之后的刷新或延长会把所有后续跳伤转移给执行该操作的施放。嵌套的 DOT 继承最初的基础施放。极乐泣血和易水歌则显示在顶层的心法分组中；展开某次攻击既不会显示它们的动作，也不会把它们计入该攻击的伤害。多动作技能同样保持为一个基础行。其组成动作会被展平到该行中，而每个顺序执行的组成动作仍保留各自的标签、开始时修正项求值以及有效施放时长。组成动作的伤害与触发仍归属于基础行。没有明细的已显示伤害动作位于起始锚点之前，其伤害单元格为空。每个完整的基线输入计算包（包括属性、所有配置选择项、生效的技能、增益、减益和 DOT 定义，以及循环内容）都会获得一个确定性指纹。编辑器维护一个以该指纹为键、容量有界的内存基线缓存。每项对比都会拆分为单个变体请求，并以基线指纹与该变体的类别、分组和输入指纹组成的二元组为键进行缓存。循环的战斗内容包括其完整的有序步骤、事件、附加项、时机和起始锚点；仅用于显示的循环名称不包括在内，因此重命名不会使伤害结果失效。基线与变体结果会在其 worker 请求完成时立即进入这些缓存，包括之后被取代的部分批次。切换查看中或使用中的循环时，会立即复用匹配的条目。当仍缺少部分变体时，缓存的基线可以为新的 worker 提供初始数据。这些缓存有意不写入浏览器存储。
 
-Only the active rotation publishes to the central module store. Its baseline is
-published as soon as it completes, replacing DPS, total damage, breakdowns, and
-the simulation bundle after gear or build edits on any tab. Comparison rows are
-retained only for the same baseline fingerprint; a changed baseline clears them.
-Comparison categories run only while Main is visible and replace their own rows
-as they finish. Save and Make Active in the editor request a baseline without
-comparison variants. Returning to Main resolves the current rotation's variants,
-including an unsaved active draft, from cached results or new worker requests. The central
-store publishes independent progress for baseline, stat priority, attunement
-priority, weapon sets, armor sets, bow/ring, arsenal, global buffs/debuffs,
-Inner Ways, Script, Divinecraft, and food. Superseded requests cannot update or
-clear the status owned by newer work.
+只有使用中的循环才会发布到中央模块 store。其基线一旦完成就会发布；在任一标签页编辑装备或配装后，会替换秒伤、总伤害、明细以及模拟计算包。对比行只在基线指纹相同时保留；基线一旦变化就会清空它们。对比类别仅在「主页」可见时运行，并在各自完成时替换自己的行。编辑器中的「保存」和「设为使用中」会请求不含对比变体的基线。返回「主页」时，会从缓存结果或新的 worker 请求中解析当前循环（包括未保存的使用中草稿）的变体。中央 store 会分别发布基线、属性优先级、定音优先级、武器套装、防具套装、弓玦、武库、全局增减益、心法、帖、天工和食物的独立进度。已被取代的请求无法更新或清除属于较新工作的状态。
 
-## Static data composition
+## 静态数据组成
 
-Rotation and build presets are loaded eagerly from their data directories; the
-remaining JSON is imported explicitly, so Vite includes it all in the generated
-static assets. Rotation presets, build presets, and custom builds declare
-`martialArts`; selectors show only records matching the current pair. Legacy
-custom builds with `weapons` are migrated at the persistence/import boundary.
-Presets with `test: true` remain bundled but are hidden until the persisted
-header-level Dev toggle is enabled. The application currently recognizes:
+循环模板与配装模板会从各自的数据目录中预先加载；其余 JSON 则显式导入，因此 Vite 会将它们全部包含在生成的静态资源中。循环模板、配装模板和自定义配装都会声明 `martialArts`；选择器只显示与当前武学组合匹配的记录。带有 `weapons` 的旧版自定义配装会在持久化/导入边界处迁移。带有 `test: true` 的模板仍会被打包，但在启用持久化保存的页头「开发模式」开关之前保持隐藏。应用目前可识别：
 
-- Snowparting, Phalanxbane, Thundercry, Stormbreaker, Heavenwill, Mystic, General, Buff, Debuff, and DOT editor categories
-- twenty martial-art IDs across Heng Blade, Mo Blade, Sword, Spear, Umbrella, Fan, Rope Dart, Gauntlet, and Dual Blades weapon families
-- 56 catalog Inner Ways, including four Draught definitions with T2/T5 raw-stat effects; see the coverage notes in `skill-data.md`
-- eight available Divinecraft definitions, including a no-effect choice
-- seven Script definitions plus a no-effect choice
-- Exhausted, Controlled, Shield Broken, Battle End, Move, Self HP, Take Damage, target HP, Qi, Buff, and Debuff manual events
-- bundled Stonesplit Strength default rotations discovered from
-  `data/rotation/**/*.json`
-- eight gear slots, relayed status, one required base affix, up to four optional
-  additional affixes, and an optional attunement
-- innate character, talent, and base-attribute conversion stats
+- 斩雪刀法、十方破阵、嗟夫刀法、八方风雷枪、天志垂象、奇术、通用、增益、减益和 DOT 编辑器类别
+- 分属横刀、陌刀、剑、枪、伞、扇、绳镖、手甲和双刀武器类别的二十个武学 ID
+- 目录中的 56 个心法，其中包括四个带有 T2/T5 原始属性效果的樽定义；覆盖情况说明参见 `skill-data.md`
+- 八个可用的天工定义，包括一个无效果选项
+- 七个帖定义，外加一个无效果选项
+- 气竭、控制、破盾、战斗结束、移动、自身气血、承受伤害、目标气血、真气、增益和减益手动事件
+- 从 `data/rotation/**/*.json` 中发现的、随应用打包的裂石·钧默认循环
+- 八个装备部位、承音状态、一个必选基础词条、最多四个可选额外词条，以及一个可选定音
+- 角色固有属性、天赋属性以及基础属性转换属性
 
-Effect definitions are merged into one ID map from buff, debuff, and DOT files.
-IDs must therefore be globally unique or a later spread will replace an earlier
-definition.
+效果定义会从增益、减益和 DOT 文件合并到同一个 ID 映射中。因此 ID 必须全局唯一，否则后展开的定义会覆盖先前的定义。
 
-## Adding data
+<a id="adding-data"></a>
 
-### Skill or triggered skill
+## 添加数据
 
-Add the record to an imported `data/skill/*.json` map and reference its ID from
-rotation or trigger actions. A new editor category also requires an import, a
-`defaultSkillMaps` and `skillDataNamespaceByCategory` entry in
-`src/application/gameData/skills.ts`, and a `selectableRotationSkillGroups`
-entry in `src/application/characterComposition.ts` so it reaches the rotation
-step picker.
+### 技能或触发技能
 
-### Buff, debuff, or DOT
+将记录添加到某个已导入的 `data/skill/*.json` 映射中，并在循环动作或触发动作中引用其 ID。新增编辑器类别还需要：一条导入语句；在 `src/application/gameData/skills.ts` 中添加 `defaultSkillMaps` 和 `skillDataNamespaceByCategory` 条目；并在 `src/application/characterComposition.ts` 中添加 `selectableRotationSkillGroups` 条目，使其出现在循环步骤选择器中。
 
-Add the definition to the appropriate JSON file and register that file once in
-`buffDefinitions`, `debuffDefinitions`, or `dotDefinitions` in
-`src/application/gameData/skills.ts`. Both the combat worker’s `effectDefinitions`
-and the Skills editor derive from those shared maps. The editor filters global
-buffs from its Buff category; it does not maintain a second registration list.
-Follow `skill-data.md` for stacking and duration semantics.
+### 增益、减益或 DOT
 
-### Inner Way
+将定义添加到相应的 JSON 文件中，并在 `src/application/gameData/skills.ts` 的 `buffDefinitions`、`debuffDefinitions` 或 `dotDefinitions` 中注册该文件一次。战斗 worker 的 `effectDefinitions` 与技能编辑器都派生自这些共享映射。编辑器会从其「增益」类别中滤除全局增益；它不维护第二份注册列表。叠层与持续时间的语义请遵循 `skill-data.md`。
 
-Add its JSON file, import it into `innerWayDefinitions`, and provide cumulative
-tier IDs from T0 through T6. Add the required top-level `altersTimeline`
-boolean; current definitions conservatively use true, while a future false
-value means its removal can reuse baseline event state. Add path eligibility strings to its top-level
-`tags` array. Selection automatically activates all tiers through the selected
-tier, and a tagged path exposes and calculates only Inner Ways carrying its tag.
+### 心法
 
-### Breakthrough
+添加其 JSON 文件，将其导入 `innerWayDefinitions`，并提供从 T0 到 T6 的累积重数 ID。添加必需的顶层布尔字段 `altersTimeline`；当前定义都保守地使用 true，而将来若取值为 false，则表示移除该心法时可以复用基线事件状态。将流派适用性字符串添加到其顶层 `tags` 数组中。选择某一重数后会自动激活直至该重数的所有重数；带标签的流派只显示并计算带有其标签的心法。
 
-Add a complete breakthrough entry to `data/breakthrough.json`. Each entry combines
-an `EnemyProfile`, a `levelBonusStats` effect, `soloLevel`, and `martialArtTalentRank`. The Main-tab selector reads the
-entry keys, while its detail block above Inner Ways shows the level bonus and enemy
-properties. Breakthrough is transient Main-tab state and is intentionally not
-part of build data, character profiles, or browser storage.
+### 破阵
 
-### Gear definition
+在 `data/breakthrough.json` 中添加一个完整的破阵条目。每个条目组合了一个 `EnemyProfile`、一个 `levelBonusStats` 效果、`soloLevel` 以及 `martialArtTalentRank`。「主页」标签页的选择器读取条目的键，而其位于心法上方的详情区块显示等级加成与敌人属性。破阵是「主页」标签页的临时状态，有意不纳入配装数据、角色配置或浏览器存储。
 
-Add or update the slot definition, fixed base stats, allowed affixes, and
-attunements in `data/gear.json`. See `gear-data.md` for the persisted item shape,
-percentage conversion, and weapon-slot mapping.
+### 装备定义
 
-### Weapon and armor sets
+在 `data/gear.json` 中添加或更新部位定义、固定基础属性、允许的词条和定音。持久化物品的结构、百分比换算以及武器部位映射参见 `gear-data.md`。
 
-Add weapon-set definitions to `data/gear-set.json` and armor-set definitions to
-`data/armor-set.json`, with a display `name`, path and martial-art eligibility
-`tags`, required boolean `altersTimeline`, and tier `options`. Set
-`altersTimeline` to true when changing that set can affect timing, triggers,
-conditions, stacks, cooldowns, DOTs, or any other event-state behavior. Main,
-Build, and the setup-effect pipeline share the
-same definition-driven filter and four-piece selection limit within each set
-family. An option may expose a string `condition`; the timeline adds selected
-setup conditions to the same requirement context used by Inner Ways.
+### 武器与防具套装
 
-### Character system stats
+将武器套装定义添加到 `data/gear-set.json`，将防具套装定义添加到 `data/armor-set.json`，并提供用于显示的 `name`、表示流派与武学适用性的 `tags`、必需的布尔字段 `altersTimeline`，以及各档位的 `options`。当更换该套装可能影响时机、触发、条件、层数、冷却、DOT 或任何其他事件状态行为时，将 `altersTimeline` 设为 true。「主页」「配装」以及配置效果流水线在每个套装系列内共用同一个由定义驱动的过滤器和四件选择上限。选项可以提供一个字符串 `condition`；时间轴会将所选的配置条件加入心法所使用的同一个需求上下文。
 
-Update `data/system.json`. Keep innate values under `baseStats`, every Enhancement bonus under its own ordered
-`enhancementStats` entry, each supported Solo Level as one complete cumulative
-`talentStatsBySoloLevel` raw-stat effect, and every regional Oddity reward
-as one summed `oddityStats` entry keyed by region, with an optional
-`minBreakthrough` gate. Express base-attribute relationships under
-`baseAttributes` by nesting each target stat and its multiplier under the
-source base attribute, for example `"power": { "minPhys": 0.22 }`.
+### 角色系统属性
 
-### Weapon or primary path
+更新 `data/system.json`。将固有数值放在 `baseStats` 下；每项强化（Enhancement）加成各自作为一个有序的 `enhancementStats` 条目；每个受支持的单人等级（Solo Level）作为一个完整的累积 `talentStatsBySoloLevel` 原始属性效果；每个地区的奇物（Oddity）奖励作为一个以地区为键的汇总 `oddityStats` 条目，并可附带可选的 `minBreakthrough` 门槛。在 `baseAttributes` 下表达基础属性关系：将每个目标属性及其系数嵌套在来源基础属性之下，例如 `"power": { "minPhys": 0.22 }`。
 
-Add the path metadata to `data/path.json`. Every path declares an explicit
-`status` and `buildGroup`; the latter names its directory under `data/build/`.
-A path can also declare a shared `tag`, the `arsenal` covering its attribute,
-and a fixed `[left, right]`
-`lockedWeapons` pair; paths without a weapon lock
-allow either martial art in either slot. New weapons still require changes to
-`WeaponId`, settings validation, martial-art imports, attunement matching, and
-`mainAttributeForWeapons()` in `effectiveStats.ts`. Each martial-art JSON definition declares its
-physical weapon family and a shared `tag`; Art-of field visibility is derived
-from the weapon family, while attunement and set eligibility use the tag.
-The `status` value is one of `available`, `preview`, `wip`, `devOnly`, or `plannerOnly`.
-`available` and `preview` paths are enabled without the header-level Dev toggle.
-Preview paths carry a Preview badge and contribute their weapons to production catalogs.
-Wings uses Preview while its remaining limitations are documented in `wings-implementation-audit.md`. WIP paths
-remain visible with a WIP badge. Dev-only paths carry a Dev badge and support
-unrestricted test combinations. Planner-only paths indicate that their
-martial-art pair and build-planner surfaces are registered but their combat mechanics
-are not implemented. Planner-only
-paths remain visible, carry a Planner Only badge, and are disabled until Dev mode
-is enabled. Bellstrike Splendor, Silkbind Jade, and Bamboocut
-Draught currently use this state. Umbra is available with its registered rotation;
-its missing timings and damage terms are documented in `skill-data.md`.
-Deluge, Kite, Wind, and Dust are available:
-their editor catalogs, Inner Way rules, and default rotations are registered,
-and their default rotations use explicit unresolved timing fallbacks. Available
-paths contribute their fixed martial-art pairs and physical weapon
-families to Settings and Build. Planner-only status does not imply
-that all supporting data is absent: talents and attunements may already be
-registered while combat skill definitions remain incomplete. See the martial-art
-talent and attunement audit documents for their implementation status. Mixed is the final
-selector option and is Dev-only.
+### 武器或主流派
 
-Stored universal build and rotation records created before either planner-only
-martial-art expansion contain one of the previous complete martial-art ID sets.
-Shared weapon-ID normalization recognizes those exact legacy universes and
-expands them to the current list, preserving those records as universal across
-upgrades.
+将流派元数据添加到 `data/path.json`。每个流派都显式声明 `status` 和 `buildGroup`；后者指定其在 `data/build/` 下的目录名。流派还可以声明一个共享的 `tag`、覆盖其属性的 `arsenal`，以及一个固定的 `[left, right]` `lockedWeapons` 组合；未锁定武器的流派允许任一武学放在任一槽位。新增武器仍需要修改 `WeaponId`、设置校验、武学导入、定音匹配，以及 `effectiveStats.ts` 中的 `mainAttributeForWeapons()`。每个武学 JSON 定义都会声明其实体武器类别和一个共享的 `tag`；「武学增伤」（Art-of）字段的可见性由武器类别推导，而定音与套装适用性则使用该标签。`status` 的取值为 `available`、`preview`、`wip`、`devOnly` 或 `plannerOnly` 之一。`available` 和 `preview` 流派无需打开页头的「开发模式」开关即可启用。预览流派带有「预览」徽标，并将其武器加入生产环境的目录。翊目前使用预览状态，其尚存的限制记录在 `wings-implementation-audit.md` 中。开发中流派保持可见，并带有「开发中」徽标。仅限开发模式的流派带有「开发模式」徽标，并支持不受限制的测试组合。仅配装流派表示其武学组合与配装规划界面已注册，但战斗机制尚未实现。仅配装流派保持可见，带有「仅配装」徽标，并在启用开发模式之前处于禁用状态。鸣金·虹、牵丝·玉和破竹·樽目前处于这一状态。影已可用，并带有已注册的循环；其缺失的时机与伤害项记录在 `skill-data.md` 中。霖、鸢、风和尘均已可用：它们的编辑器目录、心法规则和默认循环均已注册，且默认循环对尚未确定的时机使用显式回退值。可用流派会将其固定的武学组合与实体武器类别提供给「设置」和「配装」。仅配装状态并不意味着所有支撑数据都缺失：天赋和定音可能已经注册，而战斗技能定义仍不完整。其实现状态请参阅武学天赋审计与定音审计文档。混搭是选择器中的最后一个选项，且仅限开发模式。
 
-### Manual event
+在任一仅配装武学扩充之前创建并存储的通用配装与循环记录，包含此前某一个完整的武学 ID 集合。共享的武器 ID 规范化逻辑能够识别这些确切的旧版全集，并将其扩展为当前列表，使这些记录在升级后仍保持通用。
 
-Add the event to the `RotationStep` union, `rotationEventDefinitions`, editor
-options, transfer validation, and any special duration UI. `Exhausted`,
-`Controlled`, `ShieldBroken`, `BattleEnd`, and `TakeDamage` use fight-relative timestamps.
-Shield Broken consumes the shared player Shield and can use ordinary action
-requirements for follow-up effects. Battle End has no actions; the calculator
-treats its ordered timestamp as the damage and duration cutoff. Delay instead participates in sequential cast timing and has an editable
-duration but no action. General event definitions are currently hard-coded rather than loaded
-from data.
+### 手动事件
 
-## Known architectural limitations
+将事件添加到 `RotationStep` 联合类型、`rotationEventDefinitions`、编辑器选项、导入导出校验以及任何专门的持续时间界面中。`Exhausted`、`Controlled`、`ShieldBroken`、`BattleEnd` 和 `TakeDamage` 使用相对于战斗开始的时间戳。「破盾」会消耗共享的角色护盾，并可使用普通的动作需求来触发后续效果。「战斗结束」没有动作；计算器将其有序时间戳视为伤害与持续时间的截止点。「延迟」则参与顺序施放计时，具有可编辑的持续时间，但没有动作。通用事件定义目前是硬编码的，而不是从数据中加载。
 
-- `App.tsx` is now the composition shell. The calculation engine and the
-  `buildPresetRotationBundle` service remain pure and worker-safe; the cohesive
-  Rotation Editor owns the editor-specific state and timeline interactions.
-- Skill Editor skill, buff, debuff, and DOT overrides are saved for the session
-  and composed over the default combat maps used by the calculator and
-  simulator. Buff/debuff effect arrays and cumulative stack tiers use the same
-  structured rule controls as skill actions and modifiers, including
-  requirements and object-valued effects. Effective definitions participate in
-  calculation fingerprints, so saving or resetting an override cannot reuse a
-  stale baseline or comparison result.
-  The existing storage key now contains a `{ version: 4, overrides }` envelope. Older segment thresholds migrate from
-  inclusive to exclusive bounds using the next representable number, preserving
-  saved calculation behavior. Authored tables default to `LowerBoundInclusive` (exclusive upper bounds);
-  `mode: "UpperBoundInclusive"` selects inclusive upper bounds explicitly.
-  Overrides at version 3 or later preserve either mode without threshold migration.
-  Legacy unwrapped overrides copy `phyCoef` into missing damage `attrCoef` or
-  healing `silkbindCoef` fields on load. Versions 2 and 3 preserve intentionally omitted
-  coefficients as zero, including physical-only damage actions.
-- A selected data preview supplies alternate tuning layered under the Skill
-  Editor's own overrides, so a version of the game that changed a handful of
-  records can be measured without editing the shipped data. `data/preview/<id>/`
-  mirrors the game-data folders; each file holds whole records, except an Inner Way
-  file, which supplies individual tiers. `combatDefinitionsFor` resolves the
-  selection once per id and is passed down to the calculator, the graduation
-  bundles, and the Skill Editor, so a previewed record is what every one of them
-  reads and the editor's Default control means "this preview's value."
-  `data/preview/previews.json` lists the selectable previews; `Current` is the
-  absence of a selection, and a stored id this build does not ship resolves to the
-  shipped data rather than failing. The precedence is shipped data, then the
-  preview, then the user's own overrides. The selection is part of the worker
-  bundle, so switching previews cannot reuse a baseline calculated under another
-  one. See [Data previews](#data-previews).
-- Manual event definitions and supported weapons are hard-coded.
-- Primary-attribute damage resolution supports the registered Stonesplit and
-  Bamboocut martial arts, but Void/Formless Attack folding currently remains
-  Stonesplit-only.
-- DMG Bonus Category 2 is specified but not implemented.
-- Release deployment runs deterministic DPS snapshot checks for every non-empty preset,
-  including WIP paths. Ordinary builds run preset, localization, behavioral-test, type, and
-  production-bundle verification without the accepted-snapshot comparison.
-  Any difference beyond 4 ULPs in DPS, total damage, or duration, in either direction, requires review
-  before release; see [DPS snapshots](dps-snapshots.md). Focused probes cover individual mechanics.
+## 已知的架构局限
 
-### Rotation calculation as a pull
+- `App.tsx` 现在是组合外壳。计算引擎与 `buildPresetRotationBundle` 服务仍是纯函数，可在 worker 中安全运行；内聚的循环编辑器拥有编辑器专属的状态与时间轴交互。
+- 技能编辑器中对技能、增益、减益和 DOT 的覆盖会在本次会话中保存，并叠加在计算器与模拟器所使用的默认战斗映射之上。增益/减益的效果数组和累积层数档位使用与技能动作和修正项相同的结构化规则控件，包括前置要求和对象值效果。生效的定义会参与计算指纹，因此保存或重置覆盖不会复用过时的基线或对比结果。现有的存储键现在包含一个 `{ version: 4, overrides }` 封装。旧版分段阈值会借助下一个可表示的数，从包含边界迁移为不包含边界，从而保持已保存的计算行为。编写的表格默认使用 `LowerBoundInclusive`（上界不包含）；`mode: "UpperBoundInclusive"` 显式选择包含上界。版本 3 及以上的覆盖会保留任一模式，不进行阈值迁移。未经封装的旧版覆盖在加载时会将 `phyCoef` 复制到缺失的伤害 `attrCoef` 或治疗 `silkbindCoef` 字段中。版本 2 和 3 会将有意省略的系数保留为零，包括仅含外功的伤害动作。
+- 所选的数据预览会提供替代的数值调整，叠加在技能编辑器自身的覆盖之下，因此无需编辑内置数据，就能衡量改动了少量记录的游戏版本。`data/preview/<id>/` 镜像游戏数据的文件夹结构；每个文件包含完整的记录，心法文件除外，它按单个重数提供数据。`combatDefinitionsFor` 对每个 id 只解析一次所选内容，并将其传递给计算器、毕业率计算包和技能编辑器，因此它们读取的都是预览中的记录，而编辑器的“默认”控件表示“此预览的值”。`data/preview/previews.json` 列出可选的预览；`Current` 表示未选择任何预览，而若存储的 id 不在本次构建所附带的预览中，则会解析为内置数据而不会报错。优先级依次为：内置数据、预览、用户自己的覆盖。所选内容是 worker 计算包的一部分，因此切换预览不会复用在另一个预览下计算的基线。参见[数据预览](#data-previews)。
+- 手动事件定义与支持的武器是硬编码的。
+- 主属性伤害解析支持已注册的裂石与破竹武学，但无相攻击（Void/Formless Attack）的并入目前仍仅限裂石。
+- 伤害加成类别 2 已有规范，但尚未实现。
+- 发布部署会对每个非空模板运行确定性的秒伤快照检查，包括开发中的流派。普通构建会运行模板、本地化、行为测试、类型和生产包验证，但不进行已接受快照的比较。秒伤、总伤害或持续时间中任何超过 4 ULP 的差异，无论方向如何，都需要在发布前审核；参见[秒伤快照](dps-snapshots.md)。针对性探针覆盖各项单独的机制。
 
-A rotation's result is a derivation, not a computation that has to be run in
-order. Every part of it is a cache entry keyed by the fingerprint of the bundle
-it came from, and every merge of those parts is a pure function of them, so
-nothing needs to stay alive between the parts. `resolveComparisonMetrics`
-expresses that: it asks the store for the baseline, then for each category's
-variants, and folds the pure merges. A caller asks for the categories it
-displays, the store answers the ones it already holds, and the rest are
-dispatched.
+### 以拉取方式进行循环计算
 
-The variants of a category are dispatched together and each is written into its
-own slot rather than appended in the order the workers finish, because combining
-a category sorts its rows and a sort only reproduces against a fixed input
-order. The categories own disjoint metric fields, so they need no ordering
-between them either, and one landing never disturbs another.
+循环的结果是一种推导，而不是必须按顺序运行的计算。它的每个部分都是一个缓存条目，以其来源计算包的指纹为键，而这些部分的每一次合并都是它们的纯函数，因此各部分之间无需保持任何存活的状态。`resolveComparisonMetrics` 正体现了这一点：它向 store 请求基线，然后请求每个类别的变体，并折叠这些纯合并。调用方请求它所显示的类别，store 直接返回它已持有的类别，其余的则被派发出去计算。
 
-A rotation's result is therefore the same wherever it is read, and the
-application resolves the baseline every surface shows on every build, gear,
-rotation, or environment change. It resolves comparisons only while the Main
-tab's priority panels are visible. Those panels used to
-say the rotation editor had to be opened, which was true only while a sweep
-inside the editor produced them.
+一个类别的各个变体会被一起派发，并且每个变体都写入它自己的槽位，而不是按 worker 完成的顺序追加，因为合并一个类别时会对其各行进行排序，而排序只有在固定的输入顺序下才能复现。各类别拥有互不相交的指标字段，因此它们之间也不需要排序，一个类别的结果到达永远不会干扰另一个类别。
 
-That is also what makes the editor deferrable. It never resolves comparison
-variants; it contributes a baseline and an
-editor timeline for what is on screen, and a draft of its own when the active
-rotation carries unsaved edits. It mounts on the first visit to its tab, after
-which it stays mounted so its scroll offset survives.
+因此，无论在何处读取，循环的结果都是相同的；每当配装、装备、循环或环境发生变化时，应用都会解析每个界面所显示的基线。只有在主页标签页的优先级面板可见时，应用才会解析对比。这些面板过去会提示必须打开循环编辑器，而那只在由编辑器内部的扫描生成它们时才成立。
 
-The comparison variants are built from the calculation subject and the static
-definitions, in `rotationComparisonBundle.ts`, so producing them needs no
-component. The shared baseline and editor use the same bundle fingerprint, so
-Main's comparisons reuse the baseline already measured for the editor. An editor
-draft remains the active calculation subject when returning to Main or changing
-gear; it is rebuilt against current equipment rather than blocking shared refreshes.
+这也是编辑器可以延迟加载的原因。它从不解析对比变体；它为屏幕上显示的内容提供一个基线和一条编辑器时间轴，并在当前激活的循环带有未保存的编辑时提供它自己的草稿。它在首次访问其标签页时挂载，此后保持挂载，以便保留其滚动位置。
 
-Editing any rotation calculates and caches only that rotation's baseline
-timeline, expected damage, DPS, and action breakdowns. Making an inactive rotation
-active reuses its valid baseline cache. Comparisons wait until Main is visible.
+对比变体由计算主体和静态定义在 `rotationComparisonBundle.ts` 中构建，因此生成它们不需要任何组件。共享基线与编辑器使用相同的计算包指纹，因此主页的对比会复用已为编辑器测得的基线。返回主页或更换装备时，编辑器草稿仍是当前的计算主体；它会根据当前装备重新构建，而不会阻塞共享刷新。
 
-When character stats, attunements, Inner Ways, food, Divinecraft, build,
-breakthrough, or settings change, the inputs are part of the bundle, so their
-fingerprints change and the next pull finds nothing held. The category order is
-`baseline`, `statPriority`, `attunementPriority`, `weaponSets`, `armorSets`,
-`bowRingSet`, `arsenal`, `globalDebuffs`, `innerWays`, `script`, `divinecraft`,
-`food`. The Rotation Editor keeps the last completed timeline for each rotation
-during its replacement calculation so scroll position and focused controls
-survive the refresh. Main never displays comparison rows from a different baseline.
+编辑任意循环只会计算并缓存该循环的基线时间轴、期望伤害、秒伤和动作明细。激活一个未激活的循环会复用其有效的基线缓存。对比会等到主页可见时才进行。
 
-Staleness is the store's problem, not the caller's. A request is keyed by what
-it computes, so work overtaken by newer inputs resolves against inputs nothing
-reads any more, and the puller discards a result whose own request is no longer
-its current one. An editor preview is the exception that proves the rule: it is
-neither held nor shared, because a timeline for an earlier revision is worse than
-none, since the revision check would accept it as current. Each preview is
-therefore its own request.
+当角色属性、定音、心法、食物、天工、配装、破阵或设置发生变化时，由于这些输入都是计算包的一部分，它们的指纹会随之改变，下一次拉取将找不到任何已持有的结果。类别顺序为 `baseline`、`statPriority`、`attunementPriority`、`weaponSets`、`armorSets`、`bowRingSet`、`arsenal`、`globalDebuffs`、`innerWays`、`script`、`divinecraft`、`food`。循环编辑器在替换计算期间会保留每个循环最近一次完成的时间轴，以便滚动位置和获得焦点的控件在刷新后得以保留。主页从不显示来自不同基线的对比行。
 
-A category's status is reported as the fraction of its variants that have
-settled, counting a dispatched variant as part-settled by the progress it
-reports, so a category does not read as stalled while its first variants run. A
-baseline reports no steps, so it is described as under way rather than as stalled
-at zero percent. Progress is stored apart from metrics in `rotationStore`, and
-each status component subscribes to its own category, so a progress report
-rerenders that component rather than the application tree.
+过时问题是 store 的问题，而不是调用方的问题。请求以其计算的内容为键，因此被更新输入取代的工作会针对已不再被任何地方读取的输入进行解析，而拉取方会丢弃那些自身请求已不再是当前请求的结果。编辑器预览是印证这一规则的例外：它既不被持有，也不被共享，因为早先修订版本的时间轴比没有还糟——修订检查会把它当作当前版本接受。因此，每个预览都是它自己的请求。
 
-### What the calculation cache holds
+类别的状态以其已结算变体所占的比例来报告，已派发的变体按其报告的进度计为部分结算，因此在类别的首批变体运行期间，它不会显示为停滞。基线不报告步骤，因此它被描述为正在进行，而不是停滞在 0%。进度与指标分开存放在 `rotationStore` 中，并且每个状态组件只订阅它自己的类别，因此一次进度报告只会重新渲染该组件，而不是整个应用树。
 
-The cache keeps a fixed number of finished results per kind, and the sizes differ by orders of
-magnitude because the kinds differ in size and in how many a session actually has. Measured by
-driving the application through a session, with the store's own instrumentation:
+### 计算缓存中保存了什么
 
-| state                            | baselines | readings | comparisons |
-| -------------------------------- | --------- | -------- | ----------- |
-| on load                          | 1         | 2        | 78          |
-| editor opened                    | 1         | 2        | 78          |
-| five rotations activated in turn | 5         | 10       | 390         |
+缓存为每种类型保留固定数量的已完成结果，而各类型的容量相差几个数量级，因为各类型的大小不同，一次会话中实际拥有的数量也不同。以下数据通过驱动应用完成一次会话、并借助 store 自身的检测工具测得：
 
-A baseline is the expensive kind, because it carries a whole timeline, and also the most redundant:
-the application resolves the active rotation and the editor resolves the one on screen, which are
-the same rotation nearly always. Four are held, so flipping between rotations is free and a longer
-tour costs one rotation run rather than the memory of dozens of timelines. Readings are asked for by
-name to be weighed against something else and only their throughput is read, so they are cheap; a
-couple exist at rest and a couple more arrive per rotation visited, which is why they are the kind
-that is culled last and held longest. Comparisons are metrics only, one per variant, so the limit is
-set in rotations' worth rather than in entries. An editor timeline is a preview of one revision
-under a key per request, and holding one is never right: a timeline for an earlier revision is
-worse than none, because the caller would accept it as current.
+| 状态               | 基线 | 读数 | 对比 |
+| ------------------ | ---- | ---- | ---- |
+| 加载时             | 1    | 2    | 78   |
+| 打开编辑器后       | 1    | 2    | 78   |
+| 依次激活五个循环后 | 5    | 10   | 390  |
 
-Note that two rotations differing only in name are one calculation, not two, because a bundle's
-fingerprint deliberately excludes the display name.
+基线是代价最高的类型，因为它携带完整的时间轴，同时也是冗余度最高的：应用解析当前激活的循环，编辑器解析屏幕上显示的循环，而两者几乎总是同一个循环。缓存保留四个基线，因此在循环之间来回切换没有任何开销，而更长的切换路线代价只是一次循环运行，而不是几十条时间轴的内存。读数是按名称请求、用于与其他结果相比较的，并且只读取其吞吐量，因此开销很低；空闲时存在少数几个，每访问一个循环会再增加几个，这就是为什么它们是最后被淘汰、保留最久的类型。对比只有指标，每个变体一个，因此其上限按“相当于多少个循环”的量来设置，而不是按条目数设置。编辑器时间轴是某一修订版本的预览，每个请求一个键，保留它永远都不对：早先修订版本的时间轴比没有还糟，因为调用方会把它当作当前版本接受。
 
-### The two stores
+注意，仅名称不同的两个循环是同一次计算，而不是两次，因为计算包的指纹有意排除了显示名称。
 
-`dpsStore` is a cache and is read non-reactively, through `getState()`. Its
-entries are the output of dispatched work, so a component that subscribed to one
-would rerender whenever a calculation it never asked for reported progress.
-Nothing subscribes, and a selector on it returns nothing for that reason.
+### 两个 store
 
-`rotationStore` is published state and is read with selectors. What it holds is
-what the interface mirrors: a headline number, a rotation name, a progress bar,
-the rotation list and the per-path selection. It owns the rotations themselves
-and persists them, so writing a rotation and storing it are one act, and a
-rotation is still resolvable when the editor is not mounted. It is a module
-singleton, so its persisted state is read during the first render of the
-application rather than when its module is imported, which a deferred editor
-decides.
+`dpsStore` 是一个缓存，以非响应式的方式通过 `getState()` 读取。它的条目是已派发工作的输出，因此订阅其中某个条目的组件会在一个它从未请求过的计算报告进度时重新渲染。没有任何组件订阅它，出于这个原因，对它使用选择器不会返回任何内容。
 
-`overrideStore` holds the character sheet's stat and attunement overrides. An
-absent key means the value is inherited from the game data, which is why
-resetting one removes the key rather than storing a zero, and why the sheet can
-mark a modified field by key presence alone. Its records are still written when
-every key is gone, because their loaders fall back to the pre-override keys when
-a record is missing: removing the record to mean "nothing overridden" would
-resurrect the values an older session stored there.
+`rotationStore` 是发布出来的状态，通过选择器读取。它持有的正是界面所镜像的内容：一个主数值、一个循环名称、一个进度条、循环列表以及按流派的选择。它拥有循环本身并将其持久化，因此写入循环与存储循环是同一个操作，并且即使编辑器未挂载，循环仍可解析。它是一个模块单例，因此其持久化状态是在应用首次渲染时读取的，而不是在其模块被导入时读取——后者的时机由延迟加载的编辑器决定。
 
-## Development and deployment
+`overrideStore` 持有角色面板的属性与定音覆盖。缺少某个键表示该值继承自游戏数据，这就是为什么重置某个值会删除该键而不是存储零，也是为什么面板仅凭键是否存在就能标记被修改的字段。即使所有键都已删除，其记录仍会被写入，因为在记录缺失时，它们的加载器会回退到引入覆盖之前的键：删除记录来表示“没有任何覆盖”会让旧会话存储在那里的值重新生效。
 
-Every production build embeds a unique version and emits the matching
-`version.json`. Visible sessions check it once a minute and when focus,
-visibility, or connectivity returns, using uncached requests. A non-blocking
-notice asks users to save unfinished edits with the existing Save controls and
-then reload. Reload is always explicit; it neither saves drafts nor clears
-browser storage. A cache-busting navigation requests the current entry page.
-Development-server sessions do not poll for releases.
+## 开发与部署
 
-`src/notices.ts` owns the shared, in-memory notice list. The header's `NoticeArea`
-renders it as an absolutely positioned overlay to the left of Language on wide
-screens, and below the controls on narrow screens or mobile. The controls provide
-its positioning anchor; adding or dismissing notices never changes header or page
-layout. It is a non-blocking panel with a viewport-bounded scroll limit and individual
-dismiss buttons. Source IDs replace an earlier message from the same operation while
-unrelated notices coexist. Update/module-load notices, profile and rotation
-transfer results, build/dashboard/image import failures, save confirmations, and
-calculation/simulation failures all publish through this store. Field validation and ongoing
-progress remain next to their inputs. Notices survive tab changes but are not
-persisted across page reloads. Dismissing an update does not cause every periodic
-check to announce it again. Message keys are resolved at render time for update
-notices; operation-specific error text is captured when the operation finishes.
+每个生产构建都会嵌入一个唯一的版本，并生成与之匹配的 `version.json`。可见的会话每分钟检查一次该文件，并在焦点、可见性或网络连接恢复时再次检查，检查使用不经缓存的请求。一条非阻塞的通知会提示用户先用现有的保存控件保存未完成的编辑，然后重新加载。重新加载始终是显式的；它既不会保存草稿，也不会清除浏览器存储。一次破除缓存的导航会请求当前的入口页面。开发服务器会话不会轮询新版本。
 
-The same notice handles Vite import failures without claiming every network
-failure is a deployment. Boundaries around lazy Build and Simulation features
-keep an import rejection from unmounting the app and its rotation editor.
+`src/notices.ts` 拥有共享的内存通知列表。页头的 `NoticeArea` 将其渲染为绝对定位的浮层：在宽屏上位于“语言”的左侧，在窄屏或移动设备上位于各控件下方。这些控件为它提供定位锚点；添加或关闭通知从不改变页头或页面布局。它是一个非阻塞面板，具有受视口限制的滚动上限和单独的关闭按钮。来源 ID 会替换同一操作先前发出的消息，而互不相关的通知可以共存。更新/模块加载通知、角色配置与循环的传输结果、配装/仪表板/图片导入失败、保存确认，以及计算/模拟失败，全部通过此 store 发布。字段验证和进行中的进度仍显示在各自的输入旁边。通知在切换标签页后仍会保留，但不会跨页面重新加载持久保存。关闭一条更新通知后，不会导致每次定期检查都再次提示它。更新通知的消息键在渲染时解析；操作专属的错误文本则在操作完成时捕获。
 
-The Pages workflow carries hashed `assets/` files forward for seven days after
-they leave the current build. The deployed `asset-history.json` records current
-assets with a null deadline and retired assets with an absolute expiry; later
-deployments do not extend that expiry. Retention reads the live site's inventory
-and files, so it does not depend on Actions artifact lifetime. The initial rollout
-bootstraps from the last successful release's Pages artifact, before an inventory
-exists. Missing required old files or inventory failures stop deployment rather
-than silently dropping retained assets. Only assets are carried forward; HTML,
-version metadata, and public locale files always come from the new build.
-Expired assets are omitted at the next deployment. Tabs older than the retention
-window may need the reload fallback. Already-open versions predating the notice
-cannot display it until their first reload, though their retained chunks work.
+同一通知也会处理 Vite 导入失败，但不会把每一次网络失败都当作有新部署。包裹懒加载的配装与模拟功能的边界可防止导入被拒绝时卸载应用及其循环编辑器。
+
+Pages 工作流会在带哈希的 `assets/` 文件离开当前构建后，继续保留它们七天。部署的 `asset-history.json` 会记录当前资源（截止时间为 null）和已退役资源（带有绝对过期时间）；后续部署不会延长该过期时间。保留机制读取线上站点的清单和文件，因此不依赖 Actions 制品的有效期。初次上线时，在清单尚不存在之前，会从上一次成功发布的 Pages 制品进行引导。缺少必需的旧文件或清单读取失败会中止部署，而不是静默丢弃应保留的资源。只有资源会被继续保留；HTML、版本元数据和公共本地化文件始终来自新构建。已过期的资源会在下一次部署时被省略。超过保留期的标签页可能需要使用重新加载这一回退方式。在此通知出现之前就已打开的旧版本，在首次重新加载前无法显示该通知，但它们被保留的代码分块仍可正常工作。
 
 ```text
 npm install
@@ -2214,127 +1078,42 @@ npm run build
 npm run preview
 ```
 
-`npm run build` performs TypeScript project compilation followed by a Vite
-production build into `dist/`. No API keys, database, server process, or runtime
-configuration are required for GitHub Pages hosting.
+`npm run build` 先执行 TypeScript 项目编译，然后执行 Vite 生产构建，输出到 `dist/`。托管于 GitHub Pages 不需要 API 密钥、数据库、服务器进程或运行时配置。
 
-### Preset DPS regression gate
+### 模板秒伤回归门禁
 
-The exported `buildPresetRotationBundle` in `src/application/graduation.ts` builds a selected preset
-using the same setup, gear, stats, definitions, and timeline inputs as the
-Graduation comparison. `buildGraduationBundleSet` resolves every preset in the
-path's `graduated` array, and `selectHighestGraduationResult` chooses the
-highest DPS throughput as the denominator. The headless DPS snapshot runner instead
-supplies its default build ID and explicit environment settings. Both use the
-centralized rotation calculator. The Pages
-workflow runs `npm run test:dps` before deployment; ordinary build, test, and
-watch commands exclude that release comparison.
-See [DPS snapshots](dps-snapshots.md) for coverage and the review/update workflow.
+`src/application/graduation.ts` 中导出的 `buildPresetRotationBundle` 使用与毕业率对比相同的设置、装备、属性、定义和时间轴输入来构建所选模板。`buildGraduationBundleSet` 解析该流派 `graduated` 数组中的每个模板，`selectHighestGraduationResult` 则选择秒伤吞吐量最高者作为分母。无头秒伤快照运行器则改为提供其默认配装 ID 和显式的环境设置。两者都使用集中式循环计算器。Pages 工作流在部署前运行 `npm run test:dps`；普通的构建、测试和监视命令不包括该发布比较。有关覆盖范围以及审核/更新流程，参见[秒伤快照](dps-snapshots.md)。
 
-### Chronological healing and cast snapshots
+### 按时间顺序的治疗与施放快照
 
-`createTimelineEntryBuilder` supplies the same action contexts to ordinary damage
-reporting and the live healing traversal. A worker-local `TimelineActionResolverFactory`
-creates one outcome resolver for the combat traversal. Accepted damage, healing,
-and accumulator-application actions resolve in event order; healing immediately
-restores self HP and feeds the existing accumulator, and generated Qi Blades re-enter
-that same traversal. Final reporting aggregates those resolved actions, including
-sampled outcomes. Replay damage also resolves in the live traversal.
+`createTimelineEntryBuilder` 为普通伤害报告和实时治疗遍历提供相同的动作上下文。worker 本地的 `TimelineActionResolverFactory` 为战斗遍历创建一个结果解析器。被接受的伤害、治疗和累加器施加动作按事件顺序解析；治疗会立即恢复自身气血并计入现有的累加器，生成的气刃会重新进入同一遍历。最终报告会汇总这些已解析的动作，包括采样结果。重放伤害同样在实时遍历中解析。
 
-Accumulator threshold coefficients live in buff data. WTS snapshots buffed Physical
-and Silkbind attack at its own application, including current Hawkwing/Etherwrath
-bonuses; the tracked buff retains `accumulatorThreshold` for that activation.
-Each recast snapshots again. Expected Hawkwing stacks approximate the threshold;
-sampled runs use actual stacks. Hawkwing now declares `altersTimeline` because its
-attack bonus affects both healing and WTS conversion. No nearby damage/healing
-entry is used as a substitute cast context.
+累加器阈值系数存放在增益数据中。万物为锋在其自身施加时，会对已受增益的外功与牵丝攻击进行快照，包括当前的飞隼/撼天加成；被追踪的增益会在该次激活中保留 `accumulatorThreshold`。每次重新施放都会再次快照。预期飞隼层数用于近似阈值；采样运行使用实际层数。飞隼现在声明了 `altersTimeline`，因为它的攻击加成同时影响治疗和万物为锋的转化。不会使用邻近的伤害/治疗条目来替代施放上下文。
 
-Battle-start detection and pending silent charges never restart the traversal.
-Sampled damage and proc draws interleave in live execution order.
-The callback is never part of a serialized bundle. `npm run test:wts` verifies cast
-ordering, buff changes, recasts, food, proc feedback, and periodic heals created after
-Qi Blades, alongside the existing healing checks.
+战斗开始检测和待处理的静默蓄力从不会重新开始遍历。采样伤害与触发判定的随机抽取按实时执行顺序交错进行。回调永远不会成为序列化计算包的一部分。`npm run test:wts` 会验证施放顺序、增益变化、重新施放、食物、触发反馈，以及在气刃之后产生的周期性治疗，此外还包括现有的治疗检查。
 
-## Damage recording windows
+## 伤害记录窗口
 
-Timed recording effects use the existing event queue and expiry scheduling.
-Expiry and reapplication share one resolver; activation IDs reject stale expiry
-events. A window accumulates final resolved damage in a running total and tracks
-whether any hit matched, so zero-damage hits still settle while empty windows do
-not. Settlement captures the total for the shared replay calculator; replay bonuses
-still resolve at payout time. Recording-dependent baseline and sampled calculations
-use the live combat traversal, so settlement affects target HP before subsequent
-actions. Each recording retains its matched source-action IDs in accumulation
-order, and accepted action snapshots retain their combat execution order.
-Event-invariant comparisons whose recording payout contains only replay actions
-reuse that timeline and recalculate each payout from their own resolved source
-damage. Precombat source hits resolve before settlement but remain excluded from
-combat totals. Healing, target-HP feedback, state-changing payouts, and the other
-comparison rebuild gates still require live traversal. Runtime recording IDs,
-source-action IDs, execution order, and source totals are not persisted in user
-rotations.
+定时记录效果使用现有的事件队列和到期调度。到期与重新施加共用一个解析器；激活 ID 会拒绝过时的到期事件。窗口会将最终解析的伤害累积到一个累计总量中，并追踪是否有任何命中匹配，因此零伤害命中仍会结算，而空窗口则不会。结算会捕获该总量，供共享的重放计算器使用；重放加成仍在兑现时解析。依赖记录的基线与采样计算使用实时战斗遍历，因此结算会在后续动作之前影响目标气血。每个记录按累积顺序保留其匹配的来源动作 ID，而被接受的动作快照保留其战斗执行顺序。对于不随事件变化的对比，若其记录兑现只包含重放动作，则会复用该时间轴，并根据各自解析的来源伤害重新计算每次兑现。战斗前的来源命中在结算前解析，但仍不计入战斗总量。治疗、目标气血反馈、改变状态的兑现以及其他对比重建门槛仍需要实时遍历。运行时的记录 ID、来源动作 ID、执行顺序和来源总量不会持久化到用户循环中。
 
-An accumulator alone does not require a comparison rebuild when the baseline has
-no action of its input event type: overheal requires healing actions, and damage
-requires damage actions. Unknown input events retain the rebuild gate. This checks
-for potential input actions rather than a positive baseline total: a zero-valued
-heal could become positive under another stat variant. Variants changing timeline,
-setup rules, Inner Ways, or conditions continue rebuilding regardless of this
-collector check.
+当基线中没有任何属于其输入事件类型的动作时，仅有累加器并不需要重建对比：溢出治疗需要治疗动作，伤害需要伤害动作。未知的输入事件保留重建门槛。这里检查的是潜在的输入动作，而不是为正的基线总量：一个数值为零的治疗在另一种属性变体下可能变为正值。改变时间轴、设置规则、心法或条件的变体，无论此收集器检查结果如何，都会继续重建。
 
-### Attack-aligned casts
+### 与攻击对齐的施放
 
-Successful Deflect uses the data-defined `attackResponse.endMargin: 0.1` margin.
-The ordered scheduler waits so its cast ends 0.1 seconds after the next manual
-or dummy attack, subject to previous cast completion and cooldown readiness.
-When those constraints force a later start, its end can also be later.
-Without a next attack before Battle End, it follows normal ordered timing.
-The existing automatic Delay mechanism represents both cooldown and attack waits
-as read-only timeline output, removed at storage/import boundaries. Deluge presets
-use this alignment for Successful Deflect. The two WTS presets retain a 0.4-second
-authored delay before the opening World to Sword to coordinate its healing arrivals
-with Qi Blade's launch cooldown. Their Qi events remain attached to actions near
-the reviewed encounter times.
+成功卸势使用数据定义的 `attackResponse.endMargin: 0.1` 余量。有序调度器会等待，使其施放在下一次手动攻击或木桩攻击之后 0.1 秒结束，但受制于上一次施放的完成情况和冷却就绪状态。当这些约束迫使其更晚开始时，其结束时间也可能更晚。若在战斗结束前没有下一次攻击，它遵循正常的有序时机。现有的自动延迟机制将冷却等待和攻击等待都表示为只读的时间轴输出，并在存储/导入边界处移除。霖模板对成功卸势使用此对齐方式。两个万物为锋模板在开场的万物为锋之前保留 0.4 秒的手动编写延迟，以使其治疗的到达与气刃的发射冷却相协调。它们的真气事件仍附着在经审核的遭遇时间点附近的动作上。
 
-Composite release readiness holds a silent charge open while the live event loop
-processes regeneration and pending events. It then finalizes the displayed charge
-interval without replay; weapon switching occurs at the earliest possible start.
-See `rotation-event-loop.md` for pending-charge execution and `skill-data.md`
-for the Vile Condemned three/four-HW variants.
+复合释放就绪会在实时事件循环处理恢复和待处理事件期间，使静默蓄力保持开启。随后，它会在不重放的情况下最终确定显示的蓄力区间；武器切换发生在最早可能的开始时刻。有关待处理蓄力的执行，参见 `rotation-event-loop.md`；有关无义当诛 3 格/4 格天志变体，参见 `skill-data.md`。
 
-Attack responses share the timeline readiness queue with cooldown waits. Data-authored
-response windows are independent of blocking cast duration; incoming hits dispatch
-success effects through the existing triggered-skill executor at attack time.
-See `doc/rotation-event-loop.md` for reservations, canceled-window overlap,
-causal ordering, and preserved defensive weapon context.
+攻击响应与冷却等待共用时间轴就绪队列。数据编写的响应窗口独立于阻塞性的施放时长；来袭命中会在攻击发生时通过现有的触发技能执行器派发成功效果。有关预留、被取消窗口的重叠、因果顺序以及保留的防御武器上下文，参见 `doc/rotation-event-loop.md`。
 
-Defense uses the shared response windows with success on every incoming hit.
-Its optional rotation-step duration overrides base cast time only when the skill
-declares `editableCastTime`; the worker resolves the hold and all success effects.
-Defense omits automatic attack alignment, so its entered duration occupies the
-ordered timeline from cast start. The editor reuses its duration control and does
-not calculate defensive rewards or hold timing independently.
+防御使用共享的响应窗口，每次来袭命中都判定为成功。仅当技能声明了 `editableCastTime` 时，其可选的循环步骤时长才会覆盖基础施放时间；worker 负责解析按住过程和所有成功效果。防御不进行自动攻击对齐，因此其输入的时长会从施放开始起占据有序时间轴。编辑器复用其时长控件，不会独立计算防御奖励或按住时机。
 
-Stat-only comparisons that reuse a baseline timeline retain its resolved action
-IDs. Conditional or cooldown-blocked actions remain absent; only a rebuilt
-combat timeline can introduce a newly eligible action.
+复用基线时间轴的纯属性对比会保留其已解析的动作 ID。条件性动作或被冷却阻挡的动作仍然不会出现；只有重建后的战斗时间轴才能引入新满足条件的动作。
 
-### Gear progression and preset inventories
+### 装备成长与模板装备库
 
-Each breakthrough selects an explicit `gearTier`: 17 selects 96 and 18 selects 100. Gear comparison affix and attunement maxima resolve this tier; enemy level
-does not select gear values. Each item retains its own persisted level (91, 96,
-or 100), which selects its base stats, allowed affixes, and editor roll limits.
-Changing breakthrough does not rewrite stored user equipment.
+每个破阵等级都会选择一个显式的 `gearTier`：17 选择 96，18 选择 100。装备对比的词条与定音最大值按此等阶解析；敌人等级不决定装备数值。每件装备保留其自身持久化的等级（91、96 或 100），该等级决定其基础属性、允许的词条以及编辑器中的词条数值限制。更改破阵不会改写已存储的用户装备。
 
-Bundled build presets declare `gearByTier`, with complete inventories for 96
-and 100. `buildPresetInventory` selects exactly one tier and rejects missing
-entries. The shared build-stat resolver, graduation calculation, Build tab, and
-preset duplication all pass the selected breakthrough tier. Preset IDs and setup
-remain stable. Duplicating a preset stores the selected tier's actual items;
-subsequent breakthrough changes do not upgrade that editable copy. This is a
-bundled-data schema change, not a rename of persisted user fields.
+内置的配装模板声明了 `gearByTier`，其中包含 96 和 100 的完整装备库。`buildPresetInventory` 恰好选择一个等阶，并拒绝缺失的条目。共享的配装属性解析器、毕业率计算、配装标签页以及模板复制都会传入所选的破阵等阶。模板 ID 和设置保持稳定。复制模板会存储所选等阶的实际装备；之后更改破阵不会升级该可编辑副本。这是内置数据的结构变更，而不是对持久化用户字段的重命名。
 
-Tier-100 item bases, affix pools, and maxima come from the interpreted fields in
-`local/datamine/wwm-items-tier-100.json`. Existing relay-only affix eligibility
-and the 0.94 relayed-affix multiplier continue to apply. Presets retain their
-existing affix selections and use the selected tier's maximum rolls.
+100 等阶的装备基础属性、词条池和最大值来自 `local/datamine/wwm-items-tier-100.json` 中经过解读的字段。现有的“仅限承音”词条资格规则和 0.94 的承音词条乘数继续适用。模板保留其现有的词条选择，并使用所选等阶的最大数值。

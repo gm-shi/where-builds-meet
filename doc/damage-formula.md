@@ -1,197 +1,65 @@
-# Damage Formula Specification
+# 伤害公式规范
 
-This document describes the formula currently implemented by the rotation simulator. Unless stated otherwise, percentage values are stored internally as decimal ratios: `0.11` means `11%`. The UI converts between ratios and percentage points.
+本文档描述循环模拟器当前实现的公式。除非另有说明，百分比数值在内部以小数比率存储：`0.11` 表示 `11%`。界面会在比率与百分点之间进行换算。
 
-Blood Burst is direct damage tagged `HighBleed` and `Bleed`. The latter selects
-Bleeding attunements and talents; it does not grant DOT bonuses. Its `Sword`
-and `MartialArts` tags enable Art of Sword and All Martial Arts in the standard
-shared additive bonus bucket. Soul-Shaken's
-`highBleedDamage` applies only to `HighBleed` hits (10% per stack, up to 50%)
-in the existing multiplicative damage bucket. Its ordinary `dotDamage` bonuses
-apply only to periodic DOT damage and exclude High Bleed. BB does not receive
-Insightful Strike's DOT-only T6 bonus; its normal direct-hit triggers remain active.
+爆血是带有 `HighBleed` 与 `Bleed` 标签的直接伤害。后者用于匹配流血类定音与天赋；它并不提供 DOT 加成。其 `Sword` 与 `MartialArts` 标签使剑武学增伤与全武学增效在标准的共享加算加成桶中生效。惊神的 `highBleedDamage` 仅作用于 `HighBleed` 命中（每层 10%，最高 50%），计入现有的乘算伤害桶。其普通的 `dotDamage` 加成仅作用于周期性 DOT 伤害，不包括高额流血（High Bleed）。爆血（BB）不享受凝神章仅限 DOT 的 T6 加成；其常规的直接命中触发效果仍然有效。
 
-Enemy defense, level, path resistances, Judgement Resistance, and level-derived
-character bonuses come from the selected entry in `data/breakthrough.json`.
-Breakthrough 17 uses 408 enemy defense, zero base resistance, 65% Judgement
-Resistance, 16.5% level Precision, and 150 of each base attribute. Breakthrough
-18 uses 446 enemy defense, zero base resistance, 85% Judgement Resistance,
-17.8% level Precision, and 164 of each base attribute. Enemy level remains 96
-for both profiles; it is not imported from the Solo Level datamine.
-Breakthrough 17 selects martial-art talent rank 13 and breakthrough 18 selects
-rank 14 through `martialArtTalentRank`.
-Each equipped martial art contributes only its `talent[rank]` effects; ranks are
-not cumulative. Infernal Twinblades' rank-13 conversions use the interpreted
-datamine rates: 0.264 Min Physical Attack per Agility (capped at 73.92), and
-0.0672 Bamboocut Penetration per raw Min Bamboocut Attack (capped at 22).
-Its Flamelash status enables 5% Critical DMG Bonus plus up to another 25%,
-scaling from raw Min Physical Attack and capped at 750. Its attribute-damage
-talent is already included in the primary-path multiplier described below.
+敌方防御、等级、流派抗性、判定抗性以及由等级决定的角色加成，均来自 `data/breakthrough.json` 中所选的条目。破阵 17 使用 408 敌方防御、0 基础抗性、65% 判定抗性、16.5% 等级精准，以及每项基础属性 150 点。破阵 18 使用 446 敌方防御、0 基础抗性、85% 判定抗性、17.8% 等级精准，以及每项基础属性 164 点。两套配置的敌方等级均保持为 96；该值并非从单人等级（Solo Level）数据挖掘中导入。破阵 17 通过 `martialArtTalentRank` 选择武学天赋等级 13，破阵 18 选择等级 14。每门已装备的武学只提供其 `talent[rank]` 效果；各等级不累加。泥犁三垢的等级 13 转换采用经解读的数据挖掘比率：每点敏提供 0.264 最小外功攻击（上限 73.92），每点原始最小破竹攻击提供 0.0672 破竹穿透（上限 22）。其嗔焰状态提供 5% 会心伤害加成，外加最多 25%，随原始最小外功攻击缩放，于 750 封顶。其属性伤害天赋已包含在下文所述的主流派乘数中。
 
-Infernal Twinblades Light Attacks, including Blade of Heaven's Wrath, also
-receive a persistent `hpDMGBonus: 0.1` in the PvE model. Both skill descriptions
-in `local/datamine/wwm-skills-normal-all.json` specify 10% more HP damage against
-non-player units. The setup rule is included only with Infernal Twinblades
-equipped in either slot. It requires both the `InfernalTwinblades`
-martial-art tag and `Light`; it does not require Flamelash or Samsara and does
-not affect Rodent hits or other martial arts. This adds to the existing
-HP/damage bonus bucket rather than multiplying final damage separately.
-It is a skill property, not a rank-dependent talent or a manually applied buff.
+泥犁三垢的双刀·轻击（包括天怒刀法）在 PvE 模型中还会获得常驻的 `hpDMGBonus: 0.1`。`local/datamine/wwm-skills-normal-all.json` 中这两个技能的描述均注明对非玩家单位造成的气血伤害提高 10%。该设置规则仅在任一槽位装备泥犁三垢时才会纳入。它同时要求 `InfernalTwinblades` 武学标签与 `Light`；它不要求嗔焰或轮回，也不影响鼠鼠命中或其他武学。该加成计入现有的气血/伤害加成桶，而不是单独对最终伤害进行乘算。它是技能属性，而非依赖等级的天赋或手动施加的增益。
 
-Mortal Rope Dart rank 13 grants `0.000304 × Agility` Critical Rate (capped at
-8.512%), 98 Min and 196 Max raw Bamboocut Attack, and
-`0.000336 × raw Min Bamboocut Attack` Bamboocut DMG Bonus (capped at 11%).
-Actions tagged `Rodent` gain a fixed 9% plus up to another 12% Physical and
-Bamboocut DMG Bonus, scaling at `0.00016 × raw Min Physical Attack` to the cap
-at 750. This uses the existing additive channel bonuses and raw-stat stages.
-Its Attr. Attack DMG UP also uses the shared primary-path multiplier.
-Rodent uses the user-confirmed nonmatching-target route for PvE. Physical and
-attribute coefficients are both 0.348974526316, with zero flat bonuses. This is
-skill 20391's base coefficient 0.581624210526316 multiplied by the route's 0.6;
-0.6 itself is not the final coefficient. Ordinary coordinated and automatic
-triggers require distance below 12. The matching PvP routes (0.366423252632
-below 5 and 0.3315258 from 5 to below 12) are not used by the PvE simulator.
-Export distances use raw game units, whose correspondence with the editor's
-metres remains unverified. Rodent Rampage launches it once per
-Infernal/Mortal light-attack stage and once per two stages of other martial arts.
-Enhanced Rodent Rampage retains these coordinated launches and adds one automatic
-Rodent hit per second, starting one second after application: launches occur at
-+0.5, +1.5, ... and each Rodent lands 0.5 seconds after launch. Coordinated
-Rodents also land 0.5 seconds after their triggers. Its 10/15/20-second
-lifetime includes the final automatic hit at expiry. These hits use the same
-damage coefficients, Vendetta Token bonuses, Rodent Hunt recording, and
-Samsara Hellfire gains as coordinated Rodents.
-Echoes T6 adds two more launches on FA5's first hit while the buff and Flamelash
-are active. Expected and sampled calculations use the same definite trigger
-schedule; individual damage outcomes remain mode-dependent.
+粟子游尘等级 13 提供 `0.000304 × Agility` 会心率（上限 8.512%）、98 最小与 196 最大原始破竹攻击，以及 `0.000336 × raw Min Bamboocut Attack` 破竹伤害加成（上限 11%）。带有 `Rodent` 标签的动作获得固定 9%，外加最多 12% 的外功与破竹伤害加成，按 `0.00016 × raw Min Physical Attack` 缩放，于 750 封顶。这沿用现有的加算通道加成与原始属性阶段。其属攻增伤（Attr. Attack DMG UP）同样使用共享的主流派乘数。鼠鼠在 PvE 中使用经用户确认的非匹配目标路线。外功与属性系数均为 0.348974526316，固定加成为零。这是技能 20391 的基础系数 0.581624210526316 乘以该路线的 0.6；0.6 本身并非最终系数。普通的协同触发与自动触发要求距离小于 12。对应的 PvP 路线（距离小于 5 时为 0.366423252632，5 至小于 12 时为 0.3315258）不被 PvE 模拟器使用。导出的距离使用原始游戏单位，其与编辑器中以米为单位的距离的对应关系仍未经验证。鼠鼠生威在泥犁三垢/粟子游尘的每段轻击发出一次鼠鼠，在其他武学中每两段发出一次。强化鼠鼠生威保留这些协同发出，并每秒追加一次自动鼠鼠命中，从施加后 1 秒开始：发出时间为 +0.5、+1.5……，每只鼠鼠在发出 0.5 秒后落地。协同鼠鼠同样在其触发 0.5 秒后落地。其 10/15/20 秒的持续时间包含到期时的最后一次自动命中。这些命中与协同鼠鼠使用相同的伤害系数、仇杀令加成、鼠鼠追命记录以及轮回业火获取。忘川绝响 T6 在该增益与嗔焰均生效时，于 FA5 的第一击额外追加两次发出。期望计算与采样计算使用相同的确定性触发时间表；各次伤害结果仍取决于计算模式。
 
-Combat inclusion and the DPS/HPS duration follow the
-[rotation event-loop endpoint](rotation-event-loop.md). Explicit Battle End
-excludes damage at its timestamp. Otherwise the last ordered cast or explicit
-Delay ends combat, including same-time final actions but dropping later damage,
-healing, DOT ticks, and replays. Generated damage never extends the duration.
+战斗的纳入范围以及秒伤/秒疗的计算时长遵循 [循环事件循环的终点规则](rotation-event-loop.md)。显式的「战斗结束」会排除其时间戳上的伤害。否则，最后一个有序施放或显式「延迟」即结束战斗：同一时刻的最后动作仍计入，但会丢弃之后的伤害、治疗、DOT 跳伤和重放。生成的伤害永远不会延长持续时间。
 
-Damage and healing resolve once as their events execute in the single combat
-traversal. HP feedback, recorded damage, and replay coefficients consume those
-resolved values immediately. Reporting retains the results; buff-attribution
-counterfactual formulas do not execute combat events or change live state.
+伤害与治疗在单次战斗遍历中随其事件执行而结算一次。气血反馈、已记录伤害以及重放系数会立即使用这些已结算的数值。报告会保留这些结果；增益归因的反事实公式不会执行战斗事件，也不会改变实时状态。
 
-For additive damage-bonus attribution, the original hit retains its pre-bonus
-physical and attribute components for each outcome. When removing a buff changes
-only `dmgBonus` or weapon-qualified `hpDMGBonus`, reporting reapplies the bonus
-multiplications and outcome weights to those components. Multiplication order
-and physical clamping remain identical to the full formula. Other context or
-effect changes, probability mixtures, concentration, and seasonal outcome models
-use the full counterfactual calculation. The temporary components are consumed
-by attribution and are not serialized into worker results.
+对于加算伤害加成的归因，原始命中会为每种结果保留其加成前的外功与属性分量。当移除某个增益只改变 `dmgBonus` 或受武器限定的 `hpDMGBonus` 时，报告会对这些分量重新应用加成乘算与结果权重。乘算顺序与外功钳制均与完整公式保持一致。其他上下文或效果变化、概率混合、看破以及四时无常结果模型使用完整的反事实计算。这些临时分量由归因过程消耗，不会序列化到 worker 结果中。
 
-Expected probability models share a tiny-state timing policy, defined in
-`probabilityStateMerging.ts`: states with individual probability strictly below
-`1e-5` merge when each timing field lies in the same absolute 0.1-second bucket.
-There is no equal-Focus, equal-stack, owner, cadence, or decay-lifetime condition.
-Every numeric state field becomes its probability-weighted mean. Timing fields
-are rounded to the 0.1 ms clock; Focus and stacks retain fractional weighted
-values. Probability mass is summed, never discarded. Singleton and significant
-states retain their original values. The same bucket rule applies to zero or
-elapsed timers; there is no additional active-timer test.
-This applies to Hawkwing, outcome-dependent resource cooldowns,
-and [DOT expiry tracking](rotation-event-loop.md#tiny-expected-state-merging).
-Damage-source identities remain a probability-weighted mixture within the merged
-state, rather than selecting one source or blocking the merge. Pending-tick
-fractions and application-relative cadence times are weighted as well. Fractional
-debuff stacks resolve between neighboring authored stack-effect tables through
-the ordinary expected-damage pipeline. Temporary causal branches finish their
-linked follow-ups before they enter the retained state distribution.
-Seasonal Edge's rare Yield histories weight each window's activation and use
-those weighted windows for subsequent Vitality recovery. Its categorical buff
-choices continue to be represented by their effect-set probability mixtures.
-Timing and its interaction with later hits are approximate; simulation retains
-exact sampled timing.
+期望概率模型共享一套微小状态计时策略，定义于 `probabilityStateMerging.ts`：单个概率严格低于 `1e-5` 的状态，在每个计时字段都落入同一个 0.1 秒绝对区间时会被合并。不存在凝神值相等、层数相等、归属者、节奏或衰减时长方面的条件。每个数值状态字段都变为其概率加权平均值。计时字段四舍五入到 0.1 毫秒时钟；凝神值与层数保留小数形式的加权值。概率质量会被累加，从不丢弃。单例状态与非微小状态保留其原始值。同样的区间规则也适用于为零或已耗尽的计时器；不存在额外的活动计时器检验。这适用于飞隼、取决于结果的资源冷却，以及 [DOT 到期追踪](rotation-event-loop.md#tiny-expected-state-merging)。伤害来源标识在合并后的状态中仍为概率加权的混合，而不是选定单一来源或阻止合并。待结算跳伤的比例与相对于施加时刻的节奏时间同样会被加权。小数形式的减益层数会通过普通的期望伤害流程，在相邻的已编写层数效果表之间进行解析。临时因果分支会先完成其关联的后续动作，再进入保留的状态分布。四时无常中罕见的「秋」历史会对每个窗口的激活进行加权，并将这些加权窗口用于后续的精元回复。其分类式增益选择仍由各自的效果集概率混合来表示。计时及其与后续命中的交互是近似的；模拟则保留精确的采样计时。
 
-## Rank-14 Additional Attack
+## 等级 14 额外攻击
 
-Rank 14 grants 106 minimum and 212 maximum raw attribute attack. Existing
-conversion rates retain their slopes, with base-attribute thresholds raised to
-300 (79.2 Physical Attack, 9.12% Critical Rate, or 4.56% Affinity Rate caps).
-Attribute penetration caps rise to 23.6 and damage/healing bonus caps to 11.8%.
-Existing deferred higher-of-Body-or-Power conversions remain deferred.
+等级 14 提供 106 最小与 212 最大原始属性攻击。现有的转换比率保持其斜率，基础属性阈值提高到 300（上限分别为 79.2 外功攻击、9.12% 会心率或 4.56% 会意率）。属性穿透上限提高到 23.6，伤害/治疗加成上限提高到 11.8%。现有的、暂缓实现的“体或劲取较高者”转换仍保持暂缓。
 
-Additional Attack scales the matching martial art's flat physical and attribute
-bonus attack terms by `1 + flatAttackBonus` (1.0725 at rank 14), before channel
-and outcome multipliers. It does not scale attack stats or final damage.
-The normal Strategic Sword, Heavenwill, and Skystrike talents additionally
-scale both coefficients by `1 + coefficientBonusWithoutFlatAttack` (1.00725),
-only when both action flat terms are zero. Effects and triggered actions use
-the same martial-art tag requirement; unrelated arts and Mystics do not match.
-Expected and sampled damage share this resolution, including static aggregates.
+额外攻击（Additional Attack）将对应武学的固定外功与属性加成攻击项按 `1 + flatAttackBonus`（等级 14 时为 1.0725）缩放，作用于通道与结果乘数之前。它不会缩放攻击属性或最终伤害。常规的积矩九剑、天志垂象与悬身拳法天赋还会按 `1 + coefficientBonusWithoutFlatAttack`（1.00725）缩放两个系数，仅当动作的两个固定项均为零时生效。效果与触发动作使用相同的武学标签要求；无关的武学与奇术不会匹配。期望伤害与采样伤害共享这一解析方式，包括静态聚合值。
 
-## Stat resolution
+## 属性解析
 
-Rank 13 uses the interpreted conversion rates, including
-`0.264` Physical Attack per base-attribute point (cap `73.92`), `0.000304`
-Critical Rate (cap `0.08512`), and `0.000152` Affinity Rate (cap `0.04256`).
-Attribute talents add 98 minimum and 196 maximum raw attack. Penetration scales
-at `0.0672` from minimum attack or `0.0336` from maximum attack, capped at 22;
-attribute damage/healing scales at `0.000336` from minimum or `0.000168` from
-maximum, capped at 11%. Displayed source thresholds such as 328 and 655 are
-rounded descriptions; the exact conversion rates determine the calculation.
-The higher-of-Body-or-Power conversions remain deferred rather than using Power
-alone. See the [rank-13 audit](martial-art-talent-audit.md) for conditional
-effects, existing shared behavior, and all unresolved talent portions.
+等级 13 采用经解读的转换比率，包括每点基础属性提供 `0.264` 外功攻击（上限 `73.92`）、`0.000304` 会心率（上限 `0.08512`）以及 `0.000152` 会意率（上限 `0.04256`）。属性天赋提供 98 最小与 196 最大原始攻击。穿透按最小攻击的 `0.0672` 或最大攻击的 `0.0336` 缩放，上限 22；属性伤害/治疗加成按最小攻击的 `0.000336` 或最大攻击的 `0.000168` 缩放，上限 11%。显示的来源阈值（如 328 和 655）只是取整后的描述；计算由精确的转换比率决定。“体或劲取较高者”转换仍保持暂缓，而不是仅使用劲。条件效果、现有的共享行为以及所有未解决的天赋部分，请参阅[等级 13 审计](martial-art-talent-audit.md)。
 
-The simulation input starts from zero, then the calculator applies innate character stats, the selected breakthrough's level bonuses, Enhancement bonuses, the selected Solo Level's cumulative character talent stats, regional Oddity totals eligible for the selected breakthrough (Qingzhou from breakthrough 18), attribute conversions, equipped gear, selected Inner Ways, martial-art talents, the active build's arsenal, bow/ring set, weapon set, and armor set (with any Main-tab overrides), food, and the selected Divinecraft through these stages. Set options may also contribute named timeline conditions; these use the common requirement pipeline for non-stat mechanics such as Formbend extending Shield and Breakthrough:
+模拟输入从零开始，随后计算器通过以下阶段依次应用：角色固有属性、所选破阵档位的等级加成、强化（Enhancement）加成、所选单人等级累计的角色天赋属性、所选破阵档位可用的地区奇物（Oddity）总计（自破阵 18 起包括青州，即 Qingzhou）、属性转换、已装备的装备、所选心法、武学天赋、当前配装的武库、弓玦套装、武器套装与防具套装（含任何「主页」标签页中的覆盖设置）、食物，以及所选天工。套装选项还可能提供具名的时间轴条件；这些条件使用通用的需求流程来处理非属性机制，例如易相延长护盾与破阵：
 
-Inner Way stat tables resolve using the selected breakthrough's `soloLevel`,
-independently of `martialArtTalentRank`, before these stages. A table contributes
-only its selected level; fixed bonuses remain constant. For example, Eonpour
-T2 contributes 74.4 Min Physical Attack at Solo Level 16 and 77.9 at Solo Level 17.
-The resolved bonuses therefore feed both raw-sourced talents and worker comparisons.
+心法属性表在这些阶段之前，使用所选破阵档位的 `soloLevel` 进行解析，与 `martialArtTalentRank` 无关。属性表只提供其所选等级的数值；固定加成保持不变。例如，一醉千秋 T2 在单人等级 16 时提供 74.4 最小外功攻击，在单人等级 17 时提供 77.9。因此，解析后的加成同时作用于以原始属性为来源的天赋以及 worker 对比。
 
-1. Build `rawStats` from explicit `rawStat` permanent contributions, including
-   flat martial-art min/max attribute bonuses, and five-attribute conversions.
-2. Build `stats`: remaining martial-art talent formulas read immutable `rawStats`; add
-   ordinary talent bonuses change ordinary fields; food and other `effectiveStat`
-   bonuses change only effective ranges and rates on this same object.
-3. Build `buffedStats` with selected global buff/debuff stat contributions.
-4. Build cached `skillStats` for each effective action-tag signature.
-5. Copy that baseline into `actionStats`, add the current combat contribution,
-   and derive final values before damage or healing.
+1. 根据显式的 `rawStat` 永久贡献（包括固定的武学最小/最大属性加成）以及五维属性转换构建 `rawStats`。
+2. 构建 `stats`：其余的武学天赋公式读取不可变的 `rawStats`；加入的普通天赋加成修改普通字段；食物和其他 `effectiveStat` 加成仅修改同一对象上的有效范围与比率。
+3. 使用所选全局增益/减益的属性贡献构建 `buffedStats`。
+4. 为每个有效的动作标签签名构建缓存的 `skillStats`。
+5. 将该基线复制到 `actionStats`，加入当前的战斗贡献，并在计算伤害或治疗之前推导最终值。
 
-See [Stat snapshot pipeline](stat-pipeline.md) for stage ownership, lifecycle
-aggregation, conditional effects, overrides, and comparison variants.
+各阶段的归属、生命周期聚合、条件效果、覆盖设置以及对比变体，请参阅[属性快照管线](stat-pipeline.md)。
 
-Fixed effects are applied before formulas, regardless of JSON order. Internal floating-point results are normalized to nine decimal places.
+固定效果在公式之前应用，与 JSON 中的顺序无关。内部浮点结果会归一化到小数点后九位。
 
-A manually edited Main-tab stat is stored as a final-value override. The calculator solves the base-stat offset that makes the shared pipeline produce that exact value under the current baseline inputs. Changing the active build, Inner Ways, food, or another baseline input causes the offset to be solved again, so the modified final value remains fixed. The solved base is also used for comparison variants; adding or removing a tested effect therefore still changes the stat and contributes to the reported DPS delta.
+在「主页」标签页中手动编辑的属性会存储为最终值覆盖。计算器会求解一个基础属性偏移量，使共享流程在当前基线输入下恰好产出该值。更改当前配装、心法、食物或其他基线输入都会重新求解偏移量，从而使修改后的最终值保持不变。求解得到的基础值同样用于对比变体；因此，添加或移除被测效果仍会改变该属性，并计入报告的秒伤差值。
 
-Physical DMG Reduction is retained as a raw character-sheet ratio. Explicit
-Take Damage events already specify resolved HP loss; they do not apply this
-stat, Physical Defense, or Physical Resistance again. A manually authored
-zero-damage Take Damage event still dispatches defensive responses and the
-Take Damage lifecycle; a positive attack reduced to zero by avoidance is not
-treated as damage taken.
+外功伤害减免作为原始角色面板比率保留。显式的「承受伤害」事件已指定结算后的气血损失；它们不会再次应用此属性、外功防御或外功抗性。手动编写的零伤害「承受伤害」事件仍会派发防御响应以及「承受伤害」生命周期；因规避而降为零的正值攻击不视为承受伤害。
 
-Formless Penetration from raw character stats adds to matching attunement
-penetration on the equipped primary attribute only. Its displayed Attunement
-Stats total includes the character bonus, while the attunement calculation
-input excludes that bonus to prevent double counting.
+来自原始角色属性的无相穿透只会加到已装备主属性上对应的定音穿透。其显示的定音词条总计包含该角色加成，而定音计算的输入则排除该加成，以避免重复计算。
 
-### Effective attack ranges
+### 有效攻击范围
 
-For physical, Bellstrike, Stonesplit, Silkbind, and Bamboocut attack:
+对于外功、鸣金、裂石、牵丝与破竹攻击：
 
 ```text
 Effective Minimum = Minimum + Summed Effective Minimum Bonuses
 Effective Maximum = max(Effective Minimum, Maximum + Summed Effective Maximum Bonuses)
 ```
 
-All effective contributions are resolved before this check and leave ordinary
-stats unchanged. Food's `+120 / +240` on ordinary physical attack `2000 / 1900`
-produces effective attack `2120 / 2140`. Additive effective inputs are retained
-on each stat snapshot so subsequent stages recompute from the unnormalized inputs.
+所有有效贡献都在此检查之前解析完毕，且不改变普通属性。食物的 `+120 / +240` 作用于普通外功攻击 `2000 / 1900` 时，得到有效攻击 `2120 / 2140`。加算的有效输入保留在每个属性快照上，以便后续阶段从未归一化的输入重新计算。
 
-Void/Formless Attack is folded into the equipped path's primary attribute after
-that attribute's first minimum/maximum normalization:
+无相攻击（Void/Formless Attack）在已装备流派的主属性完成首次最小/最大归一化之后并入该主属性：
 
 ```text
 Min Primary = Ordinary Min Primary + Summed Effective Min Primary Bonuses
@@ -206,222 +74,80 @@ Effective Max Primary = max(
 )
 ```
 
-Snowparting Blade, Phalanxbane Blade, Thundercry Blade, and Stormbreaker Spear
-use Stonesplit as their primary attribute. Nameless Sword, Nameless Spear,
-Strategic Sword, and HeavenQuaker Spear use Bellstrike. Vernal Umbrella, Inkwell
-Fan, Panacea Fan, and Soulshade Umbrella use Silkbind. Everspring Umbrella,
-Unfettered Rope Dart, Heavenwill Gauntlets, Skygrasp Rope Dart, Infernal
-Twinblades, Mortal Rope Dart, Skystrike Gauntlets, and Riven Twinblades use
-Bamboocut. The primary attribute receives
-the action's attribute bonus, the 1.5 path multiplier, and Formless Penetration.
-Void/Formless Attack is therefore Stonesplit for Strength and Might, Bellstrike
-for Splendor and Umbra, Silkbind for Jade and Deluge, and Bamboocut for Dust,
-Kite, Wind, and Draught.
+斩雪刀法、十方破阵、嗟夫刀法与八方风雷枪以裂石为主属性。无名剑法、无名枪法、积矩九剑与九曲惊神枪使用鸣金。九重春色、青山执笔、明川药典与千香引魂蛊使用牵丝。醉梦游春、粟子行云、天志垂象、千机索天、泥犁三垢、粟子游尘、悬身拳法与断水双诀使用破竹。主属性会获得动作的属性加成、1.5 流派乘数以及无相穿透。因此，无相攻击在钧与威流派中为裂石，在虹与影流派中为鸣金，在玉与霖流派中为牵丝，在尘、鸢、风与樽流派中为破竹。
 
-## Damage outcomes
+## 伤害结果
 
-An action's `rateRoute` selects which of these outcomes it can roll. The
-`normal` route, used when the field is absent, keeps all four. The `healing`
-route drops abrasion and affinity, leaving only Normal and Critical. The
-`divinecraft` route drops all three, leaving only Normal. Because the restricted
-routes are single-outcome, their damage is the same in expected and sampled
-calculations.
+动作的 `rateRoute` 决定它可以掷出以下哪些结果。`normal` 路线（字段缺省时使用）保留全部四种结果。`healing` 路线去掉擦伤与会意，只保留普伤与会心。`divinecraft` 路线去掉这三种，只保留普伤。由于受限路线均为单一结果，其伤害在期望计算与采样计算中相同。
 
-An action's `averageAttack` field pins the attack to the average of its effective
-range. Expected damage already uses that average for Normal and Critical, so the
-field only changes sampled calculations, where it replaces the uniform roll
-inside the range. Every `heal` action and every Divinecraft damage action sets it.
+动作的 `averageAttack` 字段会将攻击固定为其有效范围的平均值。期望伤害在普伤与会心中本就使用该平均值，因此该字段只改变采样计算——在采样中它取代范围内的均匀随机取值。每个 `heal` 动作以及每个天工伤害动作都会设置该字段。
 
-Every damage action is evaluated as four possible outcomes and then rate weighted:
+每个伤害动作都会按四种可能结果分别计算，然后按概率加权：
 
-| Outcome  | Physical attack   | Attribute attack  | Outcome bonus      |
-| -------- | ----------------- | ----------------- | ------------------ |
-| Abrasion | effective minimum | effective minimum | none               |
-| Normal   | effective average | effective average | none               |
-| Critical | effective average | effective average | Critical DMG Bonus |
-| Affinity | effective maximum | effective maximum | Affinity DMG Bonus |
+| 结果 | 外功攻击   | 属性攻击   | 结果加成     |
+| ---- | ---------- | ---------- | ------------ |
+| 擦伤 | 有效最小值 | 有效最小值 | 无           |
+| 普伤 | 有效平均值 | 有效平均值 | 无           |
+| 会心 | 有效平均值 | 有效平均值 | 会心伤害加成 |
+| 会意 | 有效最大值 | 有效最大值 | 会意伤害加成 |
 
-The effective average is `(effective minimum + effective maximum) / 2`.
+有效平均值为 `(effective minimum + effective maximum) / 2`。
 
-Before evaluating those outcomes, the calculator resolves the damage entry's
-hit-time effects and matching attunements once into a numeric snapshot. That
-snapshot contains shared bonuses plus the attack bonus, penetration, and
-resistance adjustment for Physical, Bellstrike, Stonesplit, Silkbind, and
-Bamboocut. Physical and attribute components and all four outcome variants read
-the same snapshot; they do not rescan active effects. Separate damage entries
-still resolve independently because their hit-time buffs, debuffs, resources,
-HP/Qi state, tags, or subaction modifiers may differ.
+在计算这些结果之前，计算器会将该伤害条目命中时的效果与匹配的定音一次性解析为数值快照。该快照包含共享加成，以及外功、鸣金、裂石、牵丝与破竹各自的攻击加成、穿透与抗性调整。外功与属性分量以及全部四种结果变体都读取同一快照；它们不会重新扫描生效中的效果。不同的伤害条目仍各自独立解析，因为它们命中时的增益、减益、资源、气血/真气状态、标签或子动作修饰可能不同。
 
-Repeated damage entries reuse the ordered list of attunement definitions matching
-their effective tags. Only matching is cached: each hit reads the current values
-and repeats the original arithmetic, including starting Formless Penetration
-from that hit's character stats. No contribution is regrouped or reordered.
+重复的伤害条目会复用与其有效标签匹配的定音定义有序列表。只有匹配结果会被缓存：每次命中都读取当前数值并重复原有的算术运算，包括从该次命中的角色属性出发计算无相穿透。任何贡献都不会被重新分组或重新排序。
 
-Tracked buffs and debuffs move unconditional finite numeric damage fields into
-a timeline aggregate when the effect is applied, changes stack, is consumed, or
-expires. Each damage entry reads that aggregate directly instead of scanning
-those rules again. A rule stays on the normal per-hit path when it has a
-requirement, a dynamic value, metadata, an unsupported field, or definition
-content that can be modified. Mixed definitions are split rule by rule, so an
-unconditional attack bonus can use the aggregate while a conditional
-penetration rule from the same stack tier is still evaluated on hit.
+被追踪的增益与减益会在效果施加、层数变化、被消耗或到期时，将无条件的有限数值伤害字段移入时间轴聚合值。每个伤害条目直接读取该聚合值，而不再扫描这些规则。若规则带有需求条件、动态数值、元数据、不受支持的字段或可被修改的定义内容，则仍走常规的逐次命中路径。混合定义会逐条规则拆分，因此无条件的攻击加成可以使用聚合值，而同一层数档位中的条件穿透规则仍在命中时计算。
 
-The worker receives the complete character-sheet snapshot, including food's
-effective-only additive inputs in `effectiveStatBonuses`. Ordinary character-sheet
-stats exclude those bonuses. Selected global buffs/debuffs produce
-`buffedStats`. Already-applied sheet and global stat contributions are excluded
-from later additions, so neither disappears nor applies twice on a later pass.
-Numeric combat-stat contributions use the tracked-effect lifecycle aggregate;
-the action resolver derives values from the immutable skill baseline, not the
-previous action's capped result.
+worker 会接收完整的角色面板快照，包括 `effectiveStatBonuses` 中食物仅作用于有效值的加算输入。普通角色面板属性不包含这些加成。所选全局增益/减益生成 `buffedStats`。已应用的面板属性贡献与全局属性贡献会从后续的叠加中排除，因此它们在之后的处理轮次中既不会消失，也不会重复生效。数值型战斗属性贡献使用被追踪效果的生命周期聚合值；动作解析器从不可变的技能基线推导数值，而不是使用上一个动作经封顶后的结果。
 
-Setup and Inner Way rules whose complete requirements depend only on skill tags,
-the skill's martial-art tag, or the equipped martial-art pair are resolved once
-per distinct effective action-tag signature. Their stat fields produce a cached
-skill-static stat and derived-stat snapshot, and their finite numeric damage
-fields use the same aggregate shape as tracked effects. Static residual fields
-remain in a compact cached effect list. Rules that inspect buffs,
-debuffs, stacks, resources, HP, Qi, distance, cooldowns, or other hit-time state
-remain on the per-hit path. This preserves state changes between hits and the
-different component tags of multi-action skills while avoiding repeated static
-tag checks and numeric aggregation.
+完整需求仅依赖技能标签、技能的武学标签或已装备武学组合的设置规则与心法规则，会针对每个不同的有效动作标签签名解析一次。它们的属性字段生成缓存的技能静态属性及派生属性快照，其有限数值伤害字段使用与被追踪效果相同的聚合结构。静态的剩余字段保留在一个紧凑的缓存效果列表中。检查增益、减益、层数、资源、气血、真气、距离、冷却或其他命中时状态的规则仍走逐次命中路径。这样既能保留命中之间的状态变化以及多动作技能中各组成部分的不同标签，又能避免重复的静态标签检查与数值聚合。
 
-Calculation-time attack-value bonuses multiply the resolved minimum and maximum
-of their named attack type before the attack roll is selected. They do not
-multiply an action's flat physical or attribute bonus. Etherwrath uses separate
-`physicalAttackBonus`, `bellstrikeAttackBonus`, `stonesplitAttackBonus`,
-`silkbindAttackBonus`, and `bamboocutAttackBonus` effects so each damage channel
-receives the same per-stack increase without changing displayed character
-stats. Effect-supplied penetration is likewise resolved independently for all
-five damage channels.
+计算时的攻击值加成会在选定攻击取值之前，乘到其指定攻击类型解析后的最小值与最大值上。它们不会乘到动作的固定外功或属性加成上。撼天使用分开的 `physicalAttackBonus`、`bellstrikeAttackBonus`、`stonesplitAttackBonus`、`silkbindAttackBonus` 与 `bamboocutAttackBonus` 效果，使每个伤害通道获得相同的每层提升，而不改变显示的角色属性。效果提供的穿透同样会针对全部五个伤害通道分别解析。
 
-Hawkwing is an outcome-triggered attack bonus. Deterministic calculations carry
-an expiry-sorted active-state array and scalar inactive probability,
-quantized to integer 0.1 ms ticks. Every hit reads the expected stack count before
-damage, applies `2% × expected stacks` as Physical Attack Bonus, and then branches
-the distribution using that hit's resolved Affinity rate. Identical stack/expiry
-states are merged during transitions, and compatible tiny expiries use the shared
-weighted timing rule. Expected stacks are cached; reads process only expired
-entries.
-Simulation runs instead use the sampled outcome: an Affinity
-hit adds and refreshes one concrete stack, while other outcomes leave the concrete
-state unchanged.
+飞隼是由结果触发的攻击加成。确定性计算携带一个按到期时间排序的激活状态数组以及一个标量形式的未激活概率，并量化为整数个 0.1 毫秒刻度。每次命中在伤害计算前读取期望层数，将 `2% × expected stacks` 作为外功攻击加成应用，然后使用该次命中解析后的会意率对分布进行分支。层数/到期时间相同的状态在转移过程中合并，兼容的微小到期状态使用共享的加权计时规则。期望层数会被缓存；读取时只处理已到期的条目。模拟运行则使用采样结果：会意命中会增加并刷新一层具体层数，而其他结果不改变具体状态。
 
-Insightful Strike uses a separate outcome tracker with the same integer 0.1 ms
-clock. Focus is stored as decay units rather than a floating-point resource:
-one Focus equals 20,000 units. Each eligible direct Affinity hit adds one Focus
-(1.5 at Tier 4+) and restarts a three-second decay delay. After the delay,
-one unit expires per tick, exactly 0.5 Focus per second; other outcomes
-do not restart the delay. Reaching 100,000 units (five Focus) applies or
-refreshes Concentration for 10 seconds and resets Focus to zero.
-The conversion happens after the triggering hit, so that hit does not receive
-Concentration's 10% Affinity DMG Bonus. Deterministic calculation carries the
-probability distribution in an inactive array and an active min-heap ordered by
-Concentration expiry; simulations update one concrete state from sampled outcomes.
-Before damage, expired active states move to the inactive array and the active
-probability total is updated. Focus decay is deferred until the next eligible hit.
-Each hit splits states using their category's Affinity chance. Resulting branches
-with individual probability strictly below `1e-5` merge into one aggregate per
-category, without a timing-bucket restriction. Focus and both deadlines are
-probability-weighted; deadlines round to the shared clock. Significant branches retain their values. Exactly identical states are
-consolidated using numeric keys after tiny-state aggregation. This deliberately favors speed over preserving rare timing
-histories; probability mass is retained. Expected
-Focus may therefore contain fractional decay units. Once a decay deadline has passed, it normalizes to zero
-because the last processed tick carries ongoing decay; zero Focus also clears
-its irrelevant deadline.
-Insightful Strike T3 makes the Affinity probability itself depend on whether
-Concentration is active. Deterministic calculation therefore resolves each hit
-once for the inactive branch and once for the active branch, weights their
-damage and outcome rates by the tracked pre-hit Concentration probability, and
-uses each branch's own Affinity rate for the next Focus transition. Simulation
-runs use only their concrete active or inactive state. This avoids feeding an
-average Direct Affinity value back into the Focus distribution.
+凝神章使用一个独立的结果追踪器，采用相同的整数 0.1 毫秒时钟。凝神值以衰减单位而非浮点资源的形式存储：1 点凝神值等于 20,000 单位。每次符合条件的直接会意命中增加 1 点凝神值（4 重及以上时为 1.5），并重新开始三秒的衰减延迟。延迟结束后，每个刻度到期一个单位，即恰好每秒 0.5 点凝神值；其他结果不会重新开始延迟。达到 100,000 单位（五点凝神值）时会施加或刷新持续 10 秒的看破，并将凝神值重置为零。转换发生在触发命中之后，因此该次命中不会获得看破的 10% 会意伤害加成。确定性计算将概率分布保存在一个未激活数组和一个按看破到期时间排序的激活最小堆中；模拟则根据采样结果更新一个具体状态。伤害计算前，已到期的激活状态会移入未激活数组，并更新激活概率总和。凝神值衰减会延后到下一次符合条件的命中时处理。每次命中使用各状态所属类别的会意几率对状态进行拆分。单个概率严格低于 `1e-5` 的结果分支会在每个类别中合并为一个聚合状态，不受计时区间限制。凝神值与两个截止时间均按概率加权；截止时间四舍五入到共享时钟。非微小分支保留其数值。完全相同的状态会在微小状态聚合之后使用数值键进行合并。这是有意以速度优先，而不保留罕见的计时历史；概率质量会被保留。因此，期望凝神值可能包含小数形式的衰减单位。一旦衰减截止时间已过，它会归一化为零，因为最后处理的刻度承载了持续中的衰减；凝神值为零时也会清除其已无意义的截止时间。凝神章 T3 使会意概率本身取决于看破是否生效。因此，确定性计算会对每次命中按未激活分支与激活分支各解析一次，按追踪得到的命中前看破概率对二者的伤害与结果概率加权，并使用各分支自身的会意率进行下一次凝神值转移。模拟运行只使用其具体的激活或未激活状态。这避免了将平均后的直接会意值反馈回凝神值分布。
 
-Seasonal Edge uses deterministic proc times and random branch contents. A
-Conversion skill finishing outside its shared cooldown creates an 8- or
-12-second window according to Inner Way tier. Multi-buff tiers draw without
-replacement: each later draw renormalizes the weights of the remaining buffs,
-and ordered draws that produce the same set are merged. Expected calculations
-evaluate each unique effect set through the ordinary damage pipeline and
-combine them with its exact probability. Identical no-effect sets share one
-calculation. Simulation runs sample one set per proc window and reuse that
-result for every hit in the window, rather than rerolling per action.
+四时无常使用确定性的触发时间与随机的分支内容。易武（Conversion）技能在其共享冷却之外结束时，会根据心法重数创建一个 8 秒或 12 秒的窗口。多增益重数采用不放回抽取：之后的每次抽取都会对剩余增益的权重重新归一化，产生相同集合的有序抽取结果会被合并。期望计算会通过普通伤害流程计算每个唯一的效果集合，并按其精确概率进行组合。相同的无效果集合共享一次计算。模拟运行在每个触发窗口中采样一个集合，并在该窗口内的每次命中中复用该结果，而不是每个动作重新掷骰。
 
-### Vitality deficit adjustment
+### 精元赤字调整
 
-The timeline records initial, consumed, regenerated, and final values for each
-numeric resource. Vitality may finish below zero. When it does, directly and
-indirectly triggered damage carrying the `Mystic` tag is multiplied by:
+时间轴会记录每种数值资源的初始值、消耗值、回复值与最终值。精元最终可能低于零。此时，直接或间接触发且带有 `Mystic` 标签的伤害会乘以：
 
 ```text
 Mystic Vitality Scale = clamp((Total Vitality Consumed + Final Vitality) / Total Vitality Consumed, 0, 1)
 ```
 
-This is equivalent to available Vitality divided by consumed Vitality. For
-example, consuming 300 Vitality and ending at -100 retains `200 / 300`, or
-two-thirds, of Mystic damage. Non-Mystic damage and healing are unchanged.
-Infinite Vitality disables the adjustment. Seasonal Edge resolves each possible
-Yield-regeneration branch independently, applies the deficit scale to that
-branch, and then probability-weights the resulting scales. It does not apply
-the nonlinear deficit clamp to an averaged ending Vitality, because a
-resource-surplus branch must not erase the damage loss from a resource-deficit
-branch.
+这等价于可用精元除以消耗精元。例如，消耗 300 精元且最终为 -100 时，保留 `200 / 300`（即三分之二）的奇术伤害。非奇术伤害与治疗不受影响。无限精元会禁用此调整。四时无常会对每个可能的「秋」回复分支分别解析，对该分支应用赤字比例，然后对所得比例进行概率加权。它不会对平均后的最终精元应用非线性的赤字钳制，因为资源盈余分支不能抹去资源赤字分支的伤害损失。
 
-The adjustment is deliberately an aggregate result correction. Main-page total
-damage and DPS use the corrected value. Rotation Editor total damage and DPS,
-timeline actions, per-action damage, skill and cast breakdowns, and editor
-resource values remain unscaled so they continue to describe the authored
-rotation.
+该调整是有意设计的聚合结果修正。主页上的总伤害与秒伤使用修正后的数值。循环编辑器中的总伤害与秒伤、时间轴动作、单个动作伤害、技能与施放分析以及编辑器中的资源数值均不缩放，以便继续如实描述所编写的循环。
 
-### Per-action stat conversion
+### 逐动作属性转换
 
-An active effect may convert one named numeric calculation stat into another:
+生效中的效果可以将一个具名的数值计算属性转换为另一个：
 
 ```json
 { "convert": { "from": "finalAffinity", "to": "directCrit", "ratio": 1, "max": 0.12 } }
 ```
 
-The calculator reads both names from the current per-action stat snapshot. It
-removes `min(max(source, 0), max)` from the source and adds that amount times
-`ratio` to the target, subject to the target stat's own cap. Only the amount
-that fits under the target cap is removed; the rest remains in the source.
-Missing or non-numeric names make the conversion inert. Multiple conversions
-run in data order and therefore read the result of the previous conversion.
-`max` caps the source amount consumed, while Direct Critical Rate has a global
-target cap of `0.2` (20%). Converted rate fields are passed through the ordinary
-outcome-rate formula and its existing caps. The same conversions then run on
-the derived `abrasionRate`, `normalRate`, `critRate`, and `affinityRate`
-snapshot. This lets a data effect convert one finished outcome probability into
-another without adding a mechanic-specific damage branch; conversions whose
-named fields are absent from either snapshot are inert in that stage.
+计算器从当前逐动作属性快照中读取这两个名称。它从来源中移除 `min(max(source, 0), max)`，并将该数量乘以 `ratio` 加到目标上，受目标属性自身上限的约束。只有能容纳在目标上限之内的数量会被移除；其余部分保留在来源中。缺失或非数值的名称会使转换不起作用。多个转换按数据顺序执行，因此会读取前一个转换的结果。`max` 限制被消耗的来源数量，而直接会心率具有全局目标上限 `0.2`（20%）。转换后的概率字段会传入普通的结果概率公式及其现有上限。随后，相同的转换会在派生的 `abrasionRate`、`normalRate`、`critRate` 与 `affinityRate` 快照上再次执行。这使数据效果可以把一个已完成的结果概率转换为另一个，而无需添加特定机制的伤害分支；若转换所指名的字段在某一快照中不存在，则该转换在对应阶段不起作用。
 
-### Monte Carlo outcome and attack sampling
+### 蒙特卡洛结果与攻击采样
 
-The deterministic calculator and Monte Carlo simulator share the same
-per-action damage implementation. The calculator's `average` attack-roll mode
-uses the effective average shown above. The simulator uses a `simulate` mode:
+确定性计算器与蒙特卡洛模拟器共享同一套逐动作伤害实现。计算器的 `average` 攻击取值模式使用上文所示的有效平均值。模拟器使用 `simulate` 模式：
 
-1. Generate one uniform random value in `[0, 1]` for the hit and select
-   abrasion, normal, critical, or affinity from the cumulative outcome rates.
-2. Abrasion still uses effective minimum attacks and affinity still uses
-   effective maximum attacks.
-3. For normal or critical damage, independently sample each physical and
-   attribute attack from its inclusive effective minimum/maximum range before
-   applying the same penetration, bonus, and outcome multipliers.
+1. 为该次命中生成一个 `[0, 1]` 范围内的均匀随机值，并根据累积结果概率选择擦伤、普伤、会心或会意。
+2. 擦伤仍使用有效最小攻击，会意仍使用有效最大攻击。
+3. 对于普伤或会心伤害，在应用相同的穿透、加成与结果乘数之前，从其包含端点的有效最小/最大范围内对每个外功攻击与属性攻击独立采样。
 
-Every simulated run uses the deterministic timeline, start anchor, and duration
-for the active rotation snapshot. Its four outcome percentages are shares of the
-run's total damage, not of its hit count, so the four always total 100%. Replay
-damage resolves no outcome and is credited to normal. Mystic damage is
-accumulated in per-outcome buckets, so the Vitality deficit adjustment scales
-each share and the denominator together. Healing outcome percentages remain
-heal-count shares. Runs are sorted by DPS; Best, P99, P95, P90, P75, and Median select
-the nearest actual run at each percentile rather than interpolating damage from
-two runs. Session-configured custom percentile rows use the same selection rule.
+每次模拟运行都使用当前循环快照的确定性时间轴、起始锚点与持续时间。其四种结果百分比是占该次运行总伤害的份额，而非占命中次数的份额，因此四者之和始终为 100%。重放伤害不判定结果，计入普伤。奇术伤害按结果分桶累计，因此精元赤字调整会同时缩放各份额与分母。治疗结果百分比仍为治疗次数的份额。运行按秒伤排序；最佳、P99、P95、P90、P75 与中位数会选取每个百分位上最接近的实际运行，而不是在两次运行之间插值计算伤害。会话中配置的自定义百分位行使用相同的选取规则。
 
-## Per-outcome damage
+<a id="per-outcome-damage"></a>
 
-For an action with physical coefficient `Cp` (`phyCoef`), attribute coefficient `Ca` (`attrCoef`), physical bonus `Bp`, attribute bonus `Ba`, and outcome-specific attacks `P` and `Ai`:
+## 各结果伤害
+
+对于外功系数为 `Cp`（`phyCoef`）、属性系数为 `Ca`（`attrCoef`）、外功加成为 `Bp`、属性加成为 `Ba`，且各结果对应攻击为 `P` 与 `Ai` 的动作：
 
 ```text
 Adjusted Enemy Defense = Enemy Defense × (1 + sum(active defenseBonus))
@@ -429,11 +155,9 @@ Base Physical = Cp × (P − Adjusted Enemy Defense) + Bp
 Base Attribute i = Ca × Ai + (Ba when i is the primary path, otherwise 0)
 ```
 
-`defenseBonus` is a signed percentage adjustment. A negative value lowers
-enemy defense; for example, `-0.06` changes 408 defense to 383.52. Values from
-multiple active effects add before adjusting defense.
+`defenseBonus` 是带符号的百分比调整。负值会降低敌方防御；例如，`-0.06` 会将 408 防御变为 383.52。多个生效效果的数值会先相加，再用于调整防御。
 
-Physical damage is clamped to zero after multiplication. Bellstrike, Stonesplit, Silkbind, and Bamboocut are calculated independently and are not reduced by physical defense.
+外功伤害在乘算之后钳制为不低于零。鸣金、裂石、牵丝与破竹各自独立计算，不受外功防御削减。
 
 ```text
 Physical = max(0,
@@ -453,122 +177,47 @@ Attribute i =
   × Outcome Multiplier
 ```
 
-The action's `attrBonus` is added only to the primary path. Physical and attribute coefficients are independent; an omitted coefficient is zero. Existing actions explicitly retain equal coefficients. The primary attribute still receives its usual 1.5 path multiplier; other attributes receive 1.
+动作的 `attrBonus` 只加到主流派上。外功系数与属性系数相互独立；省略的系数视为零。现有动作显式保留相等的系数。主属性仍获得通常的 1.5 流派乘数；其他属性为 1。
 
-### Periodic probability scaling
+### 周期性概率缩放
 
-Echoes of Oblivion T4 deliberately excludes all probability-weighted damage
-actions from its expected six-hit window, even when a row reaches probability
-one. Their expected damage remains included in DPS. Only definite hit events
-can reset Addled Mind in expected timelines; sampled simulation counts actual
-successful proc hits. This keeps expected charge-reset timing independent of
-chance estimates.
+忘川绝响 T4 有意将所有按概率加权的伤害动作排除在其期望六击窗口之外，即使某一行的概率达到 1 也是如此。它们的期望伤害仍计入秒伤。在期望时间轴中，只有确定的命中事件才能重置痴障；采样模拟则统计实际成功触发的命中。这使期望的充能重置时机独立于几率估算。
 
-All DOTs deal their authored damage once per active tick, regardless of stack count.
-Stacks can still determine effect transitions, including Weeping Blood's five-stack
-consumption, but do not multiply tick damage. DOT tick rows resolve through the
-ordinary per-outcome damage formula with no separate rules: the row's coefficients,
-flat `phyBonus` and `attrBonus`, attacks, penetration, path multiplier, active
-effects, and outcome rates are all calculated exactly as for a direct hit. For
-expected chance DOTs the timeline
-supplies `damageScale` equal to the probability of a tick. This multiplies every
-damage channel after ordinary formula resolution; `hitProbability` carries the same
-probability for hit counts and outcome triggers. A multi-stack tick is one hit.
-The expected tracker factors cadence into weighted schedules inside each
-stack/expiry state: a cadence of probability mass `p` at any positive stack count
-contributes `p` to both tick damage scale and hit probability. This is an
-exact representation change by default, with no probability truncation.
-Weeping Blood opts into a battle-aligned expected tick grid: at seconds 1, 2,
-and so on, its damage scale is the summed probability of branches eligible to
-tick. Stack count does not multiply that value. This approximates DOT timing
-and hit-time effects in expected calculations; simulations retain the exact
-application-relative cadence. Stack, threshold, and expiration probabilities
-remain unrounded.
-An `onMaxStack` burst resolves as a separate ordinary damage action, weighted by
-its trigger probability in expected calculations. Weeping Blood consumes at
-five stacks, so it never produces a five-stack tick.
-Fivefold Bleed T1 adds 100% Base DMG Bonus to Piercing Damage, and T2 adds
-62.3 Max Physical Attack. T3's natural-expiration burst has expected weight
-`P(DOT expires at this time) × 0.2`; it uses the same Piercing Damage formula
-and T1 bonus as the five-stack burst, not the DOT damage multiplier.
-Piercing Damage is Direct Damage and rolls the normal Weeping Blood chance.
-At T6 only a five-stack consumption burst also guarantees one post-hit stack;
-an expiration burst has only the independent Direct Damage chance.
-These applications are conditional
-on the branches that produced the burst: their probabilities must not be
-multiplied by its hit weight again. Renewed expiration bursts continue to use
-the 20% chance, within the fixed timeline cutoff described in `skill-data.md`.
-Weeping Blood and Piercing Damage are attributed to the Fivefold Bleed damage
-group, and Morale Chant to its own group. Group ownership does not change the
-hit-time formula, proc probability, or rotation total; it removes these actions
-from the damage credited to an individual cast.
-Published grouped results may combine equivalent same-time damage contributions
-after all event processing and metrics are complete. Their channel damage and hit
-weights are additive; no combined hit is fed back into triggers or outcome-state
-trackers. Exact event timelines remain authoritative for calculation and simulation.
+所有 DOT 在每个生效跳伤时造成一次其编写的伤害，与层数无关。层数仍可决定效果转换（包括泣血的五层消耗），但不会对跳伤伤害进行乘算。DOT 跳伤行通过普通的逐结果伤害公式解析，没有单独规则：该行的系数、固定的 `phyBonus` 与 `attrBonus`、攻击、穿透、流派乘数、生效效果以及结果概率，都与直接命中完全一样地计算。对于期望模式下的几率型 DOT，时间轴提供等于该次跳伤概率的 `damageScale`。它在普通公式解析之后乘到每个伤害通道上；`hitProbability` 为命中计数与结果触发携带相同的概率。多层跳伤算作一次命中。期望追踪器在每个层数/到期状态内部将节奏分解为加权时间表：在任何正层数下，概率质量为 `p` 的一次节奏会为跳伤伤害比例与命中概率各贡献 `p`。默认情况下这是精确的表示变换，没有概率截断。泣血选择使用与战斗时间对齐的期望跳伤网格：在第 1、2……秒，其伤害比例为有资格跳伤的各分支概率之和。层数不会乘到该值上。这在期望计算中近似了 DOT 计时与命中时效果；模拟则保留精确的、相对施加时刻的节奏。层数、阈值与到期概率均不做取整。`onMaxStack` 爆发作为单独的普通伤害动作解析，在期望计算中按其触发概率加权。泣血在五层时被消耗，因此永远不会产生五层跳伤。极乐泣血 T1 为刺伤提供 100% 基础伤害加成，T2 提供 62.3 最大外功攻击。T3 的自然到期爆发具有期望权重 `P(DOT expires at this time) × 0.2`；它使用与五层爆发相同的刺伤公式与 T1 加成，而非 DOT 伤害乘数。刺伤属于直接伤害，会按常规的泣血几率进行判定。在 T6，只有五层消耗爆发还会保证命中后施加一层；到期爆发只具有独立的直接伤害几率。这些施加以产生该爆发的分支为条件：其概率不得再次乘以该爆发的命中权重。重新施加后的到期爆发继续使用 20% 几率，并受 `skill-data.md` 中所述的固定时间轴截止点限制。泣血与刺伤归入极乐泣血伤害组，易水歌归入其自身的组。组归属不会改变命中时公式、触发概率或循环总量；它只是将这些动作从计入单次施放的伤害中移除。已发布的分组结果可以在所有事件处理与指标计算完成后，合并同一时刻的等效伤害贡献。其通道伤害与命中权重是加算的；合并后的命中不会反馈给触发器或结果状态追踪器。精确的事件时间轴仍是计算与模拟的权威依据。
 
-## Divinecraft damage
+## 天工伤害
 
-| Divinecraft  | Divinecraft damage        |
-| ------------ | ------------------------- |
-| Fire         | Burn and Solid Foundation |
-| Fire-Water   | Burn and Solid Foundation |
-| Fire-Poison  | Burn and Solid Foundation |
-| Poison-Fire  | Poison                    |
-| Poison-Water | Poison                    |
-| Water-Fire   | none                      |
-| Water-Poison | none                      |
-| None         | none                      |
+| 天工 | 天工伤害       |
+| ---- | -------------- |
+| 火   | 灼烧与厚积薄发 |
+| 火水 | 灼烧与厚积薄发 |
+| 火毒 | 灼烧与厚积薄发 |
+| 毒火 | 中毒           |
+| 毒水 | 中毒           |
+| 水火 | 无             |
+| 水毒 | 无             |
+| 无   | 无             |
 
-`data/divinecraft.json` selects which of them each Divinecraft applies. Both DOTs
-are one stack, refreshable, tick every 1.023 seconds starting 0.528 seconds after
-application, and use the `divinecraft` rate route with `averageAttack`, so each
-tick is
-`(average physical attack - enemy defense) x physical coefficient` at a single
-fixed value in both expected and sampled calculations.
+`data/divinecraft.json` 决定每种天工施加其中的哪些效果。两种 DOT 均为单层、可刷新，在施加后 0.528 秒开始每 1.023 秒跳伤一次，并使用带 `averageAttack` 的 `divinecraft` 概率路线，因此在期望计算与采样计算中，每次跳伤都是单一固定值 `(average physical attack - enemy defense) x physical coefficient`。
 
-| DOT                 | Element | Duration | `phyCoef` |
-| ------------------- | ------- | -------- | --------- |
-| `DivinecraftFire`   | Fire    | 4s       | 0.26      |
-| `DivinecraftPoison` | Poison  | 8s       | 0.16      |
+| DOT                 | 元素 | 持续时间 | `phyCoef` |
+| ------------------- | ---- | -------- | --------- |
+| `DivinecraftFire`   | 火   | 4 秒     | 0.26      |
+| `DivinecraftPoison` | 毒   | 8 秒     | 0.16      |
 
-Neither has an attribute coefficient or a flat bonus, so only the physical
-component is produced.
+两者均没有属性系数或固定加成，因此只产生外功分量。
 
-Fire, Fire-Water, and Fire-Poison apply the burn and also build
-`DivinecraftFireEmber`; Poison-Fire and Poison-Water apply the poison. A
-Water-first pairing carries no Divinecraft damage: Water-Fire and Water-Poison
-keep only their existing bonuses and healing trigger. Each application is a
-`damage` event trigger that requires a non-`DOT` hit, so a Divinecraft DOT never
-refreshes or sustains itself.
+火、火水与火毒会施加灼烧，同时累积 `DivinecraftFireEmber`；毒火与毒水会施加中毒。以水为先的组合不带天工伤害：水火与水毒只保留其现有加成与治疗触发。每次施加都是一个要求非 `DOT` 命中的 `damage` 事件触发，因此天工 DOT 永远不会刷新或维持自身。
 
-No target effect is applied before the fight-start anchor, so a prepull hit never
-puts a Divinecraft DOT on the target. The Solid Foundation counter additionally
-requires the fight to have started, so prepull hits do not count toward it.
+在开战锚点之前不会施加任何目标效果，因此开战前的命中永远不会让目标挂上天工 DOT。厚积薄发计数器还额外要求战斗已开始，因此开战前的命中不计入该计数。
 
-`RotationRecord.divinecraftDamage` is a per-rotation checkbox in the rotation
-editor, next to Ping. Unchecking it strips the `damage` event rules from the
-selected effect, which is exactly the burn, the poison, and the Solid Foundation
-counter, and leaves the HP DMG bonus and the healing trigger intact. Omitted
-records mean damage applies, so rotations saved before the checkbox existed keep
-their current numbers. Every setup comparison variant for a rotation inherits
-that rotation's flag, so a comparison delta measures only the option that
-varies.
+`RotationRecord.divinecraftDamage` 是循环编辑器中针对每个循环的复选框，位于「延迟」（Ping）旁边。取消勾选会从所选效果中移除 `damage` 事件规则——也就是灼烧、中毒以及厚积薄发计数器——同时保留气血伤害加成与治疗触发。记录中缺省该字段时视为伤害生效，因此在该复选框出现之前保存的循环会保持其现有数值。某个循环的每个设置对比变体都继承该循环的标志，因此对比差值只衡量发生变化的那一项选项。
 
-The Fire Divinecrafts build `DivinecraftFireEmber`, a hidden five-stack counter
-with the same direct-damage requirement. Reaching five stacks consumes the count
-and triggers `DivinecraftSolidFoundationGrant`, which applies
-`DivinecraftSolidFoundation`: a five-second buff with a ten-second re-application
-cooldown. Its next qualifying direct hit triggers
-`DivinecraftSolidFoundationStrike`, a direct hit with `phyCoef` 0.4 and the same
-`divinecraft` route, which consumes the buff so it fires once.
+火系天工累积 `DivinecraftFireEmber`，这是一个隐藏的五层计数器，具有相同的直接伤害需求。达到五层时会消耗计数并触发 `DivinecraftSolidFoundationGrant`，后者施加 `DivinecraftSolidFoundation`：一个持续五秒、重新施加冷却为十秒的增益。其下一次符合条件的直接命中会触发 `DivinecraftSolidFoundationStrike`——一个 `phyCoef` 为 0.4、同样使用 `divinecraft` 路线的直接命中——并消耗该增益，因此只触发一次。
 
-## Healing
+## 治疗
 
-Healing actions share the hit-time stat and effect snapshot used by damage
-actions, but resolve only Physical and Silkbind components. Enemy defense,
-resistance, other attribute attacks, damage bonuses, precision, abrasion, and affinity do
-not affect healing.
+治疗动作共享伤害动作所使用的命中时属性与效果快照，但只解析外功与牵丝分量。敌方防御、抗性、其他属性攻击、伤害加成、精准、擦伤与会意均不影响治疗。
 
 ```text
 Average Physical Attack = (Effective Min Physical + Effective Max Physical) / 2
@@ -585,21 +234,11 @@ Silkbind Healing =
   × (1 + Silkbind Healing Bonus)
 ```
 
-Healing uses `phyCoef` for Physical and `silkbindCoef` for Silkbind, with omitted coefficients treated as zero. It does not use `attrCoef` or other attribute attacks. It always resolves at the average of each attack range, which its `averageAttack` field records.
+治疗以 `phyCoef` 计算外功、以 `silkbindCoef` 计算牵丝，省略的系数视为零。它不使用 `attrCoef` 或其他属性攻击。它始终以各攻击范围的平均值结算，这由其 `averageAttack` 字段记录。
 
-Calculation-time Physical and Silkbind Attack Bonus effects multiply their
-respective average attack before the coefficient. Matching healing attunements
-contribute General Healing Bonus: Martial Art Skill requires the owning martial
-art, Special Skill additionally requires `Special`, and Panacea Fan Healing
-Skill requires `Heavy`. Physical
-Penetration combines its Weapon attunement value with matching calculation-time
-effects. Silkbind Penetration combines its resolved character-stat value with
-matching calculation-time effects. Formless Penetration sums its raw character-stat and matching attunement
-contributions once, then converts to the equipped
-path's primary attribute before healing is resolved, so it contributes to
-Silkbind Healing when Silkbind is the primary attribute.
+计算时的外功与牵丝攻击加成效果会在乘以系数之前，分别乘到对应的平均攻击上。匹配的治疗定音提供通用治疗加成：武学技类要求所属武学，特殊技类另外要求 `Special`，明川药典·治疗技类要求 `Heavy`。外功穿透将其武器定音数值与匹配的计算时效果合并。牵丝穿透将其解析后的角色属性数值与匹配的计算时效果合并。无相穿透将其原始角色属性贡献与匹配的定音贡献求和一次，然后在治疗结算之前转换为已装备流派的主属性，因此当牵丝为主属性时，它会计入牵丝治疗。
 
-Healing has only Normal and Critical outcomes, which is the `healing` rate route:
+治疗只有普伤与会心两种结果，即 `healing` 概率路线：
 
 ```text
 Healing Critical Rate =
@@ -614,65 +253,29 @@ Final Healing =
   × (1 + Healing Bonus Category)
 ```
 
-The base Critical Healing Bonus is the `0.5` character stat supplied by
-`data/system.json`. Critical Healing Bonus effects add to that stat for their
-matching actions. The Healing Bonus Category adds General Healing Bonus, All Martial
-Arts for actions tagged `MartialArts`, and the matching weapon Art bonus (for
-example, Art of Fan or Art of Umbrella), then multiplies the expected combined heal.
-Healing totals use the same fight duration as damage, producing HPS alongside
-DPS. A skill marked `group: true` reports `Final Healing × Group Size`, where
-Group Size is 1, 5, or 10. Per-skill healing breakdowns report the average
-Normal and Critical outcome rates across that skill's healing actions; abrasion
-and affinity are always absent.
-Simulation independently rolls each recipient's Normal or Critical result and
-a uniform final-healing multiplier from `0.92` through `1.08`. This fluctuation
-is applied after the outcome and healing-bonus multipliers. It does not affect
-deterministic expected healing or the Rotation Editor. Group-heal outcome counts
-are weighted by recipient count, and each DPS-ranked simulation record also
-reports its sampled HPS and healing outcome percentages.
+基础会心治疗加成是由 `data/system.json` 提供的 `0.5` 角色属性。会心治疗加成效果会为其匹配的动作在该属性上累加。治疗加成类别将通用治疗加成、针对带 `MartialArts` 标签动作的全武学增效，以及对应的武器武学加成（例如扇武学增伤或伞武学增效）相加，然后乘到期望的合并治疗量上。治疗总量使用与伤害相同的战斗时长，在秒伤之外同时得出秒疗。标记为 `group: true` 的技能报告 `Final Healing × Group Size`，其中 Group Size（群体人数）为 1、5 或 10。逐技能治疗分析报告该技能各治疗动作的平均普伤与会心结果概率；擦伤与会意始终不存在。模拟会为每个受治疗者独立掷出普伤或会心结果，以及一个介于 `0.92` 与 `1.08` 之间（含端点）的均匀最终治疗乘数。该波动在结果乘数与治疗加成乘数之后应用。它不影响确定性的期望治疗或循环编辑器。群体治疗的结果计数按受治疗者人数加权，每条按秒伤排序的模拟记录也会报告其采样得到的秒疗与治疗结果百分比。
 
-At the heal timestamp, one per-recipient healing copy first restores missing
-Self HP up to Max HP; the remainder is self overhealing. Other recipients of a
-group heal are assumed full. World to Sword counts one-fifth of each teammate's
-healing as overhealing:
+在治疗时间戳，每个受治疗者的一份治疗量首先将缺失的自身气血恢复至气血最大值；剩余部分为自身溢出治疗。群体治疗的其他受治疗者被假定为满血。万物为锋将每名队友所受治疗的五分之一计为溢出治疗：
 
 ```text
 WTS Action Overhealing =
   Self Overhealing + Per-Recipient Healing × (Group Size - 1) / 5
 ```
 
-For a single-target `player` heal, the self copy uses Self Overhealing and each
-teammate copy contributes its full Per-Recipient Healing. Morning Drizzle uses
-this single-target rule; its independently timed copies do not use the group-heal
-one-fifth multiplier.
+对于单体 `player` 治疗，自身那份使用自身溢出治疗，每份队友治疗贡献其完整的单人治疗量。朝雨轻尘使用此单体规则；其独立计时的各份治疗不使用群体治疗的五分之一乘数。
 
-World to Sword snapshots fully buffed attack when its application action executes at cast time:
+万物为锋（WTS）的施加动作在施放时执行时，会对完全增益后的攻击进行快照：
 
 ```text
 Qi Blade Threshold =
   12 × Cast-Time Average Physical Attack + 18 × Cast-Time Average Silkbind Attack
 ```
 
-The shared action-stat resolver includes food, effective attack ranges, Void-to-Silkbind
-conversion, active flat attack bonuses, and Physical/Silkbind attack multipliers.
-Hawkwing contributes its current Physical Attack bonus; Etherwrath contributes its
-current attack bonuses. Healing bonuses, penetration, and damage bonuses do not enter
-the threshold. Skill-specific effects are evaluated against WTS itself.
-The value is frozen for that activation. Later buff applications, expirations, and
-stack changes do not alter it; recasting captures a new value.
-Expected calculations use expected Hawkwing stacks at the cast timestamp, an
-approximation rather than an exact distribution of resulting Qi Blade counts.
-Simulation uses that run's sampled stacks. Qi Blade damage continues to resolve
-at each hit's own timestamp.
+共享的动作属性解析器包括食物、有效攻击范围、无相到牵丝的转换、生效中的固定攻击加成以及外功/牵丝攻击乘数。飞隼提供其当前的外功攻击加成；撼天提供其当前的攻击加成。治疗加成、穿透与伤害加成不计入阈值。技能专属效果针对 WTS 本身进行判定。该数值在本次激活期间冻结。之后的增益施加、到期与层数变化都不会改变它；重新施放会捕获新值。期望计算使用施放时刻的期望飞隼层数，这只是近似，而非所产生气刃数量的精确分布。模拟使用该次运行采样得到的层数。气刃伤害仍在每次命中各自的时间戳结算。
 
-Every recipient's healing number enters the accumulator separately. Expected
-calculations use that recipient's expected healing; simulations roll each
-recipient independently. Reaching the threshold launches one Qi Blade and
-resets accumulated overhealing to zero in both modes. If the 0.3-second launch
-cooldown is active, further healing remains accumulated; the delayed cooldown
-check launches the blade and resets the complete stored amount once ready.
+每个受治疗者的治疗数值分别进入累加器。期望计算使用该受治疗者的期望治疗量；模拟则对每个受治疗者独立掷骰。达到阈值时，两种模式都会发射一道气刃并将累计的溢出治疗重置为零。若 0.3 秒的发射冷却正在生效，后续治疗会继续累计；延后的冷却检查会在就绪时发射气刃，并一次性重置全部已存储的数值。
 
-### Shared multiplier
+### 共享乘区
 
 ```text
 Shared Multiplier =
@@ -681,105 +284,45 @@ Shared Multiplier =
   × (1 + matching Attunement DMG Bonus)
 ```
 
-`baseDMGBonus` applies to physical damage and all four attributes. It is a separate multiplier from Category 1.
+`baseDMGBonus` 作用于外功伤害及全部四种属性。它是独立于类别 1 的单独乘区。
 
-Snowbreak Spring uses its unscaled level-100 baseline (2.07686 physical and
-attribute coefficients, 575 physical flat damage, 313 attribute flat damage).
-Its unconditional PvE `baseDMGBonus: 0.36` adds to Frost-Clad Night T4's
-`baseDMGBonus: 0.4` while Inner Passion is active or, at T6, the target is
-Exhausted. The resulting base multiplier is 1.36 normally and 1.76 when
-enhanced; overlapping conditions grant the enhancement only once. This scales
-coefficients and flat damage together, separately from HP damage bonuses.
-T6's separate 10% damage bonus remains in Category 1.
+拨雪寻春使用其未经缩放的 100 级基准值（外功与属性系数 2.07686，外功固定伤害 575，属性固定伤害 313）。在热血难凉生效期间，或在 T6 时目标处于气竭状态时，其无条件的 PvE `baseDMGBonus: 0.36` 会与霜天白夜 T4 的 `baseDMGBonus: 0.4` 相加。由此得到的基础乘区通常为 1.36，强化时为 1.76；多个条件同时满足时只授予一次强化。该乘区同时缩放系数与固定伤害，并独立于气血伤害加成。T6 单独的 10% 伤害加成仍归入类别 1。
 
-Category 1 currently contains:
+类别 1 目前包含：
 
-- `vsBossDmg` (the current encounter is treated as a boss)
-- `allMartialArts` for skills tagged `MartialArts`
-- Art of Mo Blade for `MoBlade`, or Art of Heng Blade for `HengBlade`
-- Single-Target Mystic Skill DMG Boost for `SingleTargetMystic`, or Area Mystic Skill DMG Boost for `AreaMystic`
-- active `dmgBonus` effects
-- active `hpDMGBonus` effects whose requirements pass
+- `vsBossDmg`（当前战斗视为首领战）
+- 带 `MartialArts` 标签的技能适用 `allMartialArts`
+- `MoBlade` 适用陌刀武学增伤，`HengBlade` 适用横刀武学增伤
+- `SingleTargetMystic` 适用单体类奇术增伤，`AreaMystic` 适用群体类奇术增伤
+- 生效中的 `dmgBonus` 效果
+- 条件满足且生效中的 `hpDMGBonus` 效果
 
-Adaptive Steel grants its Heng Blade buff on a successful deflection while Heng
-Blade is the current weapon. The buff lasts 5 seconds with a 20-second application
-cooldown and adds 5% Category 1 damage to Heng Blade Light/Heavy Varied Combos.
-Failed deflections and perfect dodges do not grant it. The existing shared
-deflection-success action applies the buff; Inner Way comparisons rebuild the
-timeline. Adaptive Steel retains its Might-only path eligibility. Other
-weapon-mastery branches and T6 cross-weapon retention are outside this implementation.
+当前武器为横刀时，移经易武会在成功卸势后授予其横刀增益。该增益持续 5 秒，施加冷却为 20 秒，为横刀的轻重击派生技提供 5% 的类别 1 伤害加成。卸势失败与完美闪避不会授予该增益。该增益由现有的共享卸势成功动作施加；心法对比会重建时间轴。移经易武仍保留仅限威流派可用的限制。其他武器精通分支以及 T6 的跨武器保留不在本实现范围内。
 
-Art of Resistance T3 contributes 5% `dmgBonus` while the shared player Shield
-is active. At T6 its cumulative contribution is 10%. A Shield Broken event
-removes Shield and conditionally applies Hardened Foe at T6; Hardened Foe
-contributes 10% `dmgBonus` for 12 seconds. Casting Predator's Shield consumes
-Hardened Foe before applying and extending a fresh Shield.
+抗造大法 T3 在共享的玩家护盾生效期间提供 5% `dmgBonus`。T6 时其累计提供 10%。破盾事件会移除护盾，并在 T6 时有条件地施加硬茬；硬茬在 12 秒内提供 10% `dmgBonus`。施放鹰扬虎视时会先消耗硬茬，再施加并延长一个新的护盾。
 
-Flute supplies damage bonus from the damage action's distance snapshot: 1%, 2%, 3%,
-4%, 5%, 8%, 11%, 14%, 17%, and 20% in the bands starting at 0m through 9m
-respectively. Each lower bound is inclusive; the next bound is exclusive.
-The 20% band ends at 20m, where the bonus becomes 0%. A Move event changes
-distance for subsequent timeline actions; the initial distance remains 1m.
+箫根据伤害动作的距离快照提供伤害加成：起点分别为 0m 至 9m 的各区间依次为 1%、2%、3%、4%、5%、8%、11%、14%、17% 和 20%。每个下界包含在内；下一个边界不包含在内。20% 区间止于 20m，在该处加成变为 0%。移动事件会改变时间轴上后续动作的距离；初始距离仍为 1m。
 
-Dragon Head - Tide receives an always-active conditional `dmgBonus` rule from
-its `global: true` definition in `data/buff/mystic.json`. At each hit it
-resolves:
+叶龙骧首·叠浪通过其在 `data/buff/mystic.json` 中的 `global: true` 定义获得一条始终生效的条件 `dmgBonus` 规则。每次命中时它会解析：
 
 ```text
 Missing HP percentage points = (1 - current HP ratio) × 100
 Dragon Head DMG Bonus = Missing HP percentage points × 0.0045
 ```
 
-A Self HP event changes absolute current HP for its target action and all
-subsequent actions. The timeline initializes it from the calculated Max HP stat;
-Take Damage events subtract an absolute amount. Damage effects continue to read
-the derived percentage at hit time.
+自身气血事件会修改其目标动作及所有后续动作的当前气血绝对值。时间轴以计算得到的气血最大值属性对其初始化；承受伤害事件会减去一个绝对数值。伤害效果仍在命中时读取推导出的百分比。
 
-Dynamic stat and effective-stat values may use `function: "segment"` with
-`param1: "maxHp"`. Its thresholds are stored in `param2`
-and corresponding results in `param3`; values beyond the final threshold use
-the final result. Thundercry Blade uses this for its Charged/Varied Combo Max
-Physical Attack and Effective Critical Rate talents. The
-talents carry skill-tag requirements, so the worker applies them only to their
-matching damage actions rather than adding them to the displayed global stats.
+动态属性与实际属性的数值可使用 `function: "segment"` 搭配 `param1: "maxHp"`。其阈值存储在 `param2` 中，对应结果存储在 `param3` 中；超出最后一个阈值的数值使用最后一个结果。嗟夫刀法的蓄力/派生技最大外功攻击与实际会心率天赋即使用此方式。这些天赋带有技能标签要求，因此 worker 只将其应用于匹配的伤害动作，而不会把它们加到界面显示的全局属性上。
 
-Numeric damage-effect values may also use the data-defined `segment` function.
-The optional `mode` selects `LowerBoundInclusive` (default, `<` upper-bound
-comparison) or `UpperBoundInclusive` (`<=` upper-bound comparison). Existing
-definitions retain their boundary behavior when the mode is omitted.
-When `param1` is `distance`, the action's distance snapshot is compared against
-the upper bounds in `param2` using the selected mode; the matching value comes from the same
-index in `param3`, and values beyond every matching bound use its extra final entry. Damage-action
-`phyCoef` and `attrCoef` use the same resolver and the action's distance snapshot,
-including in sampled damage calculations.
+数值型伤害效果值也可以使用数据定义的 `segment` 函数。可选的 `mode` 用于选择 `LowerBoundInclusive`（默认，与上界做 `<` 比较）或 `UpperBoundInclusive`（与上界做 `<=` 比较）。省略该模式时，现有定义保持其原有的边界行为。当 `param1` 为 `distance` 时，会按所选模式将动作的距离快照与 `param2` 中的上界进行比较；匹配的值取自 `param3` 中相同索引处，超出所有可匹配边界的值使用其额外的最后一项。伤害动作的 `phyCoef` 和 `attrCoef` 使用相同的解析器和动作的距离快照，抽样伤害计算中也是如此。
 
-The selected Divinecraft contributes its `hpDMGBonus` through this category and
-healing-triggered Vitality gain through the shared heal event trigger. Divinecraft
-`qiDMGBonus` is retained in `data/divinecraft.json` as future-facing data and is
-not currently evaluated by the simulator.
+所选天工通过此类别提供其 `hpDMGBonus`，并通过共享的治疗事件触发器提供由治疗触发的精元获取。天工的 `qiDMGBonus` 作为面向未来的数据保留在 `data/divinecraft.json` 中，目前模拟器不会对其求值。
 
-Script requirements are evaluated from each damage action's target HP and Qi
-snapshot. When a rotation declares target Max HP, target-HP requirements are
-reevaluated after every preceding hit. `critDmgBonus` and `affinityDmgBonus`
-extend their matching outcome bonuses. Convergence adds 15% to each of the four attribute-specific DMG Bonus stats when its Qi condition passes.
+帖的条件根据每个伤害动作的目标气血与真气快照求值。当循环声明了目标气血最大值时，目标气血条件会在每次先前命中之后重新求值。`critDmgBonus` 和 `affinityDmgBonus` 会扩展各自对应的结果加成。存煞在其真气条件满足时，为四种属性各自的伤害加成属性各增加 15%。
 
-Attunement definitions in `data/attunement.json` provide the target stat and
-required skill-match tags. Armor definitions target `attunementDMGBonus`;
-matching values are summed and applied through the standalone
-`1 + matching Attunement DMG Bonus` multiplier above. Charged, varied-combo,
-and martial-art boosts require every `effect.tags` entry: strings match exactly,
-and nested arrays match any one listed tag. Matching multiple alternatives
-still applies each attunement once. Damage and healing share this matching rule.
-Panacea/Soulshade Martial Art healing boosts require singular `MartialArt`,
-which covers Fan Q/QQ (including cancels) and Umbrella Q only.
-Physical and Formless Penetration target their corresponding penetration
-channels and have no skill-match restriction.
+`data/attunement.json` 中的定音定义提供目标属性以及所需的技能匹配标签。护甲定义以 `attunementDMGBonus` 为目标；匹配的数值求和后，通过上文独立的 `1 + matching Attunement DMG Bonus` 乘区生效。蓄力、派生技和武学技增伤要求满足 `effect.tags` 的每一项：字符串需精确匹配，嵌套数组则匹配其中任意一个标签。即使匹配了多个备选项，每个定音也只应用一次。伤害与治疗共用此匹配规则。明川药典/千香引魂蛊的武学技增疗要求单数形式的 `MartialArt`，它仅涵盖扇 Q/QQ（包括打断）以及伞 Q。外功穿透与无相穿透以各自对应的穿透通道为目标，没有技能匹配限制。
 
-The shared result is then multiplied by the Mechanism multiplier, a
-channel-specific final multiplier that is separate from the shared multiplier and
-from DMG Bonus Category 1. It models the source's independent DMG Bonus, whose
-`calc_cause_change` cause 50 multiplies the whole resolved hit instead of
-joining the additive Category 1 pool:
+共享结果随后乘以机关乘区。这是一个按通道区分的最终乘区，独立于共享乘区，也独立于伤害加成类别 1。它对应源数据中的独立伤害加成，其 `calc_cause_change` cause 50 会乘到整个已结算的命中上，而不是并入加算的类别 1 池：
 
 ```text
 Physical, Stonesplit, Silkbind, Bamboocut Mechanism Multiplier =
@@ -789,47 +332,23 @@ Bellstrike Mechanism Multiplier =
   1 + globalDmgBonus + globalHPDMGBonus + globalBellstrikeDMGBonus
 ```
 
-All effects in this Mechanism category add together before forming the
-multiplier. With Soulshade Umbrella's Buff Enhancement talent, active Floating
-Grace adds another `dmgBonus: 0.05` only against an Exhausted target. This is
-part of Floating Grace's damage bonus (including its Deluge variant), with no
-separate buff or five-second timer.
+机关类别中的所有效果先相加，再构成乘区。千香引魂蛊拥有增益强化（Buff Enhancement）天赋时，生效中的一念浮生仅对气竭目标额外提供 `dmgBonus: 0.05`。这属于一念浮生伤害加成的一部分（包括其霖变体），没有单独的增益或五秒计时器。
 
-Light and Shadow Alike's Righteous Return adds to `dmgBonus` only for
-`DirectDamage` actions. T0–T2 grant 3% plus 0.5% per complete 20% target HP
-lost, capped at 2% extra; T3–T5 use 15% intervals. T6 replaces this with 5%
-plus 1% per complete 15% lost, capped at 4% extra. HP threshold equality grants
-the next step. T1 adds the corresponding healing bonus and direct incoming
-damage reduction using the caster's pre-action HP instead of target HP.
-T4–T5 Light/Darkness stacks enhance their respective bonuses by 10% per stack,
-up to 50%; T6 removes stack generation. These definitions follow innerway 47
-in `local/datamine/wwm-inner-way-normal.json` (normal variant).
+明晦同尘的归义仅对 `DirectDamage` 动作计入 `dmgBonus`。T0–T2 提供 3%，目标每损失完整的 20% 气血再加 0.5%，额外部分上限为 2%；T3–T5 改用 15% 的间隔。T6 将其替换为 5%，每损失完整的 15% 再加 1%，额外部分上限为 4%。气血恰好等于阈值时即获得下一档。T1 增加相应的治疗加成以及受到直接伤害的减免，此时使用施法者动作前的气血而非目标气血。T4–T5 的明/晦层数每层使各自的加成提高 10%，最高 50%；T6 移除层数获取。这些定义遵循 `local/datamine/wwm-inner-way-normal.json` 中的 innerway 47（普通变体）。
 
-`Exhausted` supplies `globalDmgBonus: 0.1`. Thunder Summoning supplies
-`globalDmgBonus: 0.3` for 15 seconds, matching its source cause-50 value.
-Qi Imbalance conditionally supplies
-`globalHPDMGBonus: 0.08` for every HP-damage channel and an additional
-`stat.bellstrikeDmgBonus: 0.08` for Bellstrike only. The latter adds in the earlier attribute-specific multiplier.
+`Exhausted` 提供 `globalDmgBonus: 0.1`。召雷在 15 秒内提供 `globalDmgBonus: 0.3`，与其源数据中的 cause-50 数值一致。真气失衡有条件地为每个气血伤害通道提供 `globalHPDMGBonus: 0.08`，并额外仅为鸣金提供 `stat.bellstrikeDmgBonus: 0.08`。后者计入前文的属性专属乘区。
 
-Damage rows generated by a DOT definition also receive a standalone multiplier:
+由 DOT 定义生成的伤害行还会获得一个独立乘区：
 
 ```text
 DOT Multiplier = 1 + sum(active dotDamage effects)
 ```
 
-`dotDamage` values add together within this category and then multiply physical
-and every attribute component of the DOT. They do not affect ordinary damage
-actions, even when the casting skill applies or extends a DOT. Soul-Shaken uses
-this field for its general DOT vulnerability and its additional Umbra-source
-vulnerability.
+`dotDamage` 数值在此类别内相加，然后乘到 DOT 的外功分量及每个属性分量上。即使施放的技能施加或延长了 DOT，它们也不会影响普通伤害动作。惊神使用此字段来表示其通用的 DOT 易伤以及额外的影来源易伤。
 
-Vendetta Token uses `dmgBonus: 0.5` for Rodent-tagged attacks, following the
-confirmed general-damage behavior. Vendetta T6 adds `dmgBonus: 0.3` for those attacks
-while the same caster-specific target debuff is active. These bonuses add together in the same existing
-category: without other bonuses their multiplier is `1 + 0.5 + 0.3 = 1.8`.
-Other attacks receive neither bonus. No Category 2 multiplier is introduced.
+仇杀令对带鼠鼠标签的攻击使用 `dmgBonus: 0.5`，遵循已确认的通用伤害行为。心弥泥鱼 T6 在同一施法者专属的目标减益生效期间，为这些攻击额外提供 `dmgBonus: 0.3`。这些加成在同一个现有类别中相加：没有其他加成时，其乘区为 `1 + 0.5 + 0.3 = 1.8`。其他攻击不获得上述任一加成。不引入类别 2 乘区。
 
-### Outcome multiplier
+### 结果乘区
 
 ```text
 Abrasion or Normal = 1
@@ -837,80 +356,48 @@ Critical = 1 + Effective Critical DMG Bonus + active critDmgBonus effects
 Affinity = 1 + Affinity DMG Bonus
 ```
 
-Critical and affinity bonuses multiply physical and every attribute component.
-Rain Whisper four-piece contributes 10% `critDmgBonus` as an unconditional
-compute-time effect, so it does not alter the displayed character Critical DMG
-stat. It adds a separate 15% `critDmgBonus` to damage actions whose hit-time
-state contains the player Shield. The same conditions grant 10% and 15%
-`criticalHealingBonus`; normal healing receives no bonus.
+会心与会意加成会乘到外功分量及每个属性分量上。时雨四件套以无条件的计算时效果提供 10% `critDmgBonus`，因此不会改变界面显示的角色会心伤害属性。对于命中时状态中包含玩家护盾的伤害动作，它另外提供独立的 15% `critDmgBonus`。相同条件分别提供 10% 和 15% 的 `criticalHealingBonus`；普通治疗不获得加成。
 
-### Path multiplier
+### 流派乘区
 
 ```text
 Primary path = 1.5
 Other paths = 1.0
 ```
 
-## Penetration and resistance
+## 穿透与抗性
 
-Active `physicalResistance` effects add flat values to the enemy's Physical
-Resistance before the Physical Penetration Multiplier is evaluated. Negative
-values therefore reduce resistance. Attribute resistance fields use the same
-signed, flat adjustment for their corresponding channel.
+生效中的 `physicalResistance` 效果会在计算外功穿透乘区之前，将固定数值加到敌人的外功抗性上。因此负值会降低抗性。属性抗性字段对其对应通道使用相同的带符号固定调整。
 
-When penetration is greater than or equal to resistance:
+当穿透大于或等于抗性时：
 
 ```text
 Penetration Multiplier = 1 + (Penetration − Resistance) / 200
 ```
 
-When penetration is lower than resistance:
+当穿透低于抗性时：
 
 ```text
 Penetration Multiplier = 1 + (Penetration − Resistance) / 100
 ```
 
-Physical penetration consists of the character's Physical Penetration stat, matching attunement Physical Penetration,
-and active `physicalPenetration` effects.
+外功穿透由角色的外功穿透属性、匹配定音的外功穿透以及生效中的 `physicalPenetration` 效果组成。
 
-Each attribute starts with its corresponding character penetration stat. Stonesplit additionally receives active `stonesplitPenetration` effects. Formless Penetration is added to the primary attribute.
+每种属性以其对应的角色穿透属性为起点。裂石还会额外获得生效中的 `stonesplitPenetration` 效果。无相穿透加到主属性上。
 
-Penetration effect values may be a `segment` over `missingTargetHPPercentage`,
-so they resolve per hit from the same target-HP snapshot the damage categories
-use. Mistwing is the current case: its T0 base step is one Physical Penetration
-per completed 20% of missing target HP (capped at four), and T6 replaces that step
-with one per 10% instead of adding a second step. T3 adds a separate Physical
-Penetration step of two per 10% (capped at eight) while a Martial Art Special
-Enhancement is active, and T4 supplies six of every penetration type. These are
-ordinary calculation-time effects: they read the action's target-HP snapshot,
-apply to healing on the same channels, and are not character-sheet stats.
+穿透效果值可以是基于 `missingTargetHPPercentage` 的 `segment`，从而在每次命中时根据伤害类别所用的同一目标气血快照解析。燕别云岫是目前的实例：其 T0 基础档位为目标每损失完整的 20% 气血获得 1 点外功穿透（上限 4 点），T6 将该档位替换为每 10% 获得 1 点，而不是再增加第二个档位。T3 在武学特殊强化（Martial Art Special Enhancement）生效期间额外增加一个独立的外功穿透档位，每 10% 获得 2 点（上限 8 点），T4 则提供各类穿透各 6 点。这些都是普通的计算时效果：它们读取动作的目标气血快照，同样作用于相同通道上的治疗，且不属于角色面板属性。
 
-Effects may adjust resistance directly with `bellstrikeResistance`, `stonesplitResistance`, `silkbindResistance`, or `bamboocutResistance`. These values are added to enemy resistance. For example, Fearful Blade contributes `-16` to each attribute resistance.
+效果可以通过 `bellstrikeResistance`、`stonesplitResistance`、`silkbindResistance` 或 `bamboocutResistance` 直接调整抗性。这些数值会加到敌人抗性上。例如，惧刃为每种属性抗性提供 `-16`。
 
-Echoes of Oblivion applies `bamboocutResistance: -10` only to Infernal
-Twinblades Light Attacks against Karma, at every tier. This flat adjustment
-combines with other Bamboocut resistance adjustments in the existing channel;
-it does not scale with enemy resistance. Sin separately supplies 10% Physical
-Defense ignore for matching Light Attacks. Neither changes Judgment Resistance
-or its precision, critical, and affinity rate formulas.
+忘川绝响在每一重下都仅对泥犁三垢针对苦果的轻击施加 `bamboocutResistance: -10`。该固定调整与现有通道中的其他破竹抗性调整合并；它不随敌人抗性缩放。恶身另外为匹配的轻击提供 10% 外功防御忽视。两者都不会改变判定抗性及其精准率、会心率和会意率公式。
 
-Strayhunt (Draught) adds 2% to Physical DMG Bonus and each of the four attribute DMG Bonuses. Its target debuff lasts 20 seconds, refreshes, and caps at one stack; the global control keeps one externally maintained copy active. These channel bonuses add to Swallowcall's conditional 6%, Convergence's conditional attribute 15%, Qi Imbalance's conditional Bellstrike 8%, and the matching channel talents of Mortal Rope Dart, Everspring Umbrella, Skygrasp Rope Dart, and Riven Twinblades. Their existing requirements and channel scopes still apply.
+离猎（樽）使外功伤害加成及四种属性伤害加成各提高 2%。其目标减益持续 20 秒，可刷新，最多 1 层；全局控件会保持一个外部维持的副本处于生效状态。这些通道加成与燕归的条件 6%、存煞的条件属性 15%、真气失衡的条件鸣金 8%，以及粟子游尘、醉梦游春、千机索天和断水双诀的对应通道天赋相加。它们现有的条件与通道范围仍然适用。
 
-The Main tab can treat Strayhunt (Draught), Phantom Chime, Qi Imbalance, Soul-Shaken, Vulnerable,
-Fearful Blade, Bitter Seasons, and Floating Grace as externally maintained
-global effects. An enabled choice initializes one permanent tracked buff or
-debuff on the timeline; stacking debuffs start at maximum stacks. If the
-rotation applies the same effect, it updates that tracked entry rather than
-adding a second copy, and the global entry remains permanent. Floating Grace's
-Mixed choice uses the base 10% `dmgBonus` definition, while Deluge uses its 24%
-definition. Requirements still resolve per damage action: Qi Imbalance requires
-Exhausted, and path-specific additions require the matching martial-art tag.
-These controls and their DPS comparisons use the same worker calculation as the
-baseline.
+主页标签页可以将离猎（樽）、幻鸣、真气失衡、惊神、易伤、惧刃、所恨年年和一念浮生视为外部维持的全局效果。启用某个选项后，会在时间轴上初始化一个永久追踪的增益或减益；可叠层的减益从最大层数开始。如果循环施加了相同的效果，会更新该追踪条目而不是再添加一个副本，且全局条目保持永久。一念浮生的混搭选项使用基础的 10% `dmgBonus` 定义，而霖使用其 24% 定义。条件仍按每个伤害动作解析：真气失衡要求气竭，流派专属加成要求匹配的武学标签。这些控件及其秒伤对比使用与基准相同的 worker 计算。
 
-## Rate calculation
+## 概率计算
 
-For Judgement Resistance `J`:
+对于判定抗性 `J`：
 
 ```text
 Effective Precision = min(1, (Precision − 0.65) / (1 + J) + 0.65)
@@ -919,36 +406,23 @@ Effective Affinity  = min(0.4, Affinity / (1 + J))
 Final Affinity = clamp(Effective Affinity + Direct Affinity, 0, 1)
 ```
 
-The Precision baseline is always `0.65`; only the denominator changes with
-Judgement Resistance, including at breakthrough 18 (`J = 0.85`).
+精准基线始终为 `0.65`；只有分母随判定抗性变化，破阵 18（`J = 0.85`）时也是如此。
 
-Effective Critical Bonus is added after Judgement Resistance and shares the
-80% Effective Critical cap. Flamelash contributes `0.1` and Ivorybloom's
-full-HP four-piece effect contributes `0.05` through
-`effectiveStat.effectiveCritBonus`. At `J = 0.65`, these are equivalent to
-`0.165` and `0.0825` ordinary Critical respectively before the cap. Ivorybloom's
-unconditional `0.09` Critical remains subject to Judgement Resistance.
-These bonuses feed the shared damage and healing rate calculations. Precision
-and outcome competition apply to ordinary damage; healing ignores Precision
-and rolls only Normal or Critical.
-Direct Critical is a separate final-rate channel
-and is not part of Effective Critical or its cap. When
-`Final Affinity + Direct Critical + Effective Critical <= 1`:
+实际会心加成在判定抗性之后加入，并与实际会心共用 80% 的上限。嗔焰与浣花满气血时的四件套效果分别通过 `effectiveStat.effectiveCritBonus` 提供 `0.1` 和 `0.05`。在 `J = 0.65` 时，二者在计入上限前分别相当于 `0.165` 和 `0.0825` 的普通会心。浣花无条件的 `0.09` 会心仍受判定抗性影响。这些加成会进入共享的伤害与治疗概率计算。精准与结果竞争适用于普通伤害；治疗忽略精准，只判定普伤或会心。直接会心是一个独立的最终概率通道，不属于实际会心，也不受其上限约束。当 `Final Affinity + Direct Critical + Effective Critical <= 1` 时：
 
 ```text
 Final Critical = (Effective Critical + Direct Critical) × Effective Precision
 ```
 
-Otherwise:
+否则：
 
 ```text
 Final Critical = (1 − Final Affinity) × Effective Precision
 ```
 
-The resulting Final Critical is clamped to `[0, 1]`. Final Critical and Final
-Affinity therefore cannot exceed 100% or fall below 0%.
+得到的最终会心会被限制在 `[0, 1]` 范围内。因此最终会心与最终会意不会超过 100%，也不会低于 0%。
 
-The outcome distribution is:
+结果分布为：
 
 ```text
 Affinity Rate = Final Affinity
@@ -957,18 +431,18 @@ Abrasion Rate = (1 − Effective Precision) × (1 − Final Affinity)
 Normal Rate   = max(0, 1 − Abrasion Rate − Affinity Rate − Critical Rate)
 ```
 
-`GuaranteedCrit` is an unconditional rate override: Critical Rate becomes 100% and every other outcome rate becomes zero.
+`GuaranteedCrit` 是无条件的概率覆盖：会心率变为 100%，其他所有结果概率变为零。
 
-`SteadfastGuaranteedCrit` is a separate conditional rate override and only applies to skills tagged `BurningHeart` or `AnxiSoldier`:
+`SteadfastGuaranteedCrit` 是另一个有条件的概率覆盖，仅适用于带 `BurningHeart` 或 `AnxiSoldier` 标签的技能：
 
-- If the normal Final Critical is at least 75%, Critical Rate becomes 100% and every other outcome rate becomes zero.
-- Otherwise, 15% Direct Critical is added and the rates are recalculated; this fallback does not guarantee a critical hit.
+- 若常规的最终会心至少为 75%，会心率变为 100%，其他所有结果概率变为零。
+- 否则，增加 15% 直接会心并重新计算概率；此回退不保证会心。
 
-The associated 10% Critical DMG effects are represented separately as `critDmgBonus: 0.1` in effect data; they are not part of the rate function.
+相关的 10% 会心伤害效果在效果数据中单独表示为 `critDmgBonus: 0.1`；它们不属于概率函数。
 
-## Expected action damage
+## 动作期望伤害
 
-For every physical or attribute component:
+对每个外功或属性分量：
 
 ```text
 Expected Component =
@@ -978,38 +452,25 @@ Expected Component =
   + Affinity Damage × Affinity Rate
 ```
 
-The action total is the sum of expected Physical, Bellstrike, Stonesplit, Silkbind, and Bamboocut damage. Rotation total damage includes resolved damage at or after the selected start anchor and within the combat window, including triggered skills and DOT ticks. Pre-start actions remain visible but are omitted from damage, hit count, and outcome-rate aggregation; actions after combat ends are not resolved. Battle End precedes damage at the same timestamp, so an equal-time hit does not count. Actions at the starting timestamp still use timeline order to omit earlier actions in the starting skill. DPS is total damage divided by the time from the selected start anchor to Battle End, or to completion of the final ordered cast/Delay when Battle End is absent. Final-cast same-time actions count; later DOTs and replays do not extend the duration.
+动作总伤害为外功、鸣金、裂石、牵丝和破竹期望伤害之和。循环总伤害包括在所选起始锚点及其之后、且位于战斗窗口内已结算的伤害，包括触发技能和 DOT 跳伤。起始前的动作仍会显示，但不计入伤害、命中次数和结果概率汇总；战斗结束后的动作不会结算。同一时间戳上，战斗结束先于伤害结算，因此同时发生的命中不计入。位于起始时间戳的动作仍按时间轴顺序，排除起始技能中更早的动作。秒伤为总伤害除以从所选起始锚点到战斗结束的时间；若没有战斗结束事件，则除以到最后一个有序施放/延迟完成为止的时间。与最后一次施放同时发生的动作计入；之后的 DOT 和复现不会延长时长。
 
-## Replayed damage
+## 复现伤害
 
-A `replay` action does not enter the normal damage formula. Its source is the
-final resolved damage of the source events that triggered its `Replayed` skill:
+`replay` 动作不进入常规伤害公式。其来源是触发其 `Replayed` 技能的源事件的最终结算伤害：
 
 ```text
 Replay Damage = Sum(Source Events Final Damage) × replay.coef × (1 + replayDmgBonus)
 ```
 
-Wildstride (Draught) is the sole authored replay bonus: its 20-second, one-stack target debuff supplies 20% replay damage while Strayhunt (Draught) is also active and the skill is tagged Replayed. Requirements resolve at replay time, not source-hit time. The global control maintains one permanent copy; manual applications refresh the ordinary duration.
+步乱（樽）是唯一已编写的复现加成：其持续 20 秒、最多 1 层的目标减益在离猎（樽）同样生效且技能带有复现类标签时，提供 20% 复现伤害。条件在复现时解析，而不是在源命中时。全局控件维持一个永久副本；手动施加会刷新其常规持续时间。
 
-No attack roll, defense, resistance, penetration, ordinary damage bonus, Critical,
-Affinity, Abrasion, or other outcome is evaluated again. Replay damage is
-reported in the physical/total breakdown channel, cannot emit another damage
-event, and is excluded from simulation outcome-rate hit counts. The average
-calculator and Monte Carlo simulator accumulate source totals within each live run, so a
-simulation replay copies that run's randomized source hits. Because a replay
-resolves no outcome, its damage is credited to the normal simulation damage
-share.
+攻击判定、防御、抗性、穿透、普通伤害加成、会心、会意、擦伤或其他结果都不会再次计算。复现伤害记入外功/总计明细通道，不能再触发其他伤害事件，并且不计入模拟的结果概率命中次数。平均计算器与蒙特卡洛模拟器在每次实际运行内累计源伤害总量，因此模拟中的复现会复制该次运行的随机化源命中。由于复现不结算任何结果，其伤害计入模拟的普伤伤害占比。
 
-Vendetta T3 records Rodent-tagged hits during Rodent Hunt's base 20-second window (user-confirmed despite the Inner Way's 15-second wording).
-Expiry and reapplication each settle the active window once at 30% of its
-recorded total. Source damage already includes Token, talents, and individual
-outcomes; the payout applies none of them again. Chronological resolution also
-updates target HP before subsequent actions. Reapplication opens a new window,
-while expiry closes it. Sky Gripped continues to replay one source hit.
+心弥泥鱼 T3 会在鼠鼠追命 20 秒的基础窗口内记录带鼠鼠标签的命中（已经用户确认，尽管该心法的描述写的是 15 秒）。到期与重新施加都会按记录总量的 30% 对当前窗口结算一次。源伤害已包含仇杀令、天赋以及各次命中的结果；结算时不会再次应用其中任何一项。按时间顺序结算也会在后续动作之前更新目标气血。重新施加会开启新窗口，而到期会关闭窗口。擒天势仍然复现单次源命中。
 
-## Stat-priority conversion
+## 属性优先级换算
 
-Level-keyed max-roll values are stored in `data/stat.json` under `affix` and `attunement`. Stat and attunement priority select the entry matching the selected breakthrough profile's `gearTier`, add one max roll, and recalculate DPS. Gear editing uses the same entry matching the gear item's level. The base-attribute conversion rules are stored under `baseAttributes` in `data/system.json` and apply to character talents, gear, manual comparison deltas, and every other source:
+按等级索引的满值词条数值存储在 `data/stat.json` 的 `affix` 与 `attunement` 下。属性优先级与定音优先级会选取与所选破阵配置的 `gearTier` 匹配的条目，增加一条满值词条，然后重新计算秒伤。装备编辑使用与装备等级匹配的同一条目。基础属性换算规则存储在 `data/system.json` 的 `baseAttributes` 下，适用于角色天赋、装备、手动对比差值以及其他所有来源：
 
 ```text
 1 Power    = 0.22 Min Physical Attack + 1.36 Max Physical Attack
@@ -1017,147 +478,52 @@ Level-keyed max-roll values are stored in `data/stat.json` under `affix` and `at
 1 Momentum = 0.9 Max Physical Attack + 0.00038 Affinity Rate
 ```
 
-The defensive base-attribute relationships are:
+防御类基础属性的换算关系为：
 
 ```text
 1 Body    = 60 HP
 1 Defense = 17 HP + 0.57 Physical Defense
 ```
 
-Inner Way priority is calculated by removing each selected Inner Way and measuring the resulting DPS loss. Every current Inner Way declares `altersTimeline: true`, so these removals conservatively rebuild the timeline. Setup comparisons replace the selected setup option with the candidate and omit the already-active choice. Weapon and armor set comparisons rebuild when any changed tier belongs to a definition with `altersTimeline: true`, including a timeline-changing set removed by the replacement. Rain Whisper changes also rebuild the timeline because its Critical Healing bonuses can change overhealing and healing-triggered events. Script comparisons use the same two-sided rule: they rebuild when either the selected baseline Script or the candidate has `altersTimeline: true`. Revelry carries that flag because Take Damage can apply its buff; comparisons between the other damage-only Scripts reuse the baseline timeline.
+心法优先级的计算方式是逐个移除所选心法，并测量由此造成的秒伤损失。当前每个心法都声明了 `altersTimeline: true`，因此这些移除会保守地重建时间轴。设置对比会用候选项替换所选设置选项，并略过已生效的选项。武器与护甲套装对比在任何变化的件数档位属于带 `altersTimeline: true` 的定义时会重建时间轴，包括被替换移除的、会改变时间轴的套装。时雨的变化同样会重建时间轴，因为其会心治疗加成可能改变溢出治疗与由治疗触发的事件。帖的对比使用相同的双向规则：当所选基准帖或候选帖任一带有 `altersTimeline: true` 时就会重建。承欢带有该标记，因为承受伤害可能施加其增益；其他仅影响伤害的帖之间的对比会复用基准时间轴。
 
-### Morale Chant T6 controlled targets
+### 易水歌 T6 与受控目标
 
-At maximum Yi River stacks, Morale Chant T6 triggers one bonus attack, or two
-separate hits against a Controlled target, on the same 10-second cooldown.
-The second hit uses the ordinary damage pipeline and checks Controlled at hit
-time. Exhausted alone does not satisfy this condition.
+易水层数叠满时，易水歌 T6 会触发一次额外攻击；若目标处于控制状态，则改为两次独立命中，冷却同为 10 秒。第二次命中使用常规伤害流程，并在命中时检查控制状态。仅处于气竭状态不满足该条件。
 
-## Splendor outcome and spending effects
+## 虹的结果与消耗效果
 
-Vagrant Sword (both release variants) and Shadow Step carry `SwordEnergy`. Each
-damage hit applies Sword Slash Damage Boost (劍氣增傷) after that hit: one stack,
-up to three, with a shared eight-second duration refreshed on every hit. The
-debuff adds 10% damage bonus per stack only to `SwordEnergy` skills; the applying
-hit uses the previous stack count. This mechanic is independent of Inner Way tier.
+无以为家（两种释放变体）与退亦有方带有 `SwordEnergy`。每次伤害命中后都会施加剑气增伤（Sword Slash Damage Boost）：每次 1 层，最多 3 层，共享 8 秒持续时间，每次命中都会刷新。该减益每层仅为 `SwordEnergy` 技能提供 10% 伤害加成；施加该减益的那次命中使用之前的层数。此机制与心法重数无关。
 
-Nameless Spear increases natural Endurance regeneration by 20% strictly below
-30% of maximum Endurance. The regeneration calculation uses the current cap and
-splits spans when the meter crosses that threshold. Direct skill and Inner Way
-restores are unchanged, and post-spend regeneration suppression still applies.
-The extra natural recovery can change later Sword Morph payments and Battle
-Anthem's missing-Endurance bonus, so comparisons with this talent rebuild combat.
+无名枪法在耐力严格低于最大耐力的 30% 时，使自然耐力回复提高 20%。回复计算使用当前上限，并在耐力条越过该阈值时拆分时间段。技能与心法的直接回复不变，消耗后的回复抑制仍然生效。额外的自然回复可能改变之后无名心法的支付量以及威猛歌的已损失耐力加成，因此涉及该天赋的对比会重建战斗。
 
-Sword Morph's sword-energy bonus is additive with other damage bonuses:
-`min(0.30, 0.015 * enduranceSpent)`. The input is the paid fraction of the
-authored direct cost before cost modifiers, excluding its charging drain.
-Paying all 16 Endurance of a discounted 20-Endurance release therefore credits
-20 for the bonus. A partial payment credits the same fraction of the original
-cost; a discount alone does not reduce damage. Actual meter spending remains
-separate in `resourceConsumption`; `baseResourceConsumption` supplies the bonus.
+无名心法的剑气加成与其他伤害加成相加：`min(0.30, 0.015 * enduranceSpent)`。输入值为编写的直接消耗（计入消耗修正之前）中按已支付比例折算的部分，不包括其蓄力期间的持续消耗。因此，对于打折后的 20 耐力释放，支付全部 16 点耐力时按 20 计入加成。部分支付按原始消耗的相同比例计入；仅有折扣不会降低伤害。实际耐力条消耗仍单独记录在 `resourceConsumption` 中；加成由 `baseResourceConsumption` 提供。
 
-Resource costs resolve as `baseCost * (1 + sum(resourceCostBonus)) *
-(1 + sum(resourceCostMultiplier - 1))`, with each factor floored at zero.
-General cost multipliers combine their offsets additively: Ghostly Step's 0.9
-and Endless Gale's 0.8 yield 0.7, or 30% less Endurance cost.
-Requirement-gated charge modifiers share the additive category: Battle Anthem
-T4–T5 add 0.10 and upgraded Endless Gale subtracts 0.10. Per user-confirmed
-game behavior, Battle Anthem T6 removes that cost increase despite its description;
-its damage bonuses and Endurance restore remain active. Endless Gale's general
-reduction multiplies separately by 0.8. With Mountain's Might and Gale, a 20/s
-charge therefore costs 16/s at T4–T5 and 14.4/s at T6 (17.28 over 1.2 seconds).
-Without Gale, T6 costs the base 20/s (24 over 1.2 seconds).
-Direct resource actions may override their matching tags with
-`resourceCostTags`. Sword Morph's extra release payment uses an empty list so
-general reductions apply but charge-specific modifiers do not. A charge snapshots
-its consumption-rate modifiers when the charging phase starts, after pre-charge.
-Gaining or losing Endless Gale during that phase does not change its drain.
-Sword Morph's separate 20-Endurance payment resolves at release start using the
-then-active modifiers, so Gale expiring mid-charge preserves the discounted
-charge but leaves an undiscounted release payment.
+资源消耗按 `baseCost * (1 + sum(resourceCostBonus)) *
+(1 + sum(resourceCostMultiplier - 1))` 结算，每个因子最低为零。通用消耗倍率以加算方式合并其偏移量：阴阳迷踪步的 0.9 与长风的 0.8 合计得到 0.7，即耐力消耗降低 30%。受条件限制的蓄力修正同属加算类别：威猛歌 T4–T5 增加 0.10，强化后的长风减少 0.10。根据经用户确认的游戏行为，威猛歌 T6 会移除该消耗增加（尽管其描述并非如此）；其伤害加成与耐力回复仍然生效。长风的通用减免单独乘以 0.8。因此，在拥有千山法与长风时，20/s 的蓄力在 T4–T5 消耗 16/s，在 T6 消耗 14.4/s（1.2 秒内共 17.28）。没有长风时，T6 消耗基础的 20/s（1.2 秒内共 24）。直接资源动作可以通过 `resourceCostTags` 覆盖其匹配标签。无名心法的额外释放支付使用空列表，因此通用减免适用，而蓄力专属修正不适用。蓄力会在预蓄力之后、蓄力阶段开始时对其消耗速率修正进行快照。在该阶段获得或失去长风不会改变其持续消耗。无名心法单独的 20 耐力支付在释放开始时使用当时生效的修正结算，因此长风在蓄力中途到期时，蓄力仍保持折扣，但释放支付不再享受折扣。
 
-Battle Anthem T3 tracks a probability distribution of its 12-second proc cooldown.
-Expected-mode Endurance gains are probability-weighted; sampled mode uses the
-resolved hit outcome. Expected Endurance is a shared mean meter, not a joint
-distribution of every possible resource value and outcome history.
+威猛歌 T3 会追踪其 12 秒触发冷却的概率分布。期望模式下的耐力获取按概率加权；抽样模式则使用已结算的命中结果。期望耐力是一个共享的均值计量，而不是所有可能资源值与结果历史的联合分布。
 
-Against Exhausted targets, Sword Morph T3 removes Abrasion from sword-energy
-hits by resolving their rates with full precision; its third wave forces Affinity.
-The third-wave condition is a per-action modifier evaluated at the hit, so entering
-or leaving Exhausted during a cast affects the actual hit state.
+对气竭目标，无名心法 T3 以满精准结算剑气命中的概率，从而消除擦伤；其第三波必定会意。第三波的条件是一个在命中时求值的逐动作修正，因此施放过程中进入或离开气竭状态都会影响实际命中状态。
 
-Insightful Strike's HP-conditional damage bonus and DOT bonus are weighted only
-with the Concentration-active outcome branch. Battle Anthem T6's missing-Endurance
-bonus is restricted to Charged hits.
+凝神章的气血条件伤害加成与 DOT 加成仅按看破生效的结果分支加权。威猛歌 T6 的已损失耐力加成仅限蓄力命中。
 
-While Concentration is active and self HP is at or below 75%, Insightful Strike
-recovers 1.5% of the resolved outgoing damage. Expected mode weights the active
-branch's damage by its pre-hit Concentration probability; it does not leech from
-the inactive branch or the hit that first activates Concentration. Recovery caps
-at maximum HP and is direct self recovery, not a healing skill, so it does not
-generate healing-skill overheal or HPS entries.
+在看破生效且自身气血不高于 75% 时，凝神章回复已结算输出伤害的 1.5%。期望模式按命中前的看破概率对生效分支的伤害加权；它不会从未生效分支或首次激活看破的那次命中中吸血。回复以气血最大值为上限，属于直接的自身回复而非治疗技能，因此不会产生治疗技能的溢出治疗或秒疗条目。
 
-For an incoming hit, Concentration has a 5% chance to reduce damage by 40%.
-Expected mode uses `damage * (1 - concentrationProbability * 0.05 * 0.40)`;
-sampled mode rolls the proc only while Concentration is active. Avoided hits
-remain zero and do not roll mitigation. Both effects share the existing Focus
-tracker, including expiry between outgoing hits. Expected HP remains a single
-mean meter, so later HP-threshold rules do not retain a joint HP distribution.
+对于受到的命中，看破有 5% 的概率使伤害降低 40%。期望模式使用 `damage * (1 - concentrationProbability * 0.05 * 0.40)`；抽样模式仅在看破生效时判定是否触发。被规避的命中仍为零，不会判定减伤。两种效果共用现有的凝神值追踪器，包括在两次输出命中之间的到期处理。期望气血仍是单一的均值计量，因此后续的气血阈值规则不会保留气血的联合分布。
 
-## Attack comparison coefficients
+## 攻击对比系数
 
-When outcome rates and other multipliers remain fixed, expected damage is affine
-in the effective minimum and maximum attack of each channel. Abrasion contributes
-to the minimum coefficient, Affinity to the maximum coefficient, and Normal and
-Critical split their contributions equally between minimum and maximum.
-Flat skill attack and enemy defense are constant terms. The comparison evaluates
-`baselineDamage + sum(coefficient * attackDelta)` after preparing the coefficients
-through the same damage formula. It applies only within the baseline's physical
-zero-clamp and attack normalization region, with attack-dependent formulas and
-combat feedback excluded. Per-hit prepared expressions can separately reevaluate
-outcome rates and attack ranges when the rotation-wide affine shortcut is ineligible.
-See [Prepared attack comparisons](system-architecture.md#prepared-attack-comparisons).
+当结果概率和其他乘区保持不变时，期望伤害是各通道实际最小攻击与最大攻击的仿射函数。擦伤计入最小攻击系数，会意计入最大攻击系数，普伤与会心则在最小与最大之间平均分配其贡献。技能固定攻击与敌人防御为常数项。对比先通过相同的伤害公式预先算出系数，再计算 `baselineDamage + sum(coefficient * attackDelta)`。它仅在基准的外功归零截断与攻击归一化区间内适用，并排除依赖攻击的公式与战斗反馈。当整个循环范围的仿射捷径不适用时，逐次命中的预处理表达式可以单独重新计算结果概率与攻击范围。参见[预处理的攻击对比](system-architecture.md#prepared-attack-comparisons)。
 
-For a pure damage-boost attunement, fixed-event damage is linear in its value.
-The coefficient for a matching hit is
-`baselineHitDamage * definitionMultiplier / (1 + baselineAttunementBonus)`.
-The denominator includes every matching attunement bonus. Replay contributions
-use the same source weights as ordinary calculation. The response requires the
-baseline and variant shared multipliers to remain positive; otherwise the ordinary
-formula resolves physical zero clamps directly.
+对于纯增伤类定音，在事件固定时，伤害与其数值呈线性关系。匹配命中的系数为 `baselineHitDamage * definitionMultiplier / (1 + baselineAttunementBonus)`。分母包含所有匹配的定音加成。复现贡献使用与普通计算相同的源权重。该响应要求基准与变体的共享乘区都保持为正；否则由常规公式直接处理外功归零截断。
 
-Pure physical/formless penetration attunements also have affine comparison
-coefficients within one resistance branch: below resistance the penetration
-multiplier slope is `1 / 100`, and at or above resistance it is `1 / 200`.
-Preparation uses the ordinary outcome/channel formula, including flat bonuses,
-expected effects, and the primary-attribute restriction for Formless Penetration.
-Physical penetration additionally requires a positive multiplier so its zero clamp
-stays in the same region. Resistance crossings or zero-multiplier crossings use
-the full calculation. Recorded replays propagate these coefficients with their
-ordinary source weights. Baseline and sampled arithmetic remain unchanged.
+纯外功穿透/无相穿透定音在同一抗性分支内也具有仿射对比系数：低于抗性时，穿透乘区的斜率为 `1 / 100`；大于或等于抗性时为 `1 / 200`。预处理使用常规的结果/通道公式，包括固定加成、期望效果以及无相穿透的主属性限制。外功穿透还要求乘区为正，以使其归零截断保持在同一区间。跨越抗性或跨越零乘区的情况使用完整计算。已记录的复现会以其常规源权重传递这些系数。基准与抽样运算保持不变。
 
-For fixed attack ranges and damage multipliers, each hit's channel damage is
-`abrasionRate * abrasionDamage + normalRate * normalDamage + critRate * critDamage + affinityRate * affinityDamage`.
-Prepared hits retain the four outcome/channel values and resolve only rates on
-subsequent rate-only evaluations. Caps, guarantees, conversions, and restricted
-rate routes still use the shared rate calculation. Effective attack changes or
-critical-damage changes rebuild the retained values. Channel weighting and total
-summation keep the original arithmetic order, preserving bit-identical results;
-rate-sensitive sequence state continues to be recalculated normally.
+在攻击范围与伤害乘区固定时，每次命中的通道伤害为 `abrasionRate * abrasionDamage + normalRate * normalDamage + critRate * critDamage + affinityRate * affinityDamage`。预处理的命中会保留四个结果/通道数值，在后续仅涉及概率的计算中只重新解析概率。上限、必定触发、转换以及受限的概率路径仍使用共享的概率计算。实际攻击变化或会心伤害变化会重建保留的数值。通道加权与总计求和保持原有的运算顺序，从而保证结果逐位一致；对概率敏感的序列状态仍照常重新计算。
 
-When rate changes leave all damage state fixed, rotation coefficients are summed
-per rate/stat-context group. The comparison evaluates
-`baselineDamage + sum(groupOutcomeDamage * (variantRate - baselineRate))` across
-the four outcomes and all groups. Rates still use their shared caps, guarantees,
-and restricted routes. Replayed damage contributes its weighted source coefficients.
-Probability-dependent buffs and state distributions remain on the sequence path;
-fixed rotation coefficients do not freeze their baseline probabilities.
+当概率变化不影响任何伤害状态时，循环系数按概率/属性上下文分组求和。对比在四种结果和所有分组上计算 `baselineDamage + sum(groupOutcomeDamage * (variantRate - baselineRate))`。概率仍使用其共享的上限、必定触发和受限路径。复现伤害贡献其加权的源系数。依赖概率的增益与状态分布仍走序列路径；固定的循环系数不会冻结它们的基准概率。
 
-Void attack deltas use the equipped primary attribute's minimum/maximum coefficients.
-The first normalization applies to the attribute endpoints; the second applies
-after Void minimum/maximum are added. Each stage retains its own delta bounds.
-If the second maximum follows the minimum, both its attribute and Void contribution
-follow their minimum inputs. Other attribute channels receive no Void contribution.
+无相攻击差值使用当前装备主属性的最小/最大系数。第一次归一化作用于属性攻击的端点；第二次在加上无相最小/最大攻击之后进行。每个阶段保留各自的差值边界。若第二次归一化后的最大值跟随最小值，则其属性部分与无相部分的贡献都跟随各自的最小值输入。其他属性通道不获得无相贡献。
 
-Critical and affinity damage-bonus changes use the native per-action formula;
-the rotation response does not prepare dedicated coefficients for these bonuses.
+会心与会意伤害加成的变化使用原生的逐动作公式；循环响应不会为这些加成预先准备专用系数。
