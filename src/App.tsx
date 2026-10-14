@@ -1,4 +1,4 @@
-import { IconBrandDiscord, IconBrandGithub } from "@tabler/icons-react"
+import { IconBrandGithub } from "@tabler/icons-react"
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react"
 
 import { resolveBuildStatState } from "./application/buildStatState"
@@ -463,10 +463,6 @@ export default function App() {
               </Button>
             </div>
             <div className="project-links">
-              <a href="https://discord.gg/UtqAw8HaXA" target="_blank" rel="noreferrer">
-                <IconBrandDiscord size="1em" aria-hidden />
-                <span>{t("ui.app.discord")}</span>
-              </a>
               <a href="https://github.com/gm-shi/where-builds-meet" target="_blank" rel="noreferrer">
                 <IconBrandGithub size="1em" aria-hidden />
                 <span>{t("ui.app.github")}</span>

@@ -1413,7 +1413,6 @@ ui.app.deleteStep,Delete step,删除步骤
 ui.app.description,Description,描述
 ui.app.dev,Dev,开发模式
 ui.app.direct,direct,直接
-ui.app.discord,Discord,Discord
 ui.app.distance,Distance,距离
 ui.app.distanceAfterMove,Distance after move,移动后距离
 ui.app.divinecraft,Divinecraft,天工
