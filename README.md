@@ -99,6 +99,8 @@ npm run build
 
 内置的 Tabler Icons React 包依据 [MIT 许可证](public/licenses/Tabler-Icons-MIT.txt) 授权。
 
+牵丝·玉的技能系数、帧时序、繁花获取与配装布局取自 [M1zuke/where-winds-meet-dps](https://github.com/M1zuke/where-winds-meet-dps)，依据 [MIT 许可证](public/licenses/M1zuke-where-winds-meet-dps-MIT.txt) 授权（Copyright (c) 2026 M1zuke）。
+
 ## 致谢
 
 - **yoka**，启发本项目的原始电子表格的作者
@@ -112,3 +114,5 @@ npm run build
 - **Kale**，协助完善「尘」循环
 - **kaezuma**，协助完善「虹」循环
 - **NiNi'Piggy**，协助完善「影」循环
+- **M1zuke**，其 where-winds-meet-dps 模拟器提供了牵丝·玉的技能数据
+- **BiliBili@片雲 / 雪皇**，其牵丝·玉竞速计算器用于交叉校验

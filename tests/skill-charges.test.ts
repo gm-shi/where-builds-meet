@@ -19,8 +19,8 @@ describe("skill-charges", () => {
       time: 0,
     })
 
-    const { buildRotationTimeline } = await import("../src/calculations/rotationTimeline.ts")
-    const { calculateEditorTimeline } = await import("../src/calculations/editorTimeline.ts")
+    const { buildRotationTimeline } = await import("@/calculations/rotationTimeline")
+    const { calculateEditorTimeline } = await import("@/calculations/editorTimeline")
     const general = JSON.parse(await readFile("data/skill/general.json", "utf8"))
     const talent = JSON.parse(await readFile("data/martial-art/infernal-twinblades.json", "utf8"))
     // Isolate cooldown scheduling from the skill's attack duration and hit events.
@@ -228,6 +228,63 @@ describe("skill-charges", () => {
       times(modified),
       [0, 2, 4, 8, 10, 12],
       "Cast-start cooldown modifiers apply to each independent recovery",
+    )
+  })
+
+  it("recovers sequential charges one at a time and resolves switched charge counts from conditions", async () => {
+    const { buildRotationTimeline } = await import("@/calculations/rotationTimeline")
+    const skills = {
+      Charged: {
+        castTime: 0,
+        cooldown: 10,
+        cooldownRecovery: "sequential" as const,
+        cooldownUses: {
+          function: "switch" as const,
+          param1: "Three",
+          param2: { true: 3 },
+          fallback: { function: "switch", param1: "Two", param2: { true: 2 }, fallback: 1 },
+        },
+        action: [],
+      },
+      Shorten: { castTime: 0, action: [{ type: "clearCD", value: "Charged", seconds: 4, time: 0 }] },
+      RestoreOne: { castTime: 0, action: [{ type: "clearCD", value: "Charged", charges: 1, time: 0 }] },
+    }
+    const times = (steps: RotationStep[], conditions: string[]) =>
+      buildRotationTimeline({
+        rotation: { name: "Sequential charges", steps },
+        skills,
+        eventDefinitions: {},
+        dots: {},
+        effectDefinitions: {},
+        innerWayConditions: conditions,
+        innerWayRules: [],
+        setupEffects: [],
+        weapons: [],
+        cooldownPolicy: "wait",
+      })
+        .filter(row => row.step.skill === "Charged" && !row.skipped)
+        .map(row => row.startTime)
+    const casts = (count: number) => Array.from({ length: count }, () => castStep("Charged"))
+    assert.deepEqual(times(casts(3), []), [0, 10, 20], "The fallback charge count applies without a condition")
+    assert.deepEqual(times(casts(4), ["Two"]), [0, 0, 10, 20], "A spent charge waits for the one ahead of it")
+    assert.deepEqual(times(casts(5), ["Two", "Three"]), [0, 0, 0, 10, 20], "Nested switches resolve in turn")
+    assert.deepEqual(
+      times([...casts(2), castStep("Shorten"), ...casts(2)], ["Two"]),
+      [0, 0, 6, 16],
+      "A reduction shortens only the recovering charge and moves the chained timer with it",
+    )
+    assert.deepEqual(
+      times(
+        [...casts(2), delayStep(1), castStep("Shorten"), castStep("Shorten"), castStep("Shorten"), ...casts(2)],
+        ["Two"],
+      ),
+      [0, 0, 1, 11],
+      "A reduction beyond the remaining time is lost rather than carried to the next charge",
+    )
+    assert.deepEqual(
+      times([...casts(2), delayStep(1), castStep("RestoreOne"), ...casts(2)], ["Two"]),
+      [0, 0, 1, 10],
+      "Restoring a charge keeps the recovering charge's timer and drops the last queued recovery",
     )
   })
 })

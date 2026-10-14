@@ -8,6 +8,7 @@ import generalBuffs from "@gamedata/buff/general.json"
 import mechanismBuffs from "@gamedata/buff/mechanism.json"
 import mysticBuffs from "@gamedata/buff/mystic.json"
 import silkbindDelugeBuffs from "@gamedata/buff/silkbind-deluge.json"
+import silkbindJadeBuffs from "@gamedata/buff/silkbind-jade.json"
 import wingBuffs from "@gamedata/buff/silkbind-wing.json"
 import stonesplitMightBuffs from "@gamedata/buff/stonesplit-might.json"
 import stonesplitStrengthBuffs from "@gamedata/buff/stonesplit-strength.json"
@@ -21,6 +22,7 @@ import generalDebuffs from "@gamedata/debuff/general.json"
 import innerWayDebuffs from "@gamedata/debuff/innerway.json"
 import mechanismDebuffs from "@gamedata/debuff/mechanism.json"
 import mysticDebuffs from "@gamedata/debuff/mystic.json"
+import silkbindJadeDebuffs from "@gamedata/debuff/silkbind-jade.json"
 import wingDebuffs from "@gamedata/debuff/silkbind-wing.json"
 import stonesplitMightDebuffs from "@gamedata/debuff/stonesplit-might.json"
 import stonesplitStrengthDebuffs from "@gamedata/debuff/stonesplit-strength.json"
@@ -33,6 +35,7 @@ import generalSkills from "@gamedata/skill/general.json"
 import heavenquakerSkills from "@gamedata/skill/heavenquaker-spear.json"
 import heavenwillSkills from "@gamedata/skill/heavenwill-gauntlets.json"
 import infernalSkills from "@gamedata/skill/infernal-twinblades.json"
+import inkwellSkills from "@gamedata/skill/inkwell-fan.json"
 import mechanismSkills from "@gamedata/skill/mechanism.json"
 import mortalSkills from "@gamedata/skill/mortal-rope-dart.json"
 import drumSkills from "@gamedata/skill/museflow-waist-drum.json"
@@ -48,6 +51,7 @@ import stormbreakerSkills from "@gamedata/skill/stormbreaker-spear.json"
 import strategicSwordSkills from "@gamedata/skill/strategic-sword.json"
 import thundercrySkills from "@gamedata/skill/thundercry-blade.json"
 import unfetteredSkills from "@gamedata/skill/unfettered-rope-dart.json"
+import vernalSkills from "@gamedata/skill/vernal-umbrella.json"
 import wingFanSkills from "@gamedata/skill/willowbend-fan.json"
 
 import type { EffectDefinition, SkillRecord, TrackedEffect } from "@/calculations/rotationTimeline"
@@ -65,6 +69,8 @@ export const defaultSkillMaps: Record<SkillCategory, SkillMap> = {
   Skygrasp: skygraspSkills as SkillMap,
   Panacea: panaceaSkills as SkillMap,
   Soulshade: soulshadeSkills as SkillMap,
+  Vernal: vernalSkills as SkillMap,
+  Inkwell: inkwellSkills as SkillMap,
   Infernal: infernalSkills as SkillMap,
   Mortal: mortalSkills as SkillMap,
   Everspring: everspringSkills as SkillMap,
@@ -89,6 +95,7 @@ export const buffDefinitions = {
   ...bamboocutDraughtBuffs,
   ...bamboocutKiteBuffs,
   ...silkbindDelugeBuffs,
+  ...silkbindJadeBuffs,
   ...bellstrikeUmbraBuffs,
   ...mechanismBuffs,
 } as Record<string, EffectDefinition>
@@ -104,6 +111,7 @@ export const debuffDefinitions = {
   ...bamboocutDraughtDebuffs,
   ...bamboocutWindDebuffs,
   ...bamboocutKiteDebuffs,
+  ...silkbindJadeDebuffs,
   ...innerWayDebuffs,
   ...generalDebuffs,
 } as Record<string, EffectDefinition>
@@ -134,6 +142,8 @@ export const skillCategoryByWeapon: Partial<Record<WeaponId, SkillCategory>> = {
   skygrasp: "Skygrasp",
   panaceaFan: "Panacea",
   soulshadeUmbrella: "Soulshade",
+  vernalUmbrella: "Vernal",
+  inkwellFan: "Inkwell",
   infernalTwinblades: "Infernal",
   mortalRopeDart: "Mortal",
   everspring: "Everspring",
@@ -155,6 +165,8 @@ export const skillDataNamespaceByCategory: Record<SkillCategory, string> = {
   Skygrasp: "skygraspRopeDart",
   Panacea: "panaceaFan",
   Soulshade: "soulshadeUmbrella",
+  Vernal: "vernalUmbrella",
+  Inkwell: "inkwellFan",
   Infernal: "infernalTwinblades",
   Mortal: "mortalRopeDart",
   Everspring: "everspringUmbrella",
@@ -189,6 +201,8 @@ export const martialArtBySkillId = new Map<string, WeaponId>([
   ...Object.keys(unfetteredSkills).map(id => [id, "unfettered"] as const),
   ...Object.keys(panaceaSkills).map(id => [id, "panaceaFan"] as const),
   ...Object.keys(soulshadeSkills).map(id => [id, "soulshadeUmbrella"] as const),
+  ...Object.keys(vernalSkills).map(id => [id, "vernalUmbrella"] as const),
+  ...Object.keys(inkwellSkills).map(id => [id, "inkwellFan"] as const),
 ])
 export const rotationActionOptionIds = ["__event:Delay", "__event:MartialArt"]
 export const rotationEventOptionIds = [
@@ -265,6 +279,7 @@ export const manualDebuffDefinitions = {
   ...bamboocutDraughtDebuffs,
   ...bamboocutWindDebuffs,
   ...bamboocutKiteDebuffs,
+  ...silkbindJadeDebuffs,
   ...innerWayDebuffs,
   ...manualGeneralDebuffs,
 } as Record<string, { name?: string }>

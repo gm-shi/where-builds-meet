@@ -1,0 +1,48 @@
+{
+  "Combo": {
+    "name": "Combo",
+    "shortName": "Combo",
+    "badgeColor": "red",
+    "showCoverage": true,
+    "description": "Blossom Barrage: Spring Sorrow marks the target for 10 seconds, or 15 seconds from T3. The applier's Vernal Umbrella Ballistic skills deal 10% more damage to it; T1 raises this to 25%, and from T4 it is 30% while the target is Exhausted.",
+    "duration": 10,
+    "maxStack": 1,
+    "refresh": true,
+    "effect": [
+      {
+        "requirement": [
+          { "target": "skillTag", "value": "VernalUmbrella" },
+          { "target": "skillTag", "value": "Ballistic" }
+        ],
+        "effect": { "dmgBonus": 0.1 }
+      },
+      {
+        "requirement": [
+          { "target": "skillTag", "value": "VernalUmbrella" },
+          { "target": "skillTag", "value": "Ballistic" },
+          { "target": "self", "value": "BlossomBarrageT1" }
+        ],
+        "effect": { "dmgBonus": 0.15 }
+      },
+      {
+        "requirement": [
+          { "target": "skillTag", "value": "VernalUmbrella" },
+          { "target": "skillTag", "value": "Ballistic" },
+          { "target": "self", "value": "BlossomBarrageT4" },
+          { "target": "target", "value": "Exhausted" }
+        ],
+        "effect": { "dmgBonus": 0.05 }
+      }
+    ]
+  },
+  "LingeringBone": {
+    "name": "Lingering Bone",
+    "shortName": "LB",
+    "badgeColor": "red",
+    "showCoverage": true,
+    "description": "Peak's Springless Silence and Forsaken Fame mark a non-player target for 2 seconds. Unfading Flower's floating umbrella fires an extra shot each volley against it, and Peak's Springless Silence grants Windrider on hitting it.",
+    "duration": 2,
+    "maxStack": 1,
+    "refresh": true
+  }
+}

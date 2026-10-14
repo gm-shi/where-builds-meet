@@ -3,7 +3,25 @@
   "altersTimeline": true,
   "tags": ["SilkbindJade"],
   "effect": {
-    "StarReacherT0": {},
+    "StarReacherT0": {
+      "effect": [
+        {
+          "requirement": [{ "target": "targetQiPercentage", "comparison": ">=", "amount": 30 }],
+          "effect": { "physicalAttackBonus": 0.075 }
+        },
+        {
+          "requirement": [{ "target": "targetQiPercentage", "comparison": "<", "amount": 30 }],
+          "effect": { "physicalAttackBonus": 0.15 }
+        },
+        {
+          "requirement": [
+            { "target": "target", "value": "LingeringBone" },
+            { "target": "selfHPPercentage", "comparison": ">", "amount": 75 }
+          ],
+          "effect": { "dmgBonus": 0.03 }
+        }
+      ]
+    },
     "StarReacherT1": {},
     "StarReacherT2": {
       "effect": [

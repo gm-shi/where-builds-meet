@@ -1,7 +1,0 @@
-{
-  "name": "Jade Empty Rotation",
-  "martialArts": ["vernalUmbrella", "inkwellFan"],
-  "eventTimeReference": "battleStart",
-  "steps": [],
-  "ping": 40
-}

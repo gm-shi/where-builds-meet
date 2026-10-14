@@ -3,7 +3,32 @@
   "altersTimeline": true,
   "tags": ["SilkbindJade"],
   "effect": {
-    "ThunderousBloomT0": {},
+    "ThunderousBloomT0": {
+      "trigger": [
+        {
+          "event": "damage",
+          "requirement": [{ "target": "skillTag", "value": "MartialArt" }],
+          "cooldown": 15,
+          "action": [{ "type": "apply", "target": "self", "value": "SpringThunder", "stack": 5 }]
+        },
+        {
+          "event": "damage",
+          "requirement": [
+            { "target": "self", "value": "SpringThunder" },
+            {
+              "operator": "or",
+              "operand": [
+                { "target": "skillTag", "value": "Light" },
+                { "target": "skillTag", "value": "Heavy" }
+              ]
+            },
+            { "target": "targetQiPercentage", "comparison": "<", "amount": 30 }
+          ],
+          "cooldown": 2,
+          "action": [{ "type": "apply", "target": "self", "value": "SpringThunder", "stack": 1 }]
+        }
+      ]
+    },
     "ThunderousBloomT1": {},
     "ThunderousBloomT2": {
       "effect": [

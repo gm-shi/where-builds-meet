@@ -3,7 +3,15 @@
   "altersTimeline": true,
   "tags": ["SilkbindJade"],
   "effect": {
-    "BlossomBarrageT0": {},
+    "BlossomBarrageT0": {
+      "trigger": [
+        {
+          "event": "damage",
+          "requirement": [{ "target": "skillTag", "value": "SpringSorrow" }],
+          "action": [{ "type": "apply", "target": "target", "value": "Combo" }]
+        }
+      ]
+    },
     "BlossomBarrageT1": {},
     "BlossomBarrageT2": {
       "effect": [
@@ -39,9 +47,23 @@
         }
       ]
     },
-    "BlossomBarrageT3": {},
+    "BlossomBarrageT3": { "effect": [{ "target": "Combo", "modify": { "duration": 15 } }] },
     "BlossomBarrageT4": {},
     "BlossomBarrageT5": { "effect": [{ "rawStat": { "directCrit": 0.046 } }] },
-    "BlossomBarrageT6": {}
+    "BlossomBarrageT6": {
+      "trigger": [
+        {
+          "event": "damage",
+          "requirement": [
+            { "target": "skillTag", "value": "SpringSorrow" },
+            { "target": "target", "value": "Combo", "resolveAt": "skillStart" }
+          ],
+          "action": [
+            { "type": "clearCD", "value": "SpringSorrow", "seconds": 5 },
+            { "type": "addResource", "value": "Blossoms", "amount": 25 }
+          ]
+        }
+      ]
+    }
   }
 }

@@ -97,8 +97,9 @@ export type SkillRecord = {
   endurance?: { regeneration?: number; consumption?: number }
   cooldown?: number
   cooldownGroup?: string
-  cooldownUses?: number
-  cooldownRecovery?: "window" | "independent"
+  /** Charge count; a `switch` resolves once against the run's inner-way and setup conditions. */
+  cooldownUses?: number | SwitchValue
+  cooldownRecovery?: "window" | "independent" | "sequential"
   duration?: number
   collectBoostDamage?: string
   subAction?: Array<string | SubActionReference>
@@ -1975,7 +1976,8 @@ export function buildRotationTimeline(
   const listenerCooldowns = new Map<InnerWayEffectRule, number>()
   const skillCooldownStates: Record<
     string,
-    { recovery: "window"; expiresAt: number; uses: number } | { recovery: "independent"; readyTimes: number[] }
+    | { recovery: "window"; expiresAt: number; uses: number }
+    | { recovery: "independent" | "sequential"; readyTimes: number[] }
   > = {}
   const effectTriggerCooldowns = new Map<number, number>()
   const buffDurationRules = setupEffects.filter(effect => typeof effect.buffDurationBonus === "number")
@@ -2145,6 +2147,13 @@ export function buildRotationTimeline(
     }
     return skill.cooldown
   }
+  // Inner-way and setup conditions are fixed for the run, so a switched charge count
+  // resolves to one value. Nested switches resolve in turn.
+  const skillCooldownUses = (skill: SkillRecord | undefined) => {
+    let uses: unknown = skill?.cooldownUses
+    while (uses && typeof uses === "object") uses = resolveSwitchValue(uses, conditionParameters)
+    return typeof uses === "number" && Number.isFinite(uses) ? Math.max(1, Math.floor(uses)) : 1
+  }
   const skillCooldownReadyAt = (key: string, time: number, uses: number) => {
     const state = skillCooldownStates[key]
     if (!state) return time
@@ -2152,7 +2161,8 @@ export function buildRotationTimeline(
       case "window":
         if (compareTimelineTime(time, state.expiresAt) >= 0 || state.uses < uses) return time
         return state.expiresAt
-      case "independent": {
+      case "independent":
+      case "sequential": {
         const pending = state.readyTimes.filter(readyAt => compareTimelineTime(readyAt, time) > 0)
         return pending.length < uses ? time : pending[0]
       }
@@ -2182,6 +2192,15 @@ export function buildRotationTimeline(
         }
         break
       }
+      case "sequential": {
+        // One charge recovers at a time: a spent charge starts recovering when the
+        // charge ahead of it returns, so the timers form a chain.
+        const pending = (state?.recovery === "sequential" ? state.readyTimes : []).filter(
+          readyAt => compareTimelineTime(readyAt, time) > 0,
+        )
+        skillCooldownStates[key] = { recovery, readyTimes: [...pending, (pending.at(-1) ?? time) + duration] }
+        break
+      }
     }
     cooldowns[key] = skillCooldownReadyAt(key, time, uses)
   }
@@ -2199,6 +2218,14 @@ export function buildRotationTimeline(
           case "independent":
             state.readyTimes = state.readyTimes.map(readyAt => Math.max(time, readyAt - seconds))
             break
+          case "sequential": {
+            // Only the recovering charge is shortened; the chained timers behind it move
+            // with it, and a reduction beyond its remaining time is lost.
+            const pending = state.readyTimes.filter(readyAt => compareTimelineTime(readyAt, time) > 0)
+            const shift = pending.length ? pending[0] - Math.max(time, pending[0] - seconds) : 0
+            state.readyTimes = pending.map(readyAt => readyAt - shift)
+            break
+          }
         }
       }
     } else if (charges === undefined) delete skillCooldownStates[key]
@@ -2213,9 +2240,16 @@ export function buildRotationTimeline(
           // Restore the next recovering charge; all other recovery timestamps stay intact.
           state.readyTimes = state.readyTimes.filter(readyAt => compareTimelineTime(readyAt, time) > 0).slice(restored)
           break
+        case "sequential": {
+          // A restored charge leaves the recovering charge's timer running and drops the
+          // last queued recovery.
+          const pending = state.readyTimes.filter(readyAt => compareTimelineTime(readyAt, time) > 0)
+          state.readyTimes = pending.slice(0, Math.max(0, pending.length - restored))
+          break
+        }
       }
     }
-    const readyAt = skillCooldownReadyAt(key, time, Math.max(1, Math.floor(skills[skillId]?.cooldownUses ?? 1)))
+    const readyAt = skillCooldownReadyAt(key, time, skillCooldownUses(skills[skillId]))
     cooldowns[key] = readyAt
     if (
       waitingCast &&
@@ -3197,11 +3231,7 @@ export function buildRotationTimeline(
       const skillId = row.step.type === "skill" ? (row.step.skill ?? "") : ""
       const readyAt =
         row.step.type === "skill"
-          ? skillCooldownReadyAt(
-              skillCooldownKey(skillId, row.skill),
-              event.time,
-              Math.max(1, Math.floor(row.skill?.cooldownUses ?? 1)),
-            )
+          ? skillCooldownReadyAt(skillCooldownKey(skillId, row.skill), event.time, skillCooldownUses(row.skill))
           : event.time
       if (compareTimelineTime(readyAt, event.time) > 0) {
         if (input.cooldownPolicy === "skip") {
@@ -3459,7 +3489,7 @@ export function buildRotationTimeline(
           skillCooldownKey(selectedId, selectedSkill),
           event.time,
           selectedSkill.cooldown,
-          Math.max(1, Math.floor(selectedSkill.cooldownUses ?? 1)),
+          skillCooldownUses(selectedSkill),
           selectedSkill.cooldownRecovery,
         )
       const inactiveActionIndexes = new Set(segment.actionIndexes.slice(selectedActions.length))
@@ -3521,7 +3551,7 @@ export function buildRotationTimeline(
       if (!multiActionSegments.has(event.row.id))
         registerEnduranceRates(event.row.skill, event.time, resolveSkillCastTime(event.row.skill))
       const cooldownDuration = event.row.skill ? skillCooldownDuration(event.row.skill, skillModifiers) : undefined
-      const cooldownUses = Math.max(1, Math.floor(event.row.skill?.cooldownUses ?? 1))
+      const cooldownUses = skillCooldownUses(event.row.skill)
       const cooldownKey = skillCooldownKey(skillId, event.row.skill)
       resolvedRows.add(event.row)
       if (waitingCast?.row === event.row) waitingCast = undefined
@@ -3783,7 +3813,7 @@ export function buildRotationTimeline(
       if (triggeredSkill) sourceRowId = damageSource(triggeredSkill, sourceRowId ?? event.row.id)
       const key = skillCooldownKey(skillId, triggeredSkill)
       if (!triggeredSkill) return false
-      const uses = Math.max(1, Math.floor(triggeredSkill.cooldownUses ?? 1))
+      const uses = skillCooldownUses(triggeredSkill)
       if (compareTimelineTime(skillCooldownReadyAt(key, event.time, uses), event.time) > 0) return false
       const actions = Array.isArray(triggeredSkill.action) ? (triggeredSkill.action as EditableObject[]) : []
       const triggeredStartTime = event.time + (triggeredSkill.triggerPing ? skillPing(triggeredSkill) : 0)

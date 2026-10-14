@@ -86,6 +86,8 @@ describe("skill-override-calculation", () => {
       Skygrasp: {},
       Panacea: {},
       Soulshade: {},
+      Vernal: {},
+      Inkwell: {},
       Infernal: {},
       Mortal: {},
       Everspring: {},

@@ -17,6 +17,8 @@ export type SkillCategory =
   | "Skygrasp"
   | "Panacea"
   | "Soulshade"
+  | "Vernal"
+  | "Inkwell"
   | "Infernal"
   | "Mortal"
   | "Everspring"

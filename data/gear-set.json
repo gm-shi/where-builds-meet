@@ -281,12 +281,47 @@
   },
   "Mistwillow": {
     "name": "Mistwillow",
-    "altersTimeline": false,
+    "altersTimeline": true,
     "tags": ["SilkbindJade", "VernalUmbrella", "InkwellFan"],
     "options": {
       "0": { "name": "0", "effect": {} },
       "2": { "name": "2", "effect": { "rawStat": { "precision": 0.08 } } },
-      "4": { "name": "4", "effect": { "rawStat": { "precision": 0.08 } } }
+      "4": {
+        "name": "4",
+        "effect": {
+          "rawStat": { "precision": 0.08 },
+          "trigger": [
+            {
+              "event": "damage",
+              "requirement": [
+                { "target": "skillTag", "value": "DirectDamage" },
+                {
+                  "operator": "or",
+                  "operand": [
+                    { "target": "skillTag", "value": "Heavy" },
+                    { "target": "skillTag", "value": "Pursuit" }
+                  ]
+                }
+              ],
+              "action": { "type": "apply", "target": "self", "value": "MistwillowLight", "stack": 1, "reapply": true }
+            },
+            {
+              "event": "damage",
+              "requirement": [
+                { "target": "skillTag", "value": "DirectDamage" },
+                {
+                  "operator": "or",
+                  "operand": [
+                    { "target": "skillTag", "value": "Light" },
+                    { "target": "skillTag", "value": "Ballistic" }
+                  ]
+                }
+              ],
+              "action": { "type": "apply", "target": "self", "value": "MistwillowHeavy", "stack": 1, "reapply": true }
+            }
+          ]
+        }
+      }
     }
   },
   "Starweave": {

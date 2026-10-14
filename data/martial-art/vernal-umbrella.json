@@ -39,6 +39,16 @@
               }
             ],
             "effect": { "physicalResistance": -10 }
+          },
+          {
+            "trigger": {
+              "event": "damage",
+              "requirement": [
+                { "target": "skillTag", "value": "FloatingUmbrella" },
+                { "target": "target", "value": "Exhausted" }
+              ],
+              "action": { "type": "addResource", "value": "Blossoms", "amount": 3 }
+            }
           }
         ]
       },
@@ -103,6 +113,16 @@
               }
             ],
             "effect": { "physicalResistance": -10 }
+          },
+          {
+            "trigger": {
+              "event": "damage",
+              "requirement": [
+                { "target": "skillTag", "value": "FloatingUmbrella" },
+                { "target": "target", "value": "Exhausted" }
+              ],
+              "action": { "type": "addResource", "value": "Blossoms", "amount": 3 }
+            }
           }
         ]
       },

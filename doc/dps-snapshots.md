@@ -132,3 +132,14 @@ DPS_UPDATE_IDS="stonesplitStrength/pure-dummy-1-min stonesplitMight/dummy-1-min"
 | 昭阳 |  33754.85510594089 | 36207.09043887357 | 2025291.3063564536 |  2172425.426332414 |
 
 两个战斗场景仍为 60 秒，并使用现有的全承音小外测试夹具。只有这两个经过审核的翊快照被刷新。
+
+## 玉预览（待审核，2026-10-14）
+
+牵丝·玉的 `silkbindJade/jade-dummy-1-min` 是新增的模板循环，尚**没有**已接受的基线，因此发布检查会把它列为缺失快照。
+它使用默认的全承音大外配装（`jade-fully-relayed-max`）、循环自身的 40 ms 延迟与 60 秒战斗场景，当前结果为
+56,367.3825808672 秒伤，总伤害 3,382,042.954852032。数值来源、假设与和竞速表格的对比见
+[玉实现审计](jade-implementation-audit.md)。所有者审阅后再运行：
+
+```sh
+DPS_UPDATE_IDS="silkbindJade" npm run snapshots:dps:update
+```
