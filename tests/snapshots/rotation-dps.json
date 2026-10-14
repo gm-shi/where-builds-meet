@@ -287,6 +287,32 @@
       "totalDamage": 2330364.138557976,
       "duration": 60
     },
+    "silkbindJade/jade-dummy-1-min": {
+      "fixture": {
+        "build": "jade-fully-relayed-max",
+        "rotation": "jade-dummy-1-min",
+        "martialArts": ["vernalUmbrella", "inkwellFan"],
+        "breakthrough": "17",
+        "ping": 40,
+        "food": "SimmeringFishSlices",
+        "divinecraft": "Fire",
+        "script": "None",
+        "globalDebuffs": {
+          "draught": "none",
+          "phantomChime": false,
+          "qiImbalance": false,
+          "soulShaken": false,
+          "vulnerable": false,
+          "fearfulBlade": false,
+          "qingyisCharm": "none",
+          "floatingGrace": "none",
+          "silkbindWings": "none"
+        }
+      },
+      "dps": 56367.3825808672,
+      "totalDamage": 3382042.954852032,
+      "duration": 60
+    },
     "silkbindWing/wings-dummy-1-min-dawnsun": {
       "fixture": {
         "build": "wings-fully-relayed-min",
