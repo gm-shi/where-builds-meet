@@ -3711,6 +3711,11 @@ export function buildRotationTimeline(
       continue
     const actionCooldownKey = `action:${skillKey}:${event.actionIndex ?? -1}`
     if (typeof action.cooldown === "number" && (cooldowns[actionCooldownKey] ?? 0) > event.time) continue
+    // Resource actions leave the loop body before its tail, so they record the
+    // action cooldown through the same helper the tail uses.
+    const recordActionCooldown = () => {
+      if (typeof action.cooldown === "number") cooldowns[actionCooldownKey] = event.time + action.cooldown
+    }
     if (action.type === "apply" && typeof action.value === "string" && (cooldowns[action.value] ?? 0) > event.time)
       continue
     if (event.kind === "action") event.row.actionStates[event.actionIndex ?? -1].combatOrder = nextCombatActionOrder++
@@ -3757,7 +3762,10 @@ export function buildRotationTimeline(
       currentWeapon = input.martialArtState?.[currentMartialArt]?.weapon
       continue
     }
-    if (applyResourceAction(action, event.row, skillTags)) continue
+    if (applyResourceAction(action, event.row, skillTags)) {
+      recordActionCooldown()
+      continue
+    }
     if (action.type === "consume") {
       const targetEffects = action.target === "target" ? debuffs : buffs
       const valueObject =
@@ -4924,7 +4932,7 @@ export function buildRotationTimeline(
         if (definition.cooldown !== undefined) cooldowns[action.value] = event.time + definition.cooldown
       }
     }
-    if (typeof action.cooldown === "number") cooldowns[actionCooldownKey] = event.time + action.cooldown
+    recordActionCooldown()
   }
   if (processedEvents >= 5000 && (events.length || timedCursor < timed.length))
     throw new Error("Combat timeline exceeded its 5,000-event safety limit before reaching combat end.")
