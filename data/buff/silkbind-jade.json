@@ -56,14 +56,6 @@
       "action": { "type": "trigger", "value": "FloatingUmbrellaRecall" }
     }
   },
-  "FloatingUmbrellaReturnCooldown": {
-    "name": "Floating Umbrella Return Cooldown",
-    "hidden": true,
-    "description": "The floating umbrella's 15 Blossom return on ending is available again when this expires.",
-    "duration": 5,
-    "maxStack": 1,
-    "refresh": false
-  },
   "Jadebreak": {
     "name": "Jadebreak",
     "shortName": "JB",
