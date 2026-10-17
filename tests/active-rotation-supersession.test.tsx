@@ -37,7 +37,10 @@ vi.mock("@/calculations/rotationCalculationBundle", () => ({
 vi.mock("@/calculations/rotationComparisonBundle", () => ({
   buildRotationComparisonBundle: (subject: any) => subject.context,
 }))
-vi.mock("@/calculations/calculationFingerprint", () => ({ rotationBundleFingerprint: JSON.stringify }))
+vi.mock("@/calculations/calculationFingerprint", () => ({
+  calculationFingerprint: JSON.stringify,
+  rotationBundleFingerprint: JSON.stringify,
+}))
 
 it("supersedes pending rotation work on input changes but keeps equivalent inputs and tab changes", async () => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true

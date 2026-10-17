@@ -1286,19 +1286,16 @@ export function StatsTab({
               </div>
             </PanelHeading>
             <div className="dps-value">
-              {rotationMetrics ? (
+              {/* One span for both the placeholder and the number: the headline is the largest
+                  text on small screens, and reusing the element keeps its later value from
+                  counting as a fresh, late largest-contentful-paint candidate. */}
+              <span>{rotationMetrics ? formatThroughput(rotationMetrics.dps) : "—"}</span>
+              {rotationMetrics && rotationMetrics.hps > 0 ? (
                 <>
-                  <span>{formatThroughput(rotationMetrics.dps)}</span>
-                  {rotationMetrics.hps > 0 ? (
-                    <>
-                      <span className="throughput-separator">/</span>
-                      <span className="healing-value">{formatThroughput(rotationMetrics.hps)}</span>
-                    </>
-                  ) : null}
+                  <span className="throughput-separator">/</span>
+                  <span className="healing-value">{formatThroughput(rotationMetrics.hps)}</span>
                 </>
-              ) : (
-                "—"
-              )}
+              ) : null}
             </div>
             {rotationMetrics?.expectedHawkwingStacks !== undefined ? (
               <div className="dps-secondary-metric">

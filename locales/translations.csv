@@ -97,6 +97,9 @@ data.buff.bellstrikeUmbra.WaterDrop.name,Water Drop,滴水
 data.buff.general.Bloom.description,The spring outcome of Seasonal Edge.,四时无常的「春」效果。
 data.buff.general.Bloom.name,Bloom,春
 data.buff.general.Bloom.shortName,Bloom,春
+data.buff.general.BreakingPointCooldown.description,Breaking Point's Tier VI dodge effect is on cooldown. Ordinary Disintegration stacks remain available.,断石之构的六阶闪避效果冷却中。普通的崩解层数仍可叠加。
+data.buff.general.BreakingPointCooldown.name,Breakpoint Cooldown,断石之构冷却
+data.buff.general.BreakingPointCooldown.shortName,BP CD,断石冷却
 data.buff.general.DivinecraftFireEmber.description,"Counts direct hits since the last Solid Foundation. Five hits consume the count and grant Solid Foundation, which is re-granted at most once every 10 seconds.",记录自上次厚积薄发以来的直接命中次数。命中满5次后消耗计数并获得厚积薄发，厚积薄发每10秒最多重新获得一次。
 data.buff.general.DivinecraftFireEmber.name,Divinecraft - Fire Ember Count,天工·火余烬计数
 data.buff.general.DivinecraftSolidFoundation.description,The next direct hit unleashes Solid Foundation. Re-granted at most once every 10 seconds.,下一次直接命中将释放厚积薄发。每10秒最多重新获得一次。
@@ -108,7 +111,7 @@ data.buff.general.Flare.shortName,Flare,夏
 data.buff.general.Frost.description,The winter outcome of Seasonal Edge.,四时无常的「冬」效果。
 data.buff.general.Frost.name,Frost,冬
 data.buff.general.Frost.shortName,Frost,冬
-data.buff.general.Hawkwing.description,Increases physical attack by 2% per stack.,每层使外功攻击提高2%。
+data.buff.general.Hawkwing.description,Increases Physical Attack and Bellstrike Attack by 1.8% per stack.,每层使外功攻击与鸣金攻击提高1.8%。
 data.buff.general.Hawkwing.shortName,Hawk,飞隼
 data.buff.general.Jadeware.name,Jadeware,玉斗
 data.buff.general.Revelry.description,Increases damage dealt by 20%.,造成的伤害提高20%。
@@ -209,10 +212,10 @@ data.buff.silkbindJade.Windrider.name,Windrider,乘风
 data.buff.silkbindJade.Windrider.shortName,WR,乘风
 data.buff.silkbindWing.Cloudshear.description,Increases all damage and healing by 6%.,全类型伤害与治疗加成提高6%。
 data.buff.silkbindWing.Cloudshear.name,Cloudshear: Wings,裁云·翊
-data.buff.silkbindWing.DawnsunDefense.name,昭陽減傷,昭阳减伤
-data.buff.silkbindWing.DrumSpecialDefense.name,凌波減傷,凌波减伤
+data.buff.silkbindWing.DawnsunDefense.name,Dawnsun Damage Reduction,昭阳减伤
+data.buff.silkbindWing.DrumSpecialDefense.name,Ripple Damage Reduction,凌波减伤
 data.buff.silkbindWing.EnvigoratedDisabled.name,Envigorated Warrior Disabled,征人归失效
-data.buff.silkbindWing.FlowingWind.description,Enhances Fan Q into Boundless Blossom.,将扇Q强化为「不尽春生」。
+data.buff.silkbindWing.FlowingWind.description,Enhances Fan Q into Boundless Bloom.,将扇Q强化为「不尽春生」。
 data.buff.silkbindWing.FlowingWind.name,Driftbreeze,流风
 data.buff.silkbindWing.RadiantDrum.description,"Increases Physical Attack and all attribute attacks by 6%. With Ribbon & Drum talents, also increases Drum Series base damage by 40%.",外功攻击及所有属性攻击提高6%。配合舞绫鼓天赋，击鼓系列技能基础伤害另提高40%。
 data.buff.silkbindWing.RadiantDrum.name,Radiant Drum,烁鼓
@@ -336,7 +339,7 @@ data.debuff.bamboocutWind.Sin.description,"Echoes of Oblivion mark. Lasts 3 seco
 data.debuff.bamboocutWind.Sin.name,Sin,恶身
 data.debuff.bamboocutWind.VendettaToken.name,Vendetta Token,仇杀令
 data.debuff.bamboocutWind.VendettaToken.shortName,VT,仇杀
-data.debuff.bellstrikeSplendor.QiImbalance.description,"Increases Qi damage taken by 10%. Increases global HP damage taken by 8% during exhausted, and an additional 8% for Bellstrike damage.",受到的真气伤害提高10%。气竭期间受到的全局气血伤害提高8%，鸣金伤害再额外提高8%。
+data.debuff.bellstrikeSplendor.QiImbalance.description,"Increases Qi damage taken by 10%. Increases global HP damage taken by 10% during exhausted, and an additional 10% for Bellstrike damage.",受到的真气伤害提高10%。气竭期间受到的全局气血伤害提高10%，鸣金伤害再额外提高10%。
 data.debuff.bellstrikeSplendor.QiImbalance.name,Qi Imbalance,真气失衡
 data.debuff.bellstrikeSplendor.QiImbalance.shortName,QI,失
 data.debuff.bellstrikeSplendor.SwordSlashDamageBoost.description,"Increases SwordEnergy skill damage by 10% per stack, up to 3 stacks. Hits refresh the 8-second duration.",每层使剑气技能伤害提高10%，最多3层。命中时刷新8秒持续时间。
@@ -373,12 +376,12 @@ data.debuff.silkbindJade.Combo.shortName,Combo,连中
 data.debuff.silkbindJade.LingeringBone.description,"Peak's Springless Silence and Forsaken Fame mark a non-player target for 2 seconds. Unfading Flower's floating umbrella fires an extra shot each volley against it, and Peak's Springless Silence grants Windrider on hitting it.",春尽山空与浮名无寄命中非玩家目标时附加，持续2秒。不谢花的浮伞对其每轮追加一发射击；春尽山空命中带有滞骨的目标时获得乘风。
 data.debuff.silkbindJade.LingeringBone.name,Lingering Bone,滞骨
 data.debuff.silkbindJade.LingeringBone.shortName,LB,滞骨
-data.debuff.silkbindWing.Cuncao.description,"Blade's Will stacks require an eligible varied attack, including Rhythm of Accord or 煞盡東風, to hit at least 3 enemies simultaneously (2 at T4; 3 grants 2 stacks). Lasts 5s, or 8s at T1; up to 5 stacks. Eligible attacks deal 2% more damage per stack, increased to 4% at T3. T6 adds 5% damage against targets at 5 stacks. Cannot build stacks against a single target.",寸草心的适用派生技（包括鼓乐和、煞尽东风）同时命中至少3名敌人时叠加层数（T4降为2名；命中3名时叠加2层）。持续5秒，T1延长至8秒；最多5层。适用攻击每层增伤2%，T3提高至4%。T6对5层目标额外增伤5%。单一目标无法叠加层数。
+data.debuff.silkbindWing.Cuncao.description,"Blade's Will stacks require an eligible varied attack, including Rhythm of Accord or End of Gale, to hit at least 3 enemies simultaneously (2 at T4; 3 grants 2 stacks). Lasts 5s, or 8s at T1; up to 5 stacks. Eligible attacks deal 2% more damage per stack, increased to 4% at T3. T6 adds 5% damage against targets at 5 stacks. Cannot build stacks against a single target.",寸草心的适用派生技（包括鼓乐和、煞尽东风）同时命中至少3名敌人时叠加层数（T4降为2名；命中3名时叠加2层）。持续5秒，T1延长至8秒；最多5层。适用攻击每层增伤2%，T3提高至4%。T6对5层目标额外增伤5%。单一目标无法叠加层数。
 data.debuff.silkbindWing.Cuncao.name,Blade of Grass,寸草
 data.debuff.silkbindWing.InkRhyme.description,Increases Fan and Drum Series damage against the target by 5% and reduces its outgoing damage by 5%. Zephyr Whispers T4 increases both effects to 10% against non-player targets.,扇武学及击鼓系列技能对目标造成的伤害提高5%，目标造成的伤害降低5%。风知意T4将对非玩家目标的两项效果均提高至10%。
 data.debuff.silkbindWing.InkRhyme.name,Ink Rhythm,墨韵
 data.debuff.silkbindWing.TangledGauze.description,Roots the target and prevents most skills. Drum Q2 deals 20% additional damage to affected bosses.,使目标定身，且无法施放大部分技能。舞绫鼓Q第二段对受罗缠影响的首领额外造成20%伤害。
-data.debuff.silkbindWing.TangledGauze.name,羅纏,罗缠
+data.debuff.silkbindWing.TangledGauze.name,Tangled Gauze,罗缠
 data.debuff.silkbindWing.WarriorMark.description,"Envigorated Warrior T6: for 5s, attacks from this target do not disable the damage/healing bonus. Incoming attacks are attributed to the simulator’s selected target.",征人归T6：5秒内，来自此目标的攻击不会使伤害/治疗加成失效。受到的攻击均归于模拟器当前所选目标。
 data.debuff.silkbindWing.WarriorMark.name,Farewell,别离
 data.debuff.stonesplitMight.Vulnerable.description,"Increases HP and Qi damage taken by 8%, and by an additional 8% for Might.",受到的气血及真气伤害提高8%；受到裂石·威流派的伤害再额外提高8%。
@@ -420,7 +423,7 @@ data.dot.mystic.Smolder.name,Smolder,暗灼
 data.dot.mystic.Smolder.shortName,Smo,暗灼
 data.event.Hellfire.name,Event: Add Hellfire,事件: 增加业火
 data.food.None.name,None,无
-data.food.SimmeringFishSlices.name,Simmering Fish Slices,涮鱼
+data.food.SimmeringFishSlices.name,Clay Oven Flatbread,缸炉烧饼
 data.food.SimmeringFishSlices.title,Physical Attack,外功攻击
 data.food.SwallowsAgility.name,Swallow’s Agility,巧燕
 data.gear.affixes.hengBladeDmgBoost.name,Art of Heng,横刀武学增伤
@@ -704,37 +707,37 @@ data.skill.mortalRopeDart.RodentsResilienceCharge.name,Rodent's Resilience [1.5s
 data.skill.mortalRopeDart.RodentsResilienceCharge.shortName,RD Charge,绳镖 蓄力
 data.skill.museflowWaistDrum.CranesCry.name,Crane's Cry,鸾鹤引声
 data.skill.museflowWaistDrum.CranesCry.shortName,Drum Q2,鼓 Q2
-data.skill.museflowWaistDrum.CraneWings.name,鸞鶴舞翅,鸾鹤舞翅
+data.skill.museflowWaistDrum.CraneWings.name,Plumage Sweep,鸾鹤舞翅
 data.skill.museflowWaistDrum.CraneWings.shortName,Drum Q1,鼓 Q1
-data.skill.museflowWaistDrum.FlourishingNotesField.name,凌波·繁音·音域,凌波·繁音·音阵
+data.skill.museflowWaistDrum.FlourishingNotesField.name,Ripple: Toneflux · Sound Field,凌波·繁音·音阵
 data.skill.museflowWaistDrum.JadebreakerEnhanced.name,Ripple: Jadebreaker · Enhanced Sound Wave,凌波·撼玉·强化音波
 data.skill.museflowWaistDrum.JadebreakerEnhanced.skillBreakdownCategory,Ripple: Jadebreaker,凌波·撼玉
 data.skill.museflowWaistDrum.RhythmOfAccord.name,Rhythm of Accord,鼓乐和
 data.skill.museflowWaistDrum.RhythmOfAccord.shortName,Drum VC,鼓 派生
 data.skill.museflowWaistDrum.RhythmOfAccord.skillBreakdownCategory,Rhythm of Accord,鼓乐和
-data.skill.museflowWaistDrum.RibbonHeavy1.name,舞綾鼓·重擊1,舞绫鼓·重击1
+data.skill.museflowWaistDrum.RibbonHeavy1.name,Waist Drum: Heavy Attack 1,舞绫鼓·重击1
 data.skill.museflowWaistDrum.RibbonHeavy1.shortName,Drum Heavy 1,鼓重击 1
-data.skill.museflowWaistDrum.RibbonHeavy1.skillBreakdownCategory,舞綾鼓·重擊,舞绫鼓·重击
-data.skill.museflowWaistDrum.RibbonHeavy2.name,舞綾鼓·重擊2,舞绫鼓·重击2
+data.skill.museflowWaistDrum.RibbonHeavy1.skillBreakdownCategory,Waist Drum: Heavy Attack,舞绫鼓·重击
+data.skill.museflowWaistDrum.RibbonHeavy2.name,Waist Drum: Heavy Attack 2,舞绫鼓·重击2
 data.skill.museflowWaistDrum.RibbonHeavy2.shortName,Drum Heavy 2,鼓重击 2
-data.skill.museflowWaistDrum.RibbonHeavy2.skillBreakdownCategory,舞綾鼓·重擊,舞绫鼓·重击
-data.skill.museflowWaistDrum.RibbonHeavy3.name,舞綾鼓·重擊3,舞绫鼓·重击3
+data.skill.museflowWaistDrum.RibbonHeavy2.skillBreakdownCategory,Waist Drum: Heavy Attack,舞绫鼓·重击
+data.skill.museflowWaistDrum.RibbonHeavy3.name,Waist Drum: Heavy Attack 3,舞绫鼓·重击3
 data.skill.museflowWaistDrum.RibbonHeavy3.shortName,Drum Heavy 3,鼓重击 3
-data.skill.museflowWaistDrum.RibbonHeavy3.skillBreakdownCategory,舞綾鼓·重擊,舞绫鼓·重击
-data.skill.museflowWaistDrum.RibbonHeavy3PreVC.name,舞綾鼓·重擊3·派生前置,舞绫鼓·重击3·派生前置
+data.skill.museflowWaistDrum.RibbonHeavy3.skillBreakdownCategory,Waist Drum: Heavy Attack,舞绫鼓·重击
+data.skill.museflowWaistDrum.RibbonHeavy3PreVC.name,Waist Drum: Heavy Attack 3 · Follow-up Setup,舞绫鼓·重击3·派生前置
 data.skill.museflowWaistDrum.RibbonHeavy3PreVC.shortName,Drum Heavy 3 Pre-VC,鼓重击 3（派生前置）
-data.skill.museflowWaistDrum.RibbonHeavy3PreVC.skillBreakdownCategory,舞綾鼓·重擊,舞绫鼓·重击
-data.skill.museflowWaistDrum.RibbonHeavyComboVC.name,舞綾鼓·重擊123 → Rhythm of Accord,舞绫鼓·重击123 → 鼓乐和
+data.skill.museflowWaistDrum.RibbonHeavy3PreVC.skillBreakdownCategory,Waist Drum: Heavy Attack,舞绫鼓·重击
+data.skill.museflowWaistDrum.RibbonHeavyComboVC.name,Waist Drum: Heavy Attack 1–3 → Rhythm of Accord,舞绫鼓·重击123 → 鼓乐和
 data.skill.museflowWaistDrum.RibbonHeavyComboVC.shortName,Drum Heavy 123 → VC,鼓重击 123 → 派生
-data.skill.museflowWaistDrum.RibbonHeavyComboVC.skillBreakdownCategory,舞綾鼓·重擊,舞绫鼓·重击
-data.skill.museflowWaistDrum.RibbonLightCharged.name,羅袖動香,罗袖动香
+data.skill.museflowWaistDrum.RibbonHeavyComboVC.skillBreakdownCategory,Waist Drum: Heavy Attack,舞绫鼓·重击
+data.skill.museflowWaistDrum.RibbonLightCharged.name,Sleeve Dance,罗袖动香
 data.skill.museflowWaistDrum.RibbonLightCharged.shortName,Drum Light Charged,鼓蓄力轻击
-data.skill.museflowWaistDrum.RibbonLightChargedVC.name,羅袖動香 → Rhythm of Accord,罗袖动香 → 鼓乐和
+data.skill.museflowWaistDrum.RibbonLightChargedVC.name,Sleeve Dance → Rhythm of Accord,罗袖动香 → 鼓乐和
 data.skill.museflowWaistDrum.RibbonLightChargedVC.shortName,Drum Light Charged → VC,鼓蓄力轻击 → 派生
 data.skill.museflowWaistDrum.RippleDawnsun.name,Ripple: Dawnsun,凌波·昭阳
 data.skill.museflowWaistDrum.RippleDawnsun.shortName,Drum Special (Dawnsun),鼓特殊技（昭阳）
-data.skill.museflowWaistDrum.RippleFlourishingNotes.name,凌波·繁音,凌波·繁音
-data.skill.museflowWaistDrum.RippleFlourishingNotes.shortName,Drum Special (Flourishing Notes),鼓特殊技（繁音）
+data.skill.museflowWaistDrum.RippleFlourishingNotes.name,Ripple: Toneflux,凌波·繁音
+data.skill.museflowWaistDrum.RippleFlourishingNotes.shortName,Drum Special (Toneflux),鼓特殊技（繁音）
 data.skill.museflowWaistDrum.RippleJadebreaker.name,Ripple: Jadebreaker,凌波·撼玉
 data.skill.museflowWaistDrum.RippleJadebreaker.shortName,Drum Special (Jadebreaker),鼓特殊技（撼玉）
 data.skill.museflowWaistDrum.RippleJadebreaker.skillBreakdownCategory,Ripple: Jadebreaker,凌波·撼玉
@@ -1066,11 +1069,11 @@ data.skill.vernalUmbrella.UnfadingFlower.name,Unfading Flower,不谢花
 data.skill.vernalUmbrella.UnfadingFlower.shortName,Umbrella Special,伞 特殊
 data.skill.vernalUmbrella.VernalUmbrellaConversion.name,Vernal Umbrella Conversion,伞·易武
 data.skill.vernalUmbrella.VernalUmbrellaConversion.shortName,Umbrella Tab,伞 易武
-data.skill.willowbendFan.BoundlessBloom.name,Boundless Blossom,不尽春生
+data.skill.willowbendFan.BoundlessBloom.name,Boundless Bloom,不尽春生
 data.skill.willowbendFan.BoundlessBloom.shortName,Fan Q (Enhanced),扇Q（强化）
 data.skill.willowbendFan.EndOfGale.name,End of Gale,煞尽东风
 data.skill.willowbendFan.EndOfGale.shortName,Fan Q Perception,扇Q感知技
-data.skill.willowbendFan.NorthwindSweep.name,北風捲地,北风卷地
+data.skill.willowbendFan.NorthwindSweep.name,Boreal Sweep,北风卷地
 data.skill.willowbendFan.NorthwindSweep.shortName,Fan Special,扇特
 data.skill.willowbendFan.VerdantGust.name,Verdant Gust,一扇生息
 data.skill.willowbendFan.VerdantGust.shortName,Fan Q,扇Q

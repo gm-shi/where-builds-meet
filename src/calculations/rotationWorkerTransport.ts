@@ -292,6 +292,15 @@ export function dispatchCalculation(request: TransportRequest) {
   })
 }
 
+/**
+ * Start the first worker before anything asks for it, so its script downloads and compiles while
+ * the application is still mounting instead of after the first rotation is assembled. An idle
+ * slot is harmless: supersession keeps idle workers, and the budget is respected.
+ */
+export function prewarmCalculationWorkers() {
+  if (slots.length === 0 && typeof Worker !== "undefined") createSlot()
+}
+
 /** Stop the active batch so its replacement starts without stale queued work or worker cache. */
 export function supersedeCalculations() {
   // Idle workers hold no stale requests; keeping them preserves their prepared editor timeline.

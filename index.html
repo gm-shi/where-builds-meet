@@ -15,6 +15,11 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="mask-icon" href="/mask-icon.png" />
     <meta name="description" content="为《燕云十六声》创建配装、模拟并优化。" />
+    <!-- The catalog is fetched before the first render; starting it with the document saves a
+         round trip on slow connections. Keep in step with the published locales. -->
+    <link rel="preload" href="%BASE_URL%locales/manifest.json" as="fetch" crossorigin />
+    <link rel="preload" href="%BASE_URL%locales/zh-Hans.json" as="fetch" crossorigin />
+    <link rel="preload" href="%BASE_URL%locales/en.json" as="fetch" crossorigin />
     <title>Where Builds Meet | 燕云十六声 秒伤模拟器</title>
   </head>
   <body>
