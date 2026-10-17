@@ -5,6 +5,7 @@ import "./styles/index.css"
 import "@fontsource-variable/noto-sans/wght.css"
 import "@fontsource-variable/noto-sans-sc/wght.css"
 import App from "./App"
+import { prewarmCalculationWorkers } from "./calculations/rotationWorkerTransport"
 import { startDeploymentUpdates } from "./deploymentUpdates"
 import { initializeI18n } from "./i18n"
 import { migrateSessionStorage } from "./persistentStorage"
@@ -26,6 +27,7 @@ import "./styles/mobile.css"
 
 migrateSessionStorage()
 startDeploymentUpdates()
+prewarmCalculationWorkers()
 await initializeI18n()
 
 createRoot(document.getElementById("root")!).render(

@@ -6,7 +6,7 @@ import { typedPathDefinitions } from "@/application/gameData/paths"
 import { buildGraduationBundleSet, selectHighestGraduationResult } from "@/application/graduation"
 import { resolveBaseline, resolveComparisonMetrics } from "@/application/resolveRotationMetrics"
 import { rotationAvailableForWeapons, rotationRecordForEntry } from "@/application/rotationCatalog"
-import { rotationBundleFingerprint } from "@/calculations/calculationFingerprint"
+import { calculationFingerprint, rotationBundleFingerprint } from "@/calculations/calculationFingerprint"
 import { resolvePing } from "@/calculations/combatDefaults"
 import type { MeasurementContext } from "@/calculations/rotationCalculationBundle"
 import { buildRotationCalculationBundle, measurementSubject } from "@/calculations/rotationCalculationBundle"
@@ -75,6 +75,30 @@ function cachedGraduationDps(prepared: ReturnType<typeof buildGraduationBundleSe
   return selectHighestGraduationResult(cached)?.dps
 }
 
+/**
+ * The subject without its display-only rotation name, so renaming a rotation cannot restart a
+ * batch. The comparison bundle is a pure function of the subject, so this stands in for its
+ * fingerprint: serialising the subject costs a fraction of serialising the expanded variants
+ * (tens of kilobytes against roughly ten megabytes), which keeps the first baseline dispatch off a
+ * long main-thread stall at startup.
+ */
+function subjectFingerprint(subject: ReturnType<typeof measurementSubject>) {
+  const { name: _displayName, ...rotation } = subject.rotation
+  return calculationFingerprint({ ...subject, rotation })
+}
+
+/** Resolves once the next frame has had a chance to paint, or shortly after when frames are paused. */
+function yieldToPaint() {
+  return new Promise<void>(resolve => {
+    const fallback = setTimeout(resolve, 100)
+    if (typeof requestAnimationFrame !== "function") return
+    requestAnimationFrame(() => {
+      clearTimeout(fallback)
+      setTimeout(resolve, 0)
+    })
+  })
+}
+
 export function useActiveRotationResult(input: ActiveRotationInput) {
   const {
     pathId,
@@ -139,8 +163,7 @@ export function useActiveRotationResult(input: ActiveRotationInput) {
 
     // Compare calculation inputs, rather than effect runs: changing tab visibility or
     // recreating an equivalent input object must not interrupt useful shared work.
-    const comparisonBundle = buildRotationComparisonBundle(subject)
-    const revision = JSON.stringify([bundleKey, rotationBundleFingerprint(comparisonBundle), graduation?.fingerprint])
+    const revision = JSON.stringify([bundleKey, subjectFingerprint(subject), graduation?.fingerprint])
     if (revisionRef.current !== undefined && revisionRef.current !== revision) useDpsStore.getState().supersede()
     revisionRef.current = revision
 
@@ -181,10 +204,14 @@ export function useActiveRotationResult(input: ActiveRotationInput) {
         )
 
         // Only Main consumes variants. Other tabs still receive the full baseline: timeline,
-        // action breakdowns, totals and the immutable bundle needed by Simulation.
+        // action breakdowns, totals and the immutable bundle needed by Simulation. The headline
+        // is given a frame to paint before the variants are assembled, because building and
+        // fingerprinting them holds the main thread for a noticeable moment on slow devices.
+        if (comparisonsActive) await yieldToPaint()
+        if (!current()) return
         const comparisons = comparisonsActive
           ? resolveComparisonMetrics({
-              bundle: comparisonBundle,
+              bundle: buildRotationComparisonBundle(subject),
               baselineKey: cacheKey,
               baseline: () => resolved.baseline,
               onCategoryStarted: category => {
