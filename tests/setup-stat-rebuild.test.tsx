@@ -136,7 +136,7 @@ it("rebuilds food stats before publishing DPS and restores the cached original o
   expect(localStorage.getItem("wwm-food-session-v1")).toBe("None")
 
   const dispatchesBeforeReturn = dpsDispatches("baseline").length
-  await choose("Food", "Simmering Fish Slices")
+  await choose("Food", "Clay Oven Flatbread")
   expect(dpsDispatches("baseline")).toHaveLength(dispatchesBeforeReturn)
   expect(useRotationStore.getState().result!.metrics.dps).toBeCloseTo(fishDps, 8)
 })
@@ -160,7 +160,7 @@ it("keeps Script and Divinecraft selections in the same calculation as the chara
 })
 
 it.each([
-  { name: "breakthrough", selector: ".breakthrough-control select", value: "18" },
+  { name: "breakthrough", selector: ".breakthrough-control select", value: "17" },
   { name: "Inner Way tier", selector: ".inner-way-row select:nth-of-type(2)", value: "T0" },
 ])("rebuilds character stats when $name changes", async ({ selector, value }) => {
   await act(async () => root.render(<App />))
@@ -217,7 +217,7 @@ it("migrates legacy Endurance food and keeps both food controls independent", as
   expect(useLoadoutStore.getState().setupSelections).toMatchObject({ food: "None", enduranceFood: "SwallowsAgility" })
   expect(localStorage.getItem("wwm-food-session-v1")).toBe("None")
   expect(localStorage.getItem("wwm-endurance-food-session-v1")).toBe("SwallowsAgility")
-  await choose("Food", "Simmering Fish Slices")
+  await choose("Food", "Clay Oven Flatbread")
   expect(useLoadoutStore.getState().setupSelections).toMatchObject({
     food: "SimmeringFishSlices",
     enduranceFood: "SwallowsAgility",

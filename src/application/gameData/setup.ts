@@ -13,6 +13,7 @@ import type { EditableObject, ResourceEventRule } from "@/calculations/rotationT
 import type { EffectiveStatEffectContainer, StatEffectContainer } from "@/calculations/statEffects"
 import type { BaseAttributeData } from "@/data/baseAttributeEffects"
 import { createBaseAttributeEffects } from "@/data/baseAttributeEffects"
+import { effectForSoloLevel, type AuthoredSoloLevelEffect } from "@/data/soloLevelEffects"
 import { armorSetDefinitions, weaponSetDefinitions, type SetDefinition, type GearLevel } from "@/gear"
 import type { EnemyProfile } from "@/types"
 
@@ -36,7 +37,7 @@ export type BreakthroughProfile = EnemyProfile & {
   }
 }
 export const typedBreakthroughProfiles = breakthroughProfiles as Record<string, BreakthroughProfile>
-export const defaultBreakthrough = "17"
+export const defaultBreakthrough = "18"
 export const defaultSettings: CalculatorSettings = {
   weapons: ["snowparting", "phalanxbane"],
   breakthrough: defaultBreakthrough,
@@ -54,7 +55,7 @@ export type SystemStatsDefinition = {
   resourceSpendRegenDelay?: Record<string, number>
   resourceEvents: ResourceEventRule[]
   baseStats: SetupEffect
-  enhancementStats: Array<SetupEffect & { id: string }>
+  enhancementStats: Array<AuthoredSoloLevelEffect<SetupEffect> & { id: string }>
   talentStatsBySoloLevel: Record<string, SetupEffect>
   oddityStats: Record<string, SetupEffect & { minBreakthrough?: number }>
   baseAttributes: BaseAttributeData
@@ -66,7 +67,7 @@ export function systemStatEffectsForProgression(soloLevel: number, breakthrough:
   if (!talents) throw new RangeError(`Missing character talent totals for Solo Level ${soloLevel}`)
   return [
     typedSystemStats.baseStats,
-    ...typedSystemStats.enhancementStats,
+    ...typedSystemStats.enhancementStats.map(effect => effectForSoloLevel(effect, soloLevel, "Enhancement")),
     talents,
     ...Object.values(typedSystemStats.oddityStats).filter(
       effect => effect.minBreakthrough === undefined || breakthrough >= effect.minBreakthrough,
@@ -75,9 +76,18 @@ export function systemStatEffectsForProgression(soloLevel: number, breakthrough:
   ]
 }
 export type ArsenalDefinition = { name: string; effect?: SetupEffect }
-export const typedArsenalDefinitions = arsenalDefinitions as Record<string, ArsenalDefinition>
-export const typedBowRingSetDefinitions = bowRingSetDefinitions as Record<string, ArsenalDefinition>
-export type GearSetOption = { name: string; effect?: SetupEffect | SetupEffect[] }
+export const typedArsenalDefinitions = arsenalDefinitions as Record<
+  string,
+  { name: string; effect?: AuthoredSoloLevelEffect<SetupEffect> }
+>
+export const typedBowRingSetDefinitions = bowRingSetDefinitions as Record<
+  string,
+  { name: string; effect?: AuthoredSoloLevelEffect<SetupEffect> }
+>
+export type GearSetOption = {
+  name: string
+  effect?: AuthoredSoloLevelEffect<SetupEffect> | AuthoredSoloLevelEffect<SetupEffect>[]
+}
 export type GearSetDefinition = Omit<SetDefinition, "options"> & { options: Record<string, GearSetOption> }
 export const typedWeaponSetDefinitions = weaponSetDefinitions as Record<string, GearSetDefinition>
 export const typedArmorSetDefinitions = armorSetDefinitions as Record<string, GearSetDefinition>
@@ -137,12 +147,20 @@ export const divinecraftDisplayOrder = [
   "PoisonWater",
 ] as const
 
-export function arsenalEffectFor(value: string) {
-  return typedArsenalDefinitions[value]?.effect ?? {}
+export function arsenalEffectFor(value: string, settings: CalculatorSettings) {
+  return effectForSoloLevel(
+    typedArsenalDefinitions[value]?.effect ?? {},
+    breakthroughProfile(settings).soloLevel,
+    value,
+  )
 }
 
-export function bowRingSetEffectFor(value: string) {
-  return typedBowRingSetDefinitions[value]?.effect ?? {}
+export function bowRingSetEffectFor(value: string, settings: CalculatorSettings) {
+  return effectForSoloLevel(
+    typedBowRingSetDefinitions[value]?.effect ?? {},
+    breakthroughProfile(settings).soloLevel,
+    value,
+  )
 }
 
 type DivinecraftEffect = SetupEffect & { trigger?: EditableObject | EditableObject[] }
