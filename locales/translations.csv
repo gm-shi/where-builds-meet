@@ -18,6 +18,7 @@ data.bowRingSet.None.name,None,无
 data.bowRingSet.Precision.name,Precision,精准
 data.breakthrough.17.name,17,17
 data.breakthrough.18.name,18,18
+data.breakthrough.19.name,19,19
 data.buff.bamboocutDraught.Carouse.name,Carouse,酣饮
 data.buff.bamboocutDraught.Inebriate.name,Inebriate,酩酊
 data.buff.bamboocutDraught.InebriateDeepdaze.name,Inebriate - Deepdaze,酩酊·浓醺
@@ -1095,6 +1096,7 @@ stat.affinity,Affinity Rate,会意率
 stat.affinityDmgBonus,Affinity DMG Bonus,会意伤害加成
 stat.agility,Agility,敏
 stat.allMartialArts,All Martial Arts,全武学增效
+stat.allMysticDmgBoost,All Mystic Skill DMG Boost,全奇术增伤
 stat.areaMysticDmgBoost,Area Mystic Skill DMG Boost,群体类奇术增伤
 stat.bamboocutDmgBonus,Bamboocut DMG Bonus,破竹伤害加成
 stat.bamboocutPenetration,Bamboocut Penetration,破竹穿透
@@ -1447,6 +1449,7 @@ ui.app.firstAvailable,First available,首个可用项
 ui.app.firstTick,First Tick,首跳时间
 ui.app.fixedTime,Set time,固定时间
 ui.app.food,Food,食物
+ui.app.gearSearchMinutes,Best composition time limit (minutes; 0 for no limit),最佳组合搜索时限（分钟；0 为不限）
 ui.app.gearTier,Gear Tier:,装备等阶：
 ui.app.github,GitHub,GitHub
 ui.app.globalBuffsDebuffs,Global Buffs/Debuffs,全局增减益
@@ -1692,8 +1695,10 @@ ui.buildTab.bookmarkletUnreadableData,The dashboard returned unreadable data.,�
 ui.buildTab.bowRingSet,Bow/Ring Set,弓玦套装
 ui.buildTab.build,build,配装
 ui.buildTab.buildCountNoun,builds,个配装
+ui.buildTab.buildGearLocked,Gear is read-only while a search is running or a default preset is selected.,搜索进行中或选中默认模板时，装备为只读。
 ui.buildTab.buildInnerWay,Build inner way {number},配装心法 {number}
 ui.buildTab.buildInnerWayTier,Build inner way {number} tier,配装心法 {number} 重数
+ui.buildTab.buildLocked,Build setup is fixed while optimizing or viewing a default preset.,优化进行中或查看默认模板时，配装设置不可修改。
 ui.buildTab.builds,Builds,配装
 ui.buildTab.buildSetup,Build setup,配装设置
 ui.buildTab.cancel,Cancel,取消
@@ -1722,9 +1727,12 @@ ui.buildTab.exampleIncludeTheRarityColorGearTypeTier,"Example: include the rarit
 ui.buildTab.exampleMoBladeGearDetailsScreenshot,Example Mo Blade gear details screenshot,陌刀装备详情截图示例
 ui.buildTab.export,Export,导出
 ui.buildTab.exportWwmGear,Export WWM Gear,导出《燕云十六声》装备
+ui.buildTab.findBestCombination,Find Best Combination,寻找最佳组合
 ui.buildTab.fromImage,from image,（图片识别）
 ui.buildTab.gear,gear,装备
 ui.buildTab.graduatePreset,Graduate preset,毕业模板
+ui.buildTab.imageAmbiguousItemNameError,The item name matches more than one supported gear type.,该物品名称匹配到多种受支持的装备类型。
+ui.buildTab.imageColorsUnreadableError,Could not read image colors.,无法读取图片颜色。
 ui.buildTab.imageFileTypeError,"Choose a PNG, JPEG, or WebP image file.",请选择 PNG、JPEG 或 WebP 图片文件。
 ui.buildTab.imageGearMismatchError,"This image contains {recognized}, but the current editor expects {expected}. Open the matching gear slot and try again.",图片中的装备是{recognized}，但当前编辑的是{expected}。请打开对应的装备部位后重试。
 ui.buildTab.imageGearTypeUnknownError,Could not identify exactly one supported gear type from the image.,无法从图片中识别出唯一的受支持装备类型。
@@ -1777,6 +1785,18 @@ ui.buildTab.officialImportUnrecognizedExport,This is not a recognized official d
 ui.buildTab.officialImportUnsupportedMartialArt,{name} is not supported; weapon selection was inferred from gear or kept from the current setup.,不支持{name}；武学选择已根据装备推断或沿用当前设置。
 ui.buildTab.officialWhereWindsMeetDashboard,official Where Winds Meet dashboard,《燕云十六声》官方仪表板
 ui.buildTab.openThe,Open the,打开
+ui.buildTab.optimizationBestSoFar,Best found so far:,目前最佳结果：
+ui.buildTab.optimizationCompleted,Gear search completed. The best combination has been saved to this build.,装备搜索已完成，最佳组合已保存到此配装。
+ui.buildTab.optimizationCount,{completed} / {total},{completed} / {total}
+ui.buildTab.optimizationEstimate, · {fast} fast evaluations · {rebuild} rebuilds · estimated {seconds}s, · {fast} 次快速评估 · {rebuild} 次重建 · 预计 {seconds} 秒
+ui.buildTab.optimizationFailed,The gear search worker failed. Any best result received has been kept.,装备搜索 worker 运行失败，已收到的最佳结果已保留。
+ui.buildTab.optimizationNoCombinations,No valid gear combination is available. The same physical weapon cannot fill both slots.,没有可用的有效装备组合。同一件武器不能同时占用两个栏位。
+ui.buildTab.optimizationPreparing,Preparing search…,正在准备搜索…
+ui.buildTab.optimizationPreviewHint,Gear changes are a preview until the search finishes or you click Cancel. Normal calculations use your saved gear.,在搜索完成或点击「取消」之前，装备变更仅为预览。常规计算使用已保存的装备。
+ui.buildTab.optimizationProgress,Optimizing {name},正在优化 {name}
+ui.buildTab.optimizationRotation,Optimizing for: {name},优化目标循环：{name}
+ui.buildTab.optimizationTooLong,Search exceeds the configured time budget. Any best result found has been kept. Increase the time limit in Settings or reduce the visible gear inventory before trying again.,搜索超出设定的时间预算，已找到的最佳结果已保留。请在设置中提高时限，或减少可见的装备库存后重试。
+ui.buildTab.optimizationTooMany,"Search exceeds 100,000 unique combinations. Reduce the visible gear inventory before trying again.","搜索超过 100,000 种不同组合。请减少可见的装备库存后重试。"
 ui.buildTab.optionalAttributeError,Complete or clear each optional attribute.,请将每个选填属性填写完整或清除。
 ui.buildTab.pasteTheCopiedDashboardJsonHere,Paste the copied dashboard JSON here,在此粘贴复制的仪表板 JSON
 ui.buildTab.percentageValuesAreEnteredAsPercentagePoints,Percentage values are entered as percentage points.,百分比数值请按百分点输入。
@@ -1797,7 +1817,6 @@ ui.buildTab.selectedGearScreenshot,Selected gear screenshot,已选装备截图
 ui.buildTab.selectThisBuildAndSwitchToItsMartial,Select this build and switch to its martial arts,选择此配装并切换至其武学
 ui.buildTab.shared,Shared,共用
 ui.buildTab.theBookmarkRunsOnlyOnTheOfficialDashboard,The bookmark runs only on the official dashboard. Where Builds Meet receives only the JSON you paste here.,此书签仅在官方仪表板上运行。Where Builds Meet 只会收到你在此粘贴的 JSON。
-ui.buildTab.thisDefaultBuildUsesFixedPresetGearUse,This default build uses fixed preset gear. Use New Build to create your own build.,此默认配装使用固定的模板装备。请使用「新建配装」创建自己的配装。
 ui.buildTab.toYourBrowserBookmarksBar,to your browser bookmarks bar.,到浏览器书签栏。
 ui.buildTab.unnamedBuild,Unnamed Build,未命名配装
 ui.buildTab.useAClearUncroppedGearDetailsScreenshotRecognition,"Use a clear, uncropped gear details screenshot. Recognition runs locally in your browser.",请使用清晰、未裁剪的装备详情截图。识别过程在你的浏览器本地运行。
