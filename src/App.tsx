@@ -1,6 +1,7 @@
-import { IconBrandGithub } from "@tabler/icons-react"
+import { IconBrandGithub, IconX } from "@tabler/icons-react"
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react"
 
+import { clearSharedBuild, hasSharedBuild, readSharedBuild } from "./application/buildShare"
 import { resolveBuildStatState } from "./application/buildStatState"
 import { settingsForPath } from "./application/characterComposition"
 import type { LayoutMode, PathId } from "./application/contracts"
@@ -23,12 +24,14 @@ import { hasSkillOverrides, loadSkillOverrides } from "./application/persistence
 import { rotationAvailableForWeapons } from "./application/rotationCatalog"
 import { FeatureLoadBoundary } from "./application/shell/FeatureLoadBoundary"
 import { NoticeArea } from "./application/shell/NoticeArea"
+import { useScreenSizing } from "./application/shell/useScreenSizing"
 import { BreakdownTab } from "./features/analysis/BreakdownTab"
 import { StatsTab } from "./features/character/StatsTab"
 import { SettingsTab } from "./features/settings/SettingsTab"
 import { SkillEditorTab } from "./features/skills/SkillEditorTab"
 import { Button } from "./ui/Button"
 import { Chip } from "./ui/Chip"
+import { Dialog } from "./ui/Dialog"
 import { Tab } from "./ui/Tab"
 const loadBuildTab = () => import("./features/build/BuildTab")
 const loadSimulationTab = () => import("./features/simulation/SimulationTab")
@@ -50,8 +53,17 @@ import {
   type CharacterProfile,
 } from "./characterProfiles"
 import { useActiveRotationResult } from "./features/rotations/useActiveRotationResult"
-import { resolveBuildSetup, sameWeaponPair, type BuildSetup, type BuildSetupOverrides } from "./gear"
+import {
+  buildEntryAvailableForMartialArts,
+  buildEntryMartialArts,
+  mergeImportedBuildState,
+  resolveBuildSetup,
+  sameWeaponPair,
+  type BuildSetup,
+  type BuildSetupOverrides,
+} from "./gear"
 import { gameText, getLocale, getLocaleDisplayName, getSupportedLocales, isLocaleWip, selectLocale, t } from "./i18n"
+import { publishNotice } from "./notices"
 import { resolvePathWorkspaceSelection } from "./pathWorkspace"
 import { removePersistentItem, setPersistentItem } from "./persistentStorage"
 import { serializeSkillOverrides, type SkillOverrides } from "./skillOverrides"
@@ -117,6 +129,7 @@ export default function App() {
   }
   const devMode = useSettingsStore(state => state.devMode)
   const layoutPreview = useSettingsStore(state => state.layoutPreview)
+  const displaySizing = useSettingsStore(state => state.displaySizing)
   const pathId = useLoadoutStore(state => state.pathId)
   const settings = useLoadoutStore(state => state.settings)
   const setupSelections = useLoadoutStore(state => state.setupSelections)
@@ -124,6 +137,7 @@ export default function App() {
   const statOverrides = useOverrideStore(state => state.statOverrides)
   const attunementOverrides = useOverrideStore(state => state.attunementOverrides)
   const layoutMode: LayoutMode = devMode ? layoutPreview : compactViewport ? "mobile" : "pc"
+  useScreenSizing(layoutMode === "pc" && displaySizing === "screen")
   const [workspaceStoresRead, markWorkspaceStoresRead] = useState(false)
   if (!workspaceStoresRead) {
     markWorkspaceStoresRead(true)
@@ -354,6 +368,7 @@ export default function App() {
   const toggleDevMode = () => {
     const nextDevMode = !devMode
     useSettingsStore.getState().setDevMode(nextDevMode)
+    if (nextDevMode && hasSharedBuild()) setSharedBuildOffered(true)
     if (!nextDevMode && pathRequiresDev(typedPathDefinitions[pathId])) selectPath("stonesplitStrength")
     if (!nextDevMode && isLocaleWip(locale)) void changeLocale("en")
   }
@@ -371,6 +386,52 @@ export default function App() {
   const changePreview = (nextPreview: PreviewId | null) => {
     setPreviewId(nextPreview)
     persistPreviewSelection(nextPreview)
+  }
+  // A shared build arrives in the URL fragment. The recipient decides whether to import it.
+  // A fragment-only navigation keeps this component mounted, so watch for later links too.
+  const [sharedBuildOffered, setSharedBuildOffered] = useState(hasSharedBuild)
+  useEffect(() => {
+    const offerSharedBuild = () => setSharedBuildOffered(hasSharedBuild())
+    window.addEventListener("hashchange", offerSharedBuild)
+    return () => window.removeEventListener("hashchange", offerSharedBuild)
+  }, [])
+  const dismissSharedBuild = () => {
+    clearSharedBuild()
+    setSharedBuildOffered(false)
+  }
+  const importSharedBuild = async () => {
+    setSharedBuildOffered(false)
+    let keepLinkForRetry = false
+    try {
+      const payload = await readSharedBuild()
+      const result = mergeImportedBuildState(useGearStore.getState().buildState, payload, { reuseIdenticalGear: true })
+      const entry = result.state.entries.find(candidate => candidate.id === result.importedBuildIds[0])
+      if (!entry) throw new Error(t("ui.buildTab.shareLinkInvalid"))
+      // Switch the workspace before importing so a private build lands on the path it belongs to.
+      const martialArts = buildEntryMartialArts(entry)
+      if (
+        martialArts.length === 2 &&
+        !buildEntryAvailableForMartialArts(entry, useLoadoutStore.getState().settings.weapons)
+      ) {
+        if (!selectBuildWeapons([martialArts[0], martialArts[1]])) {
+          keepLinkForRetry = true
+          throw new Error(t("ui.buildTab.sharedBuildRequiresDevMode"))
+        }
+      }
+      const targetPath = useLoadoutStore.getState().pathId
+      useGearStore.getState().updateBuildState(targetPath, () => result.state)
+      useGearStore.getState().selectBuildForPath(entry.id, targetPath)
+      setActiveTab("build")
+      publishNotice({ id: "build-share", message: t("ui.buildTab.sharedBuildImported", { name: entry.name }) })
+    } catch (error) {
+      publishNotice({
+        id: "build-share",
+        error: true,
+        message: error instanceof Error ? error.message : t("ui.buildTab.shareLinkInvalid"),
+      })
+    } finally {
+      if (!keepLinkForRetry) clearSharedBuild()
+    }
   }
 
   useEffect(
@@ -401,6 +462,7 @@ export default function App() {
     <main
       className={`page-shell layout-${layoutMode} ${layoutMode === "pc" && (activeTab === "build" || activeTab === "rotations") ? "viewport-page-shell" : ""}`}
       data-layout={layoutMode}
+      data-display-sizing={displaySizing}
     >
       <div className="page-content">
         <header className="page-header">
@@ -623,6 +685,33 @@ export default function App() {
           </a>
         </span>
       </footer>
+      <Dialog
+        open={sharedBuildOffered}
+        onClose={dismissSharedBuild}
+        className="shared-build-dialog"
+        label={t("ui.buildTab.importSharedBuild")}
+      >
+        <div className="dialog-heading">
+          <h2>{t("ui.buildTab.importSharedBuild")}</h2>
+          <button
+            className="icon-button"
+            type="button"
+            aria-label={t("ui.buildTab.cancel")}
+            onClick={dismissSharedBuild}
+          >
+            <IconX size="1em" aria-hidden />
+          </button>
+        </div>
+        <p>{t("ui.buildTab.sharedBuildPrompt")}</p>
+        <div className="dialog-actions">
+          <Button variant="secondary" type="button" onClick={dismissSharedBuild}>
+            {t("ui.buildTab.cancel")}
+          </Button>
+          <Button variant="primary" type="button" onClick={importSharedBuild}>
+            {t("ui.buildTab.import")}
+          </Button>
+        </div>
+      </Dialog>
     </main>
   )
 }

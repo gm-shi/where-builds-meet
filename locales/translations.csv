@@ -28,9 +28,11 @@ data.buff.bamboocutDust.FlowerBurial.name,Flower Burial,葬花
 data.buff.bamboocutDust.FragrantSong.name,Fragrant Song,芳歌
 data.buff.bamboocutDust.FragrantSongDelicate.name,Fragrant Song - Delicate,芳歌·玲珑
 data.buff.bamboocutDust.FragrantSongDelicate.shortName,FSD,玲珑
-data.buff.bamboocutDust.FragrantSongResonance.description,"Marks the Scarlet Spin throw that spent Fragrant Song, so the Resonances that throw summons crit with it. Every throw clears and re-primes this at its own start, which scopes it to one throw even though the next throw starts before this one's Resonances land. The duration only has to outlive the throw's own Resonances; scoping comes from the clear, not the expiry.",标记消耗了芳歌的那一次红消香断投掷，使该次投掷召唤的共鸣也随之会心。每次投掷开始时都会清除并重新挂上此标记，因此即使下一次投掷在本次投掷的共鸣命中前就已开始，它也只作用于单次投掷。持续时间只需长于该次投掷自身的共鸣；作用范围由清除来限定，而非依赖到期失效。
+data.buff.bamboocutDust.FragrantSongResonance.description,Marks the throw that started with Fragrant Song. Its creation and accepted-catch Resonances use that throw's bonus. A catch may ready Fragrant Song for the following throw without changing this marker; the following throw clears and re-primes it.,标记以芳歌开始的那一次投掷。该次投掷生成的共鸣与被接住时的共鸣都使用该次投掷的加成。接伞可为下一次投掷备好芳歌，但不会改变此标记；下一次投掷会清除并重新挂上它。
 data.buff.bamboocutDust.FragrantSongResonance.name,Fragrant Song - Resonance,芳歌·共鸣
 data.buff.bamboocutDust.FragrantSongResonance.shortName,FSR,芳鸣
+data.buff.bamboocutDust.PendingCatchResonance.name,Deferred catch Resonance,延后的接伞共鸣
+data.buff.bamboocutDust.PhantomCreatedThisThrow.name,Phantom created by current throw,本次投掷已生成幻影伞
 data.buff.bamboocutDust.PhantomUmbrella.description,"A summoned world object, not a stat buff. One exists per player: a new summon replaces the previous one rather than accumulating, and it expires after five seconds.",召唤出的场景物件，而非属性增益。每名玩家同时只存在一把：新召唤的会替换上一把，不会累积，且5秒后消失。
 data.buff.bamboocutDust.PhantomUmbrella.name,Phantom Umbrella,幻影伞
 data.buff.bamboocutDust.PhantomUmbrella.shortName,PU,幻伞
@@ -57,6 +59,8 @@ data.buff.bamboocutKite.HeavensUnity.name,Heaven's Unity,天人合一
 data.buff.bamboocutKite.HeavensUnity.shortName,Unity,合一
 data.buff.bamboocutKite.HeavenwillGauntletsA4.name,Heavenwill Gauntlets A4,天志垂象·轻击4
 data.buff.bamboocutKite.HeavenwillGauntletsA4.shortName,A4,轻击4
+data.buff.bamboocutKite.HeavenwillHeavyCombo.name,Heavenwill Heavy Attack Combo,天志垂象·重击连段
+data.buff.bamboocutKite.HeavenwillLightCombo.name,Heavenwill Light Attack Combo,天志垂象·轻击连段
 data.buff.bamboocutWind.Disintegration.description,Increase physical penetraion by 5 and critical damage by 5% per stack.,每层增加5点外功穿透及5%会心伤害。
 data.buff.bamboocutWind.Disintegration.name,Disintegration,崩解
 data.buff.bamboocutWind.Disintegration.shortName,Dis,崩
@@ -66,7 +70,9 @@ data.buff.bamboocutWind.EnhancedRodentRampage.shortName,ERR,强鼠威
 data.buff.bamboocutWind.EnhancedRodentRampageCount.name,Enhanced Rodent Rampage Attack Count,强化鼠鼠生威攻击次数
 data.buff.bamboocutWind.Flamelash.name,Flamelash,嗔焰
 data.buff.bamboocutWind.Flamelash.shortName,Fla,嗔焰
+data.buff.bamboocutWind.InfernalFlamelashCombo.name,Blade of Heaven's Wrath Combo,天怒刀法连段
 data.buff.bamboocutWind.InfernalLightAttackPveBonus.name,Infernal Light Attack PvE Bonus,泥犁三垢·轻击PvE加成
+data.buff.bamboocutWind.InfernalLightCombo.name,Infernal Light Attack Combo,双刀·轻击连段
 data.buff.bamboocutWind.RodentRampage.name,Rodent Rampage,鼠鼠生威
 data.buff.bamboocutWind.RodentRampage.shortName,RR,鼠威
 data.buff.bamboocutWind.RodentRampageCount.name,Rodent Rampage Attack Count,鼠鼠生威攻击次数
@@ -91,13 +97,12 @@ data.buff.bellstrikeUmbra.RiverFlow.name,River Flow,江流
 data.buff.bellstrikeUmbra.SoberSorrowComboWindow.name,Sober Sorrow Combo Window,愁无酒连击窗口
 data.buff.bellstrikeUmbra.SpringSurge.name,Spring Surge,涌泉
 data.buff.bellstrikeUmbra.StrategicBleedEnduranceReady.name,Strategic Sword Bleed Endurance Ready,积矩九剑·流血返还耐力就绪
-data.buff.bellstrikeUmbra.SwordsZenith.description,One stack represents 20 Sword Spirit; maximum is 100.,每层代表20点剑意，上限为100。
-data.buff.bellstrikeUmbra.SwordsZenith.name,Sword's Zenith,纵横剑意
-data.buff.bellstrikeUmbra.SwordsZenith.shortName,Zenith,纵横
 data.buff.bellstrikeUmbra.WaterDrop.name,Water Drop,滴水
 data.buff.general.Bloom.description,The spring outcome of Seasonal Edge.,四时无常的「春」效果。
 data.buff.general.Bloom.name,Bloom,春
 data.buff.general.Bloom.shortName,Bloom,春
+data.buff.general.BossTalent.description,Increases general damage by 15%.,通用伤害提高15%。
+data.buff.general.BossTalent.name,Boss Talent,首领天赋
 data.buff.general.BreakingPointCooldown.description,Breaking Point's Tier VI dodge effect is on cooldown. Ordinary Disintegration stacks remain available.,断石之构的六阶闪避效果冷却中。普通的崩解层数仍可叠加。
 data.buff.general.BreakingPointCooldown.name,Breakpoint Cooldown,断石之构冷却
 data.buff.general.BreakingPointCooldown.shortName,BP CD,断石冷却
@@ -211,23 +216,23 @@ data.buff.silkbindJade.SpringThunderBoost.shortName,ST Boost,春雷增伤
 data.buff.silkbindJade.Windrider.description,The next Moon Shatter Spring uses its enhanced five-hit form. Granted when Peak's Springless Silence hits a target carrying Lingering Bone or when Jadewind Shield finishes. Lasts 5 seconds.,下一次月出惊春使用强化的五段形态。春尽山空命中带有滞骨的目标，或屏山断翠施放结束时获得。持续5秒。
 data.buff.silkbindJade.Windrider.name,Windrider,乘风
 data.buff.silkbindJade.Windrider.shortName,WR,乘风
-data.buff.silkbindWing.Cloudshear.description,Increases all damage and healing by 6%.,全类型伤害与治疗加成提高6%。
-data.buff.silkbindWing.Cloudshear.name,Cloudshear: Wings,裁云·翊
-data.buff.silkbindWing.DawnsunDefense.name,Dawnsun Damage Reduction,昭阳减伤
-data.buff.silkbindWing.DrumSpecialDefense.name,Ripple Damage Reduction,凌波减伤
-data.buff.silkbindWing.EnvigoratedDisabled.name,Envigorated Warrior Disabled,征人归失效
-data.buff.silkbindWing.FlowingWind.description,Enhances Fan Q into Boundless Bloom.,将扇Q强化为「不尽春生」。
-data.buff.silkbindWing.FlowingWind.name,Driftbreeze,流风
-data.buff.silkbindWing.RadiantDrum.description,"Increases Physical Attack and all attribute attacks by 6%. With Ribbon & Drum talents, also increases Drum Series base damage by 40%.",外功攻击及所有属性攻击提高6%。配合舞绫鼓天赋，击鼓系列技能基础伤害另提高40%。
-data.buff.silkbindWing.RadiantDrum.name,Radiant Drum,烁鼓
-data.buff.silkbindWing.Tailwind.description,"Increases all attribute attacks by 3% (6% when paired with Ribbon & Drum). With Ribbon & Drum talents, also increases Drum Series base damage by 40%.",所有属性攻击提高3%（搭配舞绫鼓时提高6%）。配合舞绫鼓天赋，击鼓系列技能基础伤害另提高40%。
-data.buff.silkbindWing.Tailwind.name,Rustling,扶风
-data.buff.silkbindWing.WarriorCage.name,Cage,牢笼
-data.buff.silkbindWing.WarriorEscape.name,Escape From Cage,脱离牢笼
-data.buff.silkbindWing.WingsSupportBlue.name,Silkbind - Wings (Blue),牵丝·翊（蓝）
-data.buff.silkbindWing.WingsSupportDuration.name,Wings Support Duration,翊辅助持续时间
-data.buff.silkbindWing.WingsSupportFull.name,Silkbind - Wings (Full),牵丝·翊（全）
-data.buff.silkbindWing.WingsSupportYellow.name,Silkbind - Wings (Yellow),牵丝·翊（黄）
+data.buff.silkbindWings.Cloudshear.description,Increases all damage and healing by 6%.,全类型伤害与治疗加成提高6%。
+data.buff.silkbindWings.Cloudshear.name,Cloudshear: Wings,裁云·翊
+data.buff.silkbindWings.DawnsunDefense.name,Dawnsun Damage Reduction,昭阳减伤
+data.buff.silkbindWings.DrumSpecialDefense.name,Ripple Damage Reduction,凌波减伤
+data.buff.silkbindWings.EnvigoratedDisabled.name,Envigorated Warrior Disabled,征人归失效
+data.buff.silkbindWings.FlowingWind.description,Enhances Fan Q into Boundless Bloom.,将扇Q强化为「不尽春生」。
+data.buff.silkbindWings.FlowingWind.name,Driftbreeze,流风
+data.buff.silkbindWings.RadiantDrum.description,"Increases Physical Attack and all attribute attacks by 6%. With Ribbon & Drum talents, also increases Drum Series base damage by 40%.",外功攻击及所有属性攻击提高6%。配合舞绫鼓天赋，击鼓系列技能基础伤害另提高40%。
+data.buff.silkbindWings.RadiantDrum.name,Radiant Drum,烁鼓
+data.buff.silkbindWings.Tailwind.description,"Increases all attribute attacks by 3% (6% when paired with Ribbon & Drum). With Ribbon & Drum talents, also increases Drum Series base damage by 40%.",所有属性攻击提高3%（搭配舞绫鼓时提高6%）。配合舞绫鼓天赋，击鼓系列技能基础伤害另提高40%。
+data.buff.silkbindWings.Tailwind.name,Rustling,扶风
+data.buff.silkbindWings.WarriorCage.name,Cage,牢笼
+data.buff.silkbindWings.WarriorEscape.name,Escape From Cage,脱离牢笼
+data.buff.silkbindWings.WingsSupportBlue.name,Silkbind - Wings (Blue),牵丝·翊（蓝）
+data.buff.silkbindWings.WingsSupportDuration.name,Wings Support Duration,翊辅助持续时间
+data.buff.silkbindWings.WingsSupportFull.name,Silkbind - Wings (Full),牵丝·翊（全）
+data.buff.silkbindWings.WingsSupportYellow.name,Silkbind - Wings (Yellow),牵丝·翊（黄）
 data.buff.stonesplitMight.Breakthrough.description,Increases Charged Skill damage by 42%.,蓄力技伤害提高42%。
 data.buff.stonesplitMight.Breakthrough.name,Breakthrough,破阵
 data.buff.stonesplitMight.Breakthrough.shortName,Breakthrough,破阵
@@ -286,19 +291,19 @@ data.build.bellstrikeSplendor.splendorFullyRelayed.name,Fully Relayed Max Build,
 data.build.bellstrikeUmbra.umbraFull.name,Full Max Build,大外毕业配装
 data.build.bellstrikeUmbra.umbraFullyRelayed.name,Fully Relayed Max Build,全承音大外配装
 data.build.empty.name,Empty Build,空白配装
-data.build.silkbindDeluge.delugeFullMinEw.name,Full Min Build Etherwrath,小外毕业配装·撼天
+data.build.silkbindDeluge.delugeFullMaxIb.name,Full Max Build Ivorybloom,大外毕业配装·浣花
 data.build.silkbindDeluge.delugeFullyRelayedMaxAffinity.name,Fully Relayed Max Build Affinity,全承音大外配装·会意
 data.build.silkbindDeluge.delugeFullyRelayedMaxHw.name,Fully Relayed Max Build Hawkwing,全承音大外配装·飞隼
-data.build.silkbindDeluge.delugeFullyRelayedMaxRw.name,Fully Relayed Max Build Rain Whisper,全承音大外配装·时雨
+data.build.silkbindDeluge.delugeFullyRelayedMaxIb.name,Fully Relayed Max Build Ivorybloom,全承音大外配装·浣花
 data.build.silkbindDeluge.delugeFullyRelayedMinEw.name,Fully Relayed Min Build Etherwrath,全承音小外配装·撼天
-data.build.silkbindDeluge.delugeFullyRelayedMinRw.name,Fully Relayed Min Build Rain Whisper,全承音小外配装·时雨
+data.build.silkbindDeluge.delugeFullyRelayedMinIb.name,Fully Relayed Min Build Ivorybloom,全承音小外配装·浣花
 data.build.silkbindJade.jadeFullMax.name,Full Max Build,大外毕业配装
 data.build.silkbindJade.jadeFullyRelayedMax.name,Fully Relayed Max Build,全承音大外配装
-data.build.silkbindWing.wingsFullyRelayedDoubleMin.name,Fully Relayed Double Min Build,全承音小外小属配装
-data.build.silkbindWing.wingsFullyRelayedMin.name,Fully Relayed Min Build,全承音小外配装
-data.build.silkbindWing.wingsFullyRelayedMinAttribute.name,Fully Relayed Min Attribute Build,全承音小属配装
-data.build.silkbindWing.wingsGraduate.name,Graduate Build,毕业配装
-data.build.silkbindWing.wingsMax.name,Fully Relayed Max Build,全承音大外配装
+data.build.silkbindWings.wingsFullyRelayedDoubleMin.name,Fully Relayed Double Min Build,全承音小外小属配装
+data.build.silkbindWings.wingsFullyRelayedMin.name,Fully Relayed Min Build,全承音小外配装
+data.build.silkbindWings.wingsFullyRelayedMinAttribute.name,Fully Relayed Min Attribute Build,全承音小属配装
+data.build.silkbindWings.wingsGraduate.name,Graduate Build,毕业配装
+data.build.silkbindWings.wingsMax.name,Fully Relayed Max Build,全承音大外配装
 data.build.stonesplitMight.mightFullMax.name,Full Max Build,大外毕业配装
 data.build.stonesplitMight.mightFullyRelayedMax.name,Fully Relayed Max Build,全承音大外配装
 data.build.stonesplitStrength.mixedFullMin.name,Mixed Full Min Build,小外双切毕业配装
@@ -377,15 +382,15 @@ data.debuff.silkbindJade.Combo.shortName,Combo,连中
 data.debuff.silkbindJade.LingeringBone.description,"Peak's Springless Silence and Forsaken Fame mark a non-player target for 2 seconds. Unfading Flower's floating umbrella fires an extra shot each volley against it, and Peak's Springless Silence grants Windrider on hitting it.",春尽山空与浮名无寄命中非玩家目标时附加，持续2秒。不谢花的浮伞对其每轮追加一发射击；春尽山空命中带有滞骨的目标时获得乘风。
 data.debuff.silkbindJade.LingeringBone.name,Lingering Bone,滞骨
 data.debuff.silkbindJade.LingeringBone.shortName,LB,滞骨
-data.debuff.silkbindWing.Cuncao.description,"Blade's Will stacks require an eligible varied attack, including Rhythm of Accord or End of Gale, to hit at least 3 enemies simultaneously (2 at T4; 3 grants 2 stacks). Lasts 5s, or 8s at T1; up to 5 stacks. Eligible attacks deal 2% more damage per stack, increased to 4% at T3. T6 adds 5% damage against targets at 5 stacks. Cannot build stacks against a single target.",寸草心的适用派生技（包括鼓乐和、煞尽东风）同时命中至少3名敌人时叠加层数（T4降为2名；命中3名时叠加2层）。持续5秒，T1延长至8秒；最多5层。适用攻击每层增伤2%，T3提高至4%。T6对5层目标额外增伤5%。单一目标无法叠加层数。
-data.debuff.silkbindWing.Cuncao.name,Blade of Grass,寸草
-data.debuff.silkbindWing.InkRhyme.description,Increases Fan and Drum Series damage against the target by 5% and reduces its outgoing damage by 5%. Zephyr Whispers T4 increases both effects to 10% against non-player targets.,扇武学及击鼓系列技能对目标造成的伤害提高5%，目标造成的伤害降低5%。风知意T4将对非玩家目标的两项效果均提高至10%。
-data.debuff.silkbindWing.InkRhyme.name,Ink Rhythm,墨韵
-data.debuff.silkbindWing.TangledGauze.description,Roots the target and prevents most skills. Drum Q2 deals 20% additional damage to affected bosses.,使目标定身，且无法施放大部分技能。舞绫鼓Q第二段对受罗缠影响的首领额外造成20%伤害。
-data.debuff.silkbindWing.TangledGauze.name,Tangled Gauze,罗缠
-data.debuff.silkbindWing.WarriorMark.description,"Envigorated Warrior T6: for 5s, attacks from this target do not disable the damage/healing bonus. Incoming attacks are attributed to the simulator’s selected target.",征人归T6：5秒内，来自此目标的攻击不会使伤害/治疗加成失效。受到的攻击均归于模拟器当前所选目标。
-data.debuff.silkbindWing.WarriorMark.name,Farewell,别离
-data.debuff.stonesplitMight.Vulnerable.description,"Increases HP and Qi damage taken by 8%, and by an additional 8% for Might.",受到的气血及真气伤害提高8%；受到裂石·威流派的伤害再额外提高8%。
+data.debuff.silkbindWings.Cuncao.description,"Blade's Will stacks require an eligible varied attack, including Rhythm of Accord or End of Gale, to hit at least 3 enemies simultaneously (2 at T4; 3 grants 2 stacks). Lasts 5s, or 8s at T1; up to 5 stacks. Eligible attacks deal 2% more damage per stack, increased to 4% at T3. T6 adds 5% damage against targets at 5 stacks. Cannot build stacks against a single target.",寸草心的适用派生技（包括鼓乐和、煞尽东风）同时命中至少3名敌人时叠加层数（T4降为2名；命中3名时叠加2层）。持续5秒，T1延长至8秒；最多5层。适用攻击每层增伤2%，T3提高至4%。T6对5层目标额外增伤5%。单一目标无法叠加层数。
+data.debuff.silkbindWings.Cuncao.name,Blade of Grass,寸草
+data.debuff.silkbindWings.InkRhyme.description,Increases Fan and Drum Series damage against the target by 5% and reduces its outgoing damage by 5%. Zephyr Whispers T4 increases both effects to 10% against non-player targets.,扇武学及击鼓系列技能对目标造成的伤害提高5%，目标造成的伤害降低5%。风知意T4将对非玩家目标的两项效果均提高至10%。
+data.debuff.silkbindWings.InkRhyme.name,Ink Rhythm,墨韵
+data.debuff.silkbindWings.TangledGauze.description,Roots the target and prevents most skills. Drum Q2 deals 20% additional damage to affected bosses.,使目标定身，且无法施放大部分技能。舞绫鼓Q第二段对受罗缠影响的首领额外造成20%伤害。
+data.debuff.silkbindWings.TangledGauze.name,Tangled Gauze,罗缠
+data.debuff.silkbindWings.WarriorMark.description,"Envigorated Warrior T6: for 5s, attacks from this target do not disable the damage/healing bonus. Incoming attacks are attributed to the simulator’s selected target.",征人归T6：5秒内，来自此目标的攻击不会使伤害/治疗加成失效。受到的攻击均归于模拟器当前所选目标。
+data.debuff.silkbindWings.WarriorMark.name,Farewell,别离
+data.debuff.stonesplitMight.Vulnerable.description,"Increases HP damage taken by 8%, with an additional 10% for Might. Does not increase Qi damage.",受到的气血伤害提高8%；受到裂石·威流派的伤害再额外提高10%。不提高真气伤害。
 data.debuff.stonesplitMight.Vulnerable.name,Vulnerable,易伤
 data.debuff.stonesplitMight.Vulnerable.shortName,Vul,伤
 data.debuff.stonesplitStrength.Dread.description,Increases HP damage taken by 12%.,受到的气血伤害提高12%。
@@ -454,25 +459,28 @@ data.path.bamboocutDraught.name,Draught,樽
 data.path.bamboocutDust.name,Dust,尘
 data.path.bamboocutKite.name,Kite,鸢
 data.path.mixed.name,Mixed,混搭
-data.path.silkbindWing.name,Wings,翊
+data.path.silkbindWings.name,Wings,翊
 data.path.stonesplitMight.name,Might,威
 data.path.stonesplitStrength.name,Strength,钧
 data.rotation.bamboocutDraught.draughtEmpty.name,Draught Empty Rotation,樽·空白循环
-data.rotation.bamboocutDust.dustDummy1Min.name,Dummy 1 min,木桩1分钟
-data.rotation.bamboocutDust.dustDummy1Min100pc.name,Dummy 1 min 100% PC,木桩1分钟100%幻鸣
+data.rotation.bamboocutDust.dustDummy1Min.name,Dummy 1 Min,木桩1分钟
+data.rotation.bamboocutDust.dustDummy1Min100pc.name,Dummy 1 Min 100% PC,木桩1分钟100%幻鸣
 data.rotation.bamboocutKite.dummy1MinInfiniteVitality.name,Dummy 1 Min Infinite Vitality,木桩1分钟无限精元
 data.rotation.bamboocutKite.dummy1MinIvBp.name,Dummy 1 Min IV BP,木桩1分钟无限精元·断石之构
+data.rotation.bamboocutKite.dummy1MinIvBpDh.name,Dummy 1 Min IV BP DH,木桩1分钟无限精元·断石之构·叶龙骧首
 data.rotation.bamboocutWind.windDummy1MinInfiniteVitality.name,Dummy 1 Min Infinite Vitality,木桩1分钟无限精元
+data.rotation.bamboocutWind.windDummy1MinIvNoDodge.name,Dummy 1 Min IV No Dodge,木桩1分钟无限精元·无闪避
 data.rotation.bellstrikeSplendor.dummy1Min81Waves.name,Dummy 1 Min 81 Waves,木桩1分钟81剑气
-data.rotation.bellstrikeUmbra.dummy1Min38Bb.name,Dummy 1 Min 38 BB,木桩1分钟38爆血
+data.rotation.bellstrikeUmbra.dummy1Min37BbDh.name,Dummy 1 Min 37 BB DH,木桩1分钟37爆血·叶龙骧首
+data.rotation.bellstrikeUmbra.dummy1Min38Bb.name,Dummy 1 Min 39 BB,木桩1分钟39爆血
 data.rotation.empty.name,Empty Rotation,空白循环
 data.rotation.silkbindDeluge.dummy1MinRegularFire.name,Dummy 1 Min Regular Fire,木桩1分钟普火
 data.rotation.silkbindDeluge.dummy1MinSmolder.name,Dummy 1 Min Smolder,木桩1分钟暗灼
 data.rotation.silkbindDeluge.dummy1MinWts.name,Dummy 1 Min WTS,木桩1分钟万物
 data.rotation.silkbindDeluge.dummy1MinWtsTeam.name,Dummy 1 Min WTS Team,木桩1分钟万物组队
 data.rotation.silkbindJade.jadeDummy1Min.name,Dummy 1 Min Standardized,木桩1分钟·标准轴
-data.rotation.silkbindWing.wingsDummy1MinDawnsun.name,Dummy 1 Min Dawnsun,木桩1分钟·昭阳
-data.rotation.silkbindWing.wingsDummy1MinJadebreaker.name,Dummy 1 Min Jadebreaker,木桩1分钟·撼玉
+data.rotation.silkbindWings.wingsDummy1MinDawnsun.name,Dummy 1 Min Dawnsun,木桩1分钟·昭阳
+data.rotation.silkbindWings.wingsDummy1MinJadebreaker.name,Dummy 1 Min Jadebreaker,木桩1分钟·撼玉
 data.rotation.stonesplitMight.dummy1Min.name,Dummy 1 min,木桩1分钟
 data.rotation.stonesplitStrength.mixedDummy1Min.name,Mixed Dummy 1 Min,双切木桩1分钟
 data.rotation.stonesplitStrength.mixedDummy1MinDoubleStab.name,Mixed Dummy 1 Min Double Stab,双切木桩1分钟双刺
@@ -598,6 +606,8 @@ data.skill.heavenwillGauntlets.VirtuousEnthroned2ndHit.name,Virtuous Enthroned 2
 data.skill.heavenwillGauntlets.VirtuousEnthroned2ndHit.shortName,Gauntlet H2,手甲 H2
 data.skill.heavenwillGauntlets.VirtuousEnthroned3rdHit.name,Virtuous Enthroned 3rd Hit,有义则治第3击
 data.skill.heavenwillGauntlets.VirtuousEnthroned3rdHit.shortName,Gauntlet H3,手甲 H3
+data.skill.heavenwillGauntlets.VirtuousEnthroned4thHit.name,Virtuous Enthroned 4th Hit,有义则治第4击
+data.skill.heavenwillGauntlets.VirtuousEnthroned4thHit.shortName,Gauntlet H4,手甲 H4
 data.skill.heavenwillGauntlets.WickedDefiance.name,Wicked Defiance,恶不义
 data.skill.heavenwillGauntlets.WickedDefiance.shortName,Gauntlet VC,手甲 派生
 data.skill.infernalTwinblades.AddledMind.name,Addled Mind,痴障
@@ -607,21 +617,36 @@ data.skill.infernalTwinblades.Flamelash.shortName,Flamelash,嗔焰
 data.skill.infernalTwinblades.InfernalFlamelashLight1.name,Blade of Heaven's Wrath 1,天怒刀法1
 data.skill.infernalTwinblades.InfernalFlamelashLight1.shortName,FA1,天怒1
 data.skill.infernalTwinblades.InfernalFlamelashLight1.skillBreakdownCategory,Blade of Heaven's Wrath,天怒刀法
+data.skill.infernalTwinblades.InfernalFlamelashLight1Combo.name,Blade of Heaven's Wrath 1 [Combo],天怒刀法1 [连段]
+data.skill.infernalTwinblades.InfernalFlamelashLight1Combo.shortName,FA1 [Combo],天怒1 [连段]
+data.skill.infernalTwinblades.InfernalFlamelashLight1Combo.skillBreakdownCategory,Blade of Heaven's Wrath,天怒刀法
 data.skill.infernalTwinblades.InfernalFlamelashLight1Rodent.name,Blade of Heaven's Wrath 1 [Rodent],天怒刀法1 [鼠鼠]
 data.skill.infernalTwinblades.InfernalFlamelashLight1Rodent.shortName,FA1 [Rodent],天怒1 [鼠鼠]
 data.skill.infernalTwinblades.InfernalFlamelashLight1Rodent.skillBreakdownCategory,Blade of Heaven's Wrath,天怒刀法
 data.skill.infernalTwinblades.InfernalFlamelashLight2.name,Blade of Heaven's Wrath 2,天怒刀法2
 data.skill.infernalTwinblades.InfernalFlamelashLight2.shortName,FA2,天怒2
 data.skill.infernalTwinblades.InfernalFlamelashLight2.skillBreakdownCategory,Blade of Heaven's Wrath,天怒刀法
+data.skill.infernalTwinblades.InfernalFlamelashLight2Combo.name,Blade of Heaven's Wrath 2 [Combo],天怒刀法2 [连段]
+data.skill.infernalTwinblades.InfernalFlamelashLight2Combo.shortName,FA2 [Combo],天怒2 [连段]
+data.skill.infernalTwinblades.InfernalFlamelashLight2Combo.skillBreakdownCategory,Blade of Heaven's Wrath,天怒刀法
 data.skill.infernalTwinblades.InfernalFlamelashLight2Rodent.name,Blade of Heaven's Wrath 2 [Rodent],天怒刀法2 [鼠鼠]
 data.skill.infernalTwinblades.InfernalFlamelashLight2Rodent.shortName,FA2 [Rodent],天怒2 [鼠鼠]
 data.skill.infernalTwinblades.InfernalFlamelashLight2Rodent.skillBreakdownCategory,Blade of Heaven's Wrath,天怒刀法
 data.skill.infernalTwinblades.InfernalFlamelashLight3.name,Blade of Heaven's Wrath 3,天怒刀法3
 data.skill.infernalTwinblades.InfernalFlamelashLight3.shortName,FA3,天怒3
 data.skill.infernalTwinblades.InfernalFlamelashLight3.skillBreakdownCategory,Blade of Heaven's Wrath,天怒刀法
+data.skill.infernalTwinblades.InfernalFlamelashLight3Combo.name,Blade of Heaven's Wrath 3 [Combo],天怒刀法3 [连段]
+data.skill.infernalTwinblades.InfernalFlamelashLight3Combo.shortName,FA3 [Combo],天怒3 [连段]
+data.skill.infernalTwinblades.InfernalFlamelashLight3Combo.skillBreakdownCategory,Blade of Heaven's Wrath,天怒刀法
+data.skill.infernalTwinblades.InfernalFlamelashLight3Rodent.name,Blade of Heaven's Wrath 3 [Rodent],天怒刀法3 [鼠鼠]
+data.skill.infernalTwinblades.InfernalFlamelashLight3Rodent.shortName,FA3 [Rodent],天怒3 [鼠鼠]
+data.skill.infernalTwinblades.InfernalFlamelashLight3Rodent.skillBreakdownCategory,Blade of Heaven's Wrath,天怒刀法
 data.skill.infernalTwinblades.InfernalFlamelashLight4.name,Blade of Heaven's Wrath 4,天怒刀法4
 data.skill.infernalTwinblades.InfernalFlamelashLight4.shortName,FA4,天怒4
 data.skill.infernalTwinblades.InfernalFlamelashLight4.skillBreakdownCategory,Blade of Heaven's Wrath,天怒刀法
+data.skill.infernalTwinblades.InfernalFlamelashLight4Combo.name,Blade of Heaven's Wrath 4 [Combo],天怒刀法4 [连段]
+data.skill.infernalTwinblades.InfernalFlamelashLight4Combo.shortName,FA4 [Combo],天怒4 [连段]
+data.skill.infernalTwinblades.InfernalFlamelashLight4Combo.skillBreakdownCategory,Blade of Heaven's Wrath,天怒刀法
 data.skill.infernalTwinblades.InfernalFlamelashLight4Rodent.name,Blade of Heaven's Wrath 4 [Rodent],天怒刀法4 [鼠鼠]
 data.skill.infernalTwinblades.InfernalFlamelashLight4Rodent.shortName,FA4 [Rodent],天怒4 [鼠鼠]
 data.skill.infernalTwinblades.InfernalFlamelashLight4Rodent.skillBreakdownCategory,Blade of Heaven's Wrath,天怒刀法
@@ -637,12 +662,24 @@ data.skill.infernalTwinblades.InfernalFlamelashLight5Rodent.skillBreakdownCatego
 data.skill.infernalTwinblades.InfernalLight1.name,Light Attack 1,双刀·轻击1
 data.skill.infernalTwinblades.InfernalLight1.shortName,A1,轻击1
 data.skill.infernalTwinblades.InfernalLight1.skillBreakdownCategory,Light Attack,双刀·轻击
+data.skill.infernalTwinblades.InfernalLight1Cancel.name,Light Attack 1 [Cancel],双刀·轻击1（打断）
+data.skill.infernalTwinblades.InfernalLight1Cancel.shortName,A1 [Cancel],轻击1（打断）
+data.skill.infernalTwinblades.InfernalLight1Cancel.skillBreakdownCategory,Light Attack,双刀·轻击
+data.skill.infernalTwinblades.InfernalLight1Combo.name,Light Attack 1 [Combo],双刀·轻击1 [连段]
+data.skill.infernalTwinblades.InfernalLight1Combo.shortName,A1 [Combo],轻击1 [连段]
+data.skill.infernalTwinblades.InfernalLight1Combo.skillBreakdownCategory,Light Attack,双刀·轻击
 data.skill.infernalTwinblades.InfernalLight1Rodent.name,Light Attack 1 [Rodent],双刀·轻击1 [鼠鼠]
 data.skill.infernalTwinblades.InfernalLight1Rodent.shortName,A1 [Rodent],轻击1 [鼠鼠]
 data.skill.infernalTwinblades.InfernalLight1Rodent.skillBreakdownCategory,Light Attack,双刀·轻击
 data.skill.infernalTwinblades.InfernalLight2.name,Light Attack 2,双刀·轻击2
 data.skill.infernalTwinblades.InfernalLight2.shortName,A2,轻击2
 data.skill.infernalTwinblades.InfernalLight2.skillBreakdownCategory,Light Attack,双刀·轻击
+data.skill.infernalTwinblades.InfernalLight2Cancel.name,Light Attack 2 [Cancel],双刀·轻击2（打断）
+data.skill.infernalTwinblades.InfernalLight2Cancel.shortName,A2 [Cancel],轻击2（打断）
+data.skill.infernalTwinblades.InfernalLight2Cancel.skillBreakdownCategory,Light Attack,双刀·轻击
+data.skill.infernalTwinblades.InfernalLight2Combo.name,Light Attack 2 [Combo],双刀·轻击2 [连段]
+data.skill.infernalTwinblades.InfernalLight2Combo.shortName,A2 [Combo],轻击2 [连段]
+data.skill.infernalTwinblades.InfernalLight2Combo.skillBreakdownCategory,Light Attack,双刀·轻击
 data.skill.infernalTwinblades.InfernalLight2Rodent.name,Light Attack 2 [Rodent],双刀·轻击2 [鼠鼠]
 data.skill.infernalTwinblades.InfernalLight2Rodent.shortName,A2 [Rodent],轻击2 [鼠鼠]
 data.skill.infernalTwinblades.InfernalLight2Rodent.skillBreakdownCategory,Light Attack,双刀·轻击
@@ -650,8 +687,11 @@ data.skill.infernalTwinblades.InfernalLight3.name,Light Attack 3,双刀·轻击3
 data.skill.infernalTwinblades.InfernalLight3.shortName,A3,轻击3
 data.skill.infernalTwinblades.InfernalLight3.skillBreakdownCategory,Light Attack,双刀·轻击
 data.skill.infernalTwinblades.InfernalLight3Cancel.name,Light Attack 3 [Cancel],双刀·轻击3（打断）
-data.skill.infernalTwinblades.InfernalLight3Cancel.shortName,A3,轻击3
+data.skill.infernalTwinblades.InfernalLight3Cancel.shortName,A3 [Cancel],轻击3（打断）
 data.skill.infernalTwinblades.InfernalLight3Cancel.skillBreakdownCategory,Light Attack,双刀·轻击
+data.skill.infernalTwinblades.InfernalLight3Combo.name,Light Attack 3 [Combo],双刀·轻击3 [连段]
+data.skill.infernalTwinblades.InfernalLight3Combo.shortName,A3 [Combo],轻击3 [连段]
+data.skill.infernalTwinblades.InfernalLight3Combo.skillBreakdownCategory,Light Attack,双刀·轻击
 data.skill.infernalTwinblades.InfernalLight3Rodent.name,Light Attack 3 [Rodent],双刀·轻击3 [鼠鼠]
 data.skill.infernalTwinblades.InfernalLight3Rodent.shortName,A3 [Rodent],轻击3 [鼠鼠]
 data.skill.infernalTwinblades.InfernalLight3Rodent.skillBreakdownCategory,Light Attack,双刀·轻击
@@ -744,6 +784,8 @@ data.skill.museflowWaistDrum.RippleJadebreaker.shortName,Drum Special (Jadebreak
 data.skill.museflowWaistDrum.RippleJadebreaker.skillBreakdownCategory,Ripple: Jadebreaker,凌波·撼玉
 data.skill.mystic.BurstingNine.name,Bursting Nine,衍九矢
 data.skill.mystic.BurstingNine2Shots.name,Bursting Nine 2 Shots,衍九矢二连
+data.skill.mystic.BurstingNine2Shots7Hits.name,Bursting Nine 2 Shots [7 hits],衍九矢二连 [7段]
+data.skill.mystic.BurstingNine7Hits.name,Bursting Nine [7 hits],衍九矢 [7段]
 data.skill.mystic.CombustionExplosion.name,Combustion Explosion,爆燃爆炸
 data.skill.mystic.DragonHeadTide.name,Dragon Head - Tide,叶龙骧首·叠浪
 data.skill.mystic.DragonsBreath1.name,Dragon's Breath 1-Hit [Cancel],神龙吐火 1击（打断）
@@ -1322,6 +1364,7 @@ system.resource.endurance,Endurance,耐力
 system.resource.heavensWill,Heaven's Will,天志
 system.resource.hellfire,Hellfire,业火
 system.resource.nobleWill,Noble Will,雅意
+system.resource.swordsZenith,Sword's Zenith,纵横剑意
 system.resource.vitality,Vitality,精元
 system.setPieces.0,0,0
 system.setPieces.2,2,2
@@ -1368,6 +1411,7 @@ ui.app.averageHps,Average HPS,平均秒疗
 ui.app.averageStack,Average stack,平均层数
 ui.app.avgCastTime,Avg Cast Time,平均施放时间
 ui.app.baseAttributes,Base Attributes:,基础属性：
+ui.app.bossTalent,Boss Talent,首领天赋
 ui.app.both,Both,两者
 ui.app.bowRingSet,Bow/Ring Set,弓玦套装
 ui.app.breakthrough,Breakthrough,破阵
@@ -1408,6 +1452,7 @@ ui.app.debuffCoverage,Debuff Coverage,减益覆盖率
 ui.app.debuffStacks,Debuff stacks,减益层数
 ui.app.debuffToApply,Debuff to apply,要施加的减益
 ui.app.default,Default,默认
+ui.app.defaultSizing,Default,默认
 ui.app.defense,Defense:,防御：
 ui.app.delete,Delete,删除
 ui.app.deleteNamedRotationConfirmation,Delete rotation “{name}”?,删除循环「{name}」？
@@ -1416,6 +1461,7 @@ ui.app.deleteStep,Delete step,删除步骤
 ui.app.description,Description,描述
 ui.app.dev,Dev,开发模式
 ui.app.direct,direct,直接
+ui.app.displaySizing,Display sizing,显示尺寸
 ui.app.distance,Distance,距离
 ui.app.distanceAfterMove,Distance after move,移动后距离
 ui.app.divinecraft,Divinecraft,天工
@@ -1447,6 +1493,8 @@ ui.app.finalAffinity,Final Affinity,最终会意
 ui.app.finalCritical,Final Critical,最终会心
 ui.app.firstAvailable,First available,首个可用项
 ui.app.firstTick,First Tick,首跳时间
+ui.app.fitToScreen,Fit to screen,适应屏幕
+ui.app.fitToWindow,Fit to window,适应窗口
 ui.app.fixedTime,Set time,固定时间
 ui.app.food,Food,食物
 ui.app.gearSearchMinutes,Best composition time limit (minutes; 0 for no limit),最佳组合搜索时限（分钟；0 为不限）
@@ -1734,7 +1782,6 @@ ui.buildTab.graduatePreset,Graduate preset,毕业模板
 ui.buildTab.imageAmbiguousItemNameError,The item name matches more than one supported gear type.,该物品名称匹配到多种受支持的装备类型。
 ui.buildTab.imageColorsUnreadableError,Could not read image colors.,无法读取图片颜色。
 ui.buildTab.imageFileTypeError,"Choose a PNG, JPEG, or WebP image file.",请选择 PNG、JPEG 或 WebP 图片文件。
-ui.buildTab.imageGearMismatchError,"This image contains {recognized}, but the current editor expects {expected}. Open the matching gear slot and try again.",图片中的装备是{recognized}，但当前编辑的是{expected}。请打开对应的装备部位后重试。
 ui.buildTab.imageGearTypeUnknownError,Could not identify exactly one supported gear type from the image.,无法从图片中识别出唯一的受支持装备类型。
 ui.buildTab.imageGearTypeUnsupportedError,The recognized gear type is not supported.,识别出的装备类型不受支持。
 ui.buildTab.imageImportError,The image could not be imported.,无法导入图片。
@@ -1747,6 +1794,7 @@ ui.buildTab.importEquippedGear,Import equipped gear,导入已穿戴装备
 ui.buildTab.importFromImage,Import from Image,从图片导入
 ui.buildTab.importFromOfficial,Import from Official,从官网导入
 ui.buildTab.importGear,Import Gear,导入装备
+ui.buildTab.importSharedBuild,Import shared build,导入分享的配装
 ui.buildTab.innerWays,Inner Ways,心法
 ui.buildTab.inventoryEditsAndDeletionsApplyToEveryBuild,inventory. Edits and deletions apply to every build.,装备库。编辑和删除将应用于所有配装。
 ui.buildTab.level,Level,等级
@@ -1815,7 +1863,15 @@ ui.buildTab.selectAnAttribute,Select an attribute,选择属性
 ui.buildTab.selectASlotToEquipGearFromThe,Select a slot to equip gear from the shared inventory.,选择一个装备部位，从共用装备库中穿戴装备。
 ui.buildTab.selectedGearScreenshot,Selected gear screenshot,已选装备截图
 ui.buildTab.selectThisBuildAndSwitchToItsMartial,Select this build and switch to its martial arts,选择此配装并切换至其武学
+ui.buildTab.shareBuild,Share build,分享配装
 ui.buildTab.shared,Shared,共用
+ui.buildTab.sharedBuildImported,Imported “{name}”.,已导入“{name}”。
+ui.buildTab.sharedBuildPrompt,Import this build from the link? Its equipped gear comes with it.,要从此链接导入该配装吗？其已穿戴的装备也会一并导入。
+ui.buildTab.sharedBuildRequiresDevMode,This build requires Dev mode. Turn it on to retry this link.,此配装需要开发模式。开启后可重新打开此链接。
+ui.buildTab.shareLinkCopied,Share link copied.,分享链接已复制。
+ui.buildTab.shareLinkError,Could not create a share link.,无法生成分享链接。
+ui.buildTab.shareLinkInvalid,This link does not contain a valid build.,此链接不包含有效的配装。
+ui.buildTab.shareLinkPrompt,Copy this link:,复制此链接：
 ui.buildTab.theBookmarkRunsOnlyOnTheOfficialDashboard,The bookmark runs only on the official dashboard. Where Builds Meet receives only the JSON you paste here.,此书签仅在官方仪表板上运行。Where Builds Meet 只会收到你在此粘贴的 JSON。
 ui.buildTab.toYourBrowserBookmarksBar,to your browser bookmarks bar.,到浏览器书签栏。
 ui.buildTab.unnamedBuild,Unnamed Build,未命名配装

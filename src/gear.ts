@@ -794,25 +794,67 @@ export function serializeBuildState(state: BuildState) {
   })
 }
 
-export function exportBuildState(state: BuildState) {
+/** The payload a file export and a share link both carry, so one import reads either. */
+function exportedBuildPayload(
+  gearItems: GearItem[],
+  builds: Array<{
+    id: string
+    name: string
+    martialArts: WeaponId[]
+    equipped: Partial<Record<GearSlot, string>>
+    setup: BuildSetup
+  }>,
+  pretty = true,
+) {
   return JSON.stringify(
     {
       format: buildExportFormat,
       version: 7,
       exportedAt: new Date().toISOString(),
-      gearItems: state.gearItems.map(withoutWeaponSlot),
-      builds: state.entries
-        .filter(entry => !entry.isDefault)
-        .map(entry => ({
-          id: entry.id,
-          name: entry.name,
-          martialArts: normalizedMartialArts(entry.martialArts, entry.equipped, state.gearItems),
-          equipped: entry.equipped ?? {},
-          setup: normalizeBuildSetup(entry.setup),
-        })),
+      gearItems: gearItems.map(withoutWeaponSlot),
+      builds,
     },
     null,
-    2,
+    pretty ? 2 : undefined,
+  )
+}
+
+export function exportBuildState(state: BuildState) {
+  return exportedBuildPayload(
+    state.gearItems,
+    state.entries
+      .filter(entry => !entry.isDefault)
+      .map(entry => ({
+        id: entry.id,
+        name: entry.name,
+        martialArts: normalizedMartialArts(entry.martialArts, entry.equipped, state.gearItems),
+        equipped: entry.equipped ?? {},
+        setup: normalizeBuildSetup(entry.setup),
+      })),
+  )
+}
+
+/**
+ * One build with only the gear it equips, which is what a share link carries. The rest of the
+ * inventory stays with the sender, and a preset is resolved first because its gear lives in game
+ * data rather than in the shared items.
+ *
+ * The name is passed in because a preset's display name is localized by the editor.
+ */
+export function exportSharedBuild(entry: BuildEntry, inventory: GearInventory, name: string) {
+  const equippedIds = new Set(Object.values(inventory.equipped))
+  return exportedBuildPayload(
+    inventory.items.filter(item => equippedIds.has(item.id)),
+    [
+      {
+        id: entry.id,
+        name,
+        martialArts: normalizedMartialArts(buildEntryMartialArts(entry), inventory.equipped, inventory.items),
+        equipped: inventory.equipped,
+        setup: resolveBuildSetup(entry),
+      },
+    ],
+    false,
   )
 }
 
@@ -955,6 +997,19 @@ export function mergeImportedBuildState(
   }
 }
 
+function currentPresetId(id: string) {
+  switch (id) {
+    case "deluge-full-min-ew":
+      return "deluge-full-max-ib"
+    case "deluge-fully-relayed-min-rw":
+      return "deluge-fully-relayed-min-ib"
+    case "deluge-fully-relayed-max-rw":
+      return "deluge-fully-relayed-max-ib"
+    default:
+      return id
+  }
+}
+
 export function loadBuildState(): BuildState {
   try {
     const savedValue = getPersistentItem(buildListStorageKey)
@@ -964,7 +1019,12 @@ export function loadBuildState(): BuildState {
         ? validateUnknown(storedBuildStateSchema, saved)
         : undefined
     const savedRecord = validatedRecord?.success ? (saved as { entries?: unknown; gearItems?: unknown }) : undefined
-    const savedEntries = Array.isArray(saved) ? saved : Array.isArray(savedRecord?.entries) ? savedRecord.entries : []
+    const savedEntries = (
+      Array.isArray(saved) ? saved : Array.isArray(savedRecord?.entries) ? savedRecord.entries : []
+    ).map(entry => {
+      if (!entry || typeof entry !== "object" || typeof entry.id !== "string") return entry
+      return Object.assign({}, entry, { id: currentPresetId(entry.id) })
+    })
     const sharedItems = savedRecord ? parseGearItems(savedRecord.gearItems) : []
     const legacySetup = normalizeBuildSetup(readLegacyBuildSetup())
     const defaultIds = new Set(defaultBuildPresets.map(preset => preset.id))
@@ -1027,7 +1087,8 @@ export function loadBuildState(): BuildState {
         })
       }
     }
-    const requestedActiveId = getPersistentItem(activeBuildStorageKey)
+    const savedActiveId = getPersistentItem(activeBuildStorageKey)
+    const requestedActiveId = savedActiveId ? currentPresetId(savedActiveId) : savedActiveId
     const fallbackActiveId =
       savedValue === null && entries.some(entry => entry.id === "migrated-build") ? "migrated-build" : defaults[0]?.id
     const activeBuildId =
