@@ -59,17 +59,17 @@
     "tag": "SilkbindDeluge",
     "status": "available",
     "buildGroup": "silkbind-deluge",
-    "defaultBuild": "deluge-fully-relayed-min-ew",
-    "graduated": ["deluge-full-min-ew"],
+    "defaultBuild": "deluge-fully-relayed-max-ib",
+    "graduated": ["deluge-full-max-ib"],
     "defaultRotation": "dummy-1-min-wts-team",
     "lockedWeapons": ["panaceaFan", "soulshadeUmbrella"],
     "arsenal": "Silkbind"
   },
-  "silkbindWing": {
+  "silkbindWings": {
     "name": "Wings",
-    "tag": "SilkbindWing",
+    "tag": "SilkbindWings",
     "status": "available",
-    "buildGroup": "silkbind-wing",
+    "buildGroup": "silkbind-wings",
     "defaultBuild": "wings-fully-relayed-min",
     "graduated": ["wings-graduate"],
     "defaultRotation": "wings-dummy-1-min-jadebreaker",
