@@ -21,6 +21,17 @@
     "lockedWeapons": ["strategicSword", "heavenquakerSpear"],
     "arsenal": "Bellstrike"
   },
+  "bellstrikeBolt": {
+    "name": "Bolt",
+    "tag": "BellstrikeBolt",
+    "status": "preview",
+    "buildGroup": "bellstrike-bolt",
+    "defaultBuild": "bolt-fully-relayed-hawkwing",
+    "graduated": ["bolt-full"],
+    "defaultRotation": "bolt-dummy-1-min",
+    "arsenal": "Bellstrike",
+    "lockedWeapons": ["jueyuXuanfengSpear", "boshanQuyueSpear"]
+  },
   "stonesplitMight": {
     "name": "Might",
     "tag": "StonesplitMight",
@@ -46,11 +57,11 @@
   "silkbindJade": {
     "name": "Jade",
     "tag": "SilkbindJade",
-    "status": "preview",
+    "status": "available",
     "buildGroup": "silkbind-jade",
-    "defaultBuild": "jade-fully-relayed-max",
-    "graduated": ["jade-full-max"],
-    "defaultRotation": "jade-dummy-1-min",
+    "defaultBuild": "jade-bp-max",
+    "graduated": ["jade-graduate", "jade-full-bp", "jade-graduate-short"],
+    "defaultRotation": "jade-grounded",
     "lockedWeapons": ["vernalUmbrella", "inkwellFan"],
     "arsenal": "Silkbind"
   },
@@ -112,11 +123,11 @@
   "bamboocutDraught": {
     "name": "Draught",
     "tag": "BamboocutDraught",
-    "status": "plannerOnly",
+    "status": "available",
     "buildGroup": "bamboocut-draught",
-    "defaultBuild": "draught-empty",
-    "graduated": ["draught-empty"],
-    "defaultRotation": "draught-empty",
+    "defaultBuild": "draught-fully-relayed-min",
+    "graduated": ["draught-full-min", "draught-full-max", "draught-full-min-bp", "draught-full-max-bp"],
+    "defaultRotation": "draught-dummy-1-min",
     "lockedWeapons": ["skystrikeGauntlets", "rivenTwinblades"],
     "arsenal": "Bamboocut"
   },

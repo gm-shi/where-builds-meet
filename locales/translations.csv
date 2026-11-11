@@ -19,16 +19,30 @@ data.bowRingSet.Precision.name,Precision,精准
 data.breakthrough.17.name,17,17
 data.breakthrough.18.name,18,18
 data.breakthrough.19.name,19,19
+data.breakthrough.20.name,20,20
+data.breakthrough.21.name,21,21
+data.breakthrough.22.name,22,22
+data.breakthrough.23.name,23,23
+data.breakthrough.24.name,24,24
+data.breakthrough.25.name,25,25
 data.buff.bamboocutDraught.Carouse.name,Carouse,酣饮
+data.buff.bamboocutDraught.Carouse.shortName,Car,酣饮
+data.buff.bamboocutDraught.DragonquenchSpeed.name,Dragonquench Speed Up,饮龙·加速
+data.buff.bamboocutDraught.DraughtDrinkMarks.name,Skill Binge Point Accumulation,技能狂饮值累积
+data.buff.bamboocutDraught.EonpourExhaustedCooldown.name,Eonpour Exhausted Cooldown,一醉千秋·气竭冷却
 data.buff.bamboocutDraught.Inebriate.name,Inebriate,酩酊
+data.buff.bamboocutDraught.Inebriate.shortName,Ine,酩酊状态
 data.buff.bamboocutDraught.InebriateDeepdaze.name,Inebriate - Deepdaze,酩酊·浓醺
+data.buff.bamboocutDraught.InebriateDeepdaze.shortName,DD,酩酊·浓醺
+data.buff.bamboocutDraught.Tiltrim.name,Tiltrim,倾觞
+data.buff.bamboocutDraught.Tiltrim.shortName,Til,倾觞
 data.buff.bamboocutDust.FallingBlossoms.name,Falling Blossoms,落花
 data.buff.bamboocutDust.FallingBlossoms.shortName,FB,惧
 data.buff.bamboocutDust.FlowerBurial.name,Flower Burial,葬花
 data.buff.bamboocutDust.FragrantSong.name,Fragrant Song,芳歌
 data.buff.bamboocutDust.FragrantSongDelicate.name,Fragrant Song - Delicate,芳歌·玲珑
 data.buff.bamboocutDust.FragrantSongDelicate.shortName,FSD,玲珑
-data.buff.bamboocutDust.FragrantSongResonance.description,Marks the throw that started with Fragrant Song. Its creation and accepted-catch Resonances use that throw's bonus. A catch may ready Fragrant Song for the following throw without changing this marker; the following throw clears and re-primes it.,标记以芳歌开始的那一次投掷。该次投掷生成的共鸣与被接住时的共鸣都使用该次投掷的加成。接伞可为下一次投掷备好芳歌，但不会改变此标记；下一次投掷会清除并重新挂上它。
+data.buff.bamboocutDust.FragrantSongResonance.description,Marks the throw that started with Fragrant Song. Its creation and accepted-catch Resonances use that throw's bonus until the throw's recovery cleanup clears the marker. A catch may ready Fragrant Song for the following throw without changing this marker; each throw also clears and re-primes it at start.,标记以芳歌开始的那一次投掷。该次投掷生成的共鸣与被接住时的共鸣都使用该次投掷的加成，直到该次投掷的收招清理移除此标记。接伞可为下一次投掷备好芳歌，但不会改变此标记；每次投掷开始时也会清除并重新挂上它。
 data.buff.bamboocutDust.FragrantSongResonance.name,Fragrant Song - Resonance,芳歌·共鸣
 data.buff.bamboocutDust.FragrantSongResonance.shortName,FSR,芳鸣
 data.buff.bamboocutDust.PendingCatchResonance.name,Deferred catch Resonance,延后的接伞共鸣
@@ -82,6 +96,26 @@ data.buff.bamboocutWind.RodentRampageEnhancement.shortName,RRE,鼠强化
 data.buff.bamboocutWind.Samsara.description,Increases HP damage dealt by 5%. Echoes of Oblivion T6 adds another 5%.,造成的气血伤害提高5%。忘川绝响T6时再提高5%。
 data.buff.bamboocutWind.Samsara.name,Samsara,轮回
 data.buff.bamboocutWind.Samsara.shortName,Sam,轮回
+data.buff.bellstrikeBolt.BoltFengRui.description,15% base VC DMG (30% with 神斷青鋒 T6) and 10% Affinity DMG. The upgraded red spear talent prevents Abrasion.,派生技基础伤害提高15%（神断青锋T6时为30%），会意伤害提高10%。升级后的红枪天赋可防止擦伤。
+data.buff.bellstrikeBolt.BoltFengRui.name,鋒銳,锋锐
+data.buff.bellstrikeBolt.BoltMingFa.description,10% Blue VC HP DMG; 20% during 鋒銳 with 神斷青鋒 T3.,蓝枪派生技气血伤害提高10%；神断青锋T3时，锋锐期间提高20%。
+data.buff.bellstrikeBolt.BoltMingFa.name,明法,明法
+data.buff.bellstrikeBolt.BoltMingGeSpent.description,Prevents another 鳴戈 detonation during this 鋒銳.,防止在本次锋锐期间再次引爆鸣戈。
+data.buff.bellstrikeBolt.BoltMingGeSpent.name,鳴戈已引爆,鸣戈已引爆
+data.buff.bellstrikeBolt.BoltMoonDark.description,0.3% Direct Affinity per stack.,每层提高0.3%直接会意率。
+data.buff.bellstrikeBolt.BoltMoonDark.name,暗潮,暗潮
+data.buff.bellstrikeBolt.BoltMoonPhase.description,1% HP DMG per stack.,每层提高1%气血伤害。
+data.buff.bellstrikeBolt.BoltMoonPhase.name,月相,月相
+data.buff.bellstrikeBolt.BoltMoonPull.description,5% HP DMG and 1.5% Direct Affinity.,气血伤害提高5%，直接会意率提高1.5%。
+data.buff.bellstrikeBolt.BoltMoonPull.name,月引,月引
+data.buff.bellstrikeBolt.BoltQieTao.description,Immunity to 歲星竊桃 penalties; 4% Martial Arts HP DMG at T6.,免疫岁星窃桃的负面效果；T6时武学技气血伤害提高4%。
+data.buff.bellstrikeBolt.BoltQieTao.name,竊桃,窃桃
+data.buff.bellstrikeBolt.BoltTongPan.description,0.6 Physical Penetration per stack.,每层提高0.6点外功穿透。
+data.buff.bellstrikeBolt.BoltTongPan.name,通判,通判
+data.buff.bellstrikeBolt.BoltWangXing.description,1 Spear Momentum per ordinary VC. 浮梁一夜 T4 adds 3% Direct Affinity against bosses.,每次普通派生技获得1点枪势。浮梁一夜T4使对首领的直接会意率提高3%。
+data.buff.bellstrikeBolt.BoltWangXing.name,王行,王行
+data.buff.bellstrikeBolt.BoltZhongDao.description,10% Red VC HP DMG; 20% during 鋒銳 with 神斷青鋒 T3.,红枪派生技气血伤害提高10%；神断青锋T3时，锋锐期间提高20%。
+data.buff.bellstrikeBolt.BoltZhongDao.name,重道,重道
 data.buff.bellstrikeSplendor.EndlessGale.description,Applied by Nameless Spear's Martial Art Skill Qiankun's Lock. Mountain's Might T0 sets its duration to 10 seconds and T4 grants Direct Affinity Rate while it is active.,由无名枪法武学技「乾坤定」施加。千山法T0将其持续时间设为10秒，T4使其持续期间获得直接会意率。
 data.buff.bellstrikeSplendor.EndlessGale.name,Endless Gale,长风
 data.buff.bellstrikeSplendor.EndlessGale.shortName,Gale,长风
@@ -120,6 +154,14 @@ data.buff.general.Frost.shortName,Frost,冬
 data.buff.general.Hawkwing.description,Increases Physical Attack and Bellstrike Attack by 1.8% per stack.,每层使外功攻击与鸣金攻击提高1.8%。
 data.buff.general.Hawkwing.shortName,Hawk,飞隼
 data.buff.general.Jadeware.name,Jadeware,玉斗
+data.buff.general.Mistwillow.description,Increases Physical and Silkbind damage of matching attacks by 10%. Refreshes at most once every 2 seconds.,使符合条件的攻击的外功与牵丝伤害提高10%。每2秒最多刷新一次。
+data.buff.general.Mistwillow.name,Mistwillow,烟柳重重
+data.buff.general.Mistwillow.shortName,MW,烟柳
+data.buff.general.MistwillowDenseSmoke.description,Increases Physical and Silkbind damage of matching attacks by 10%. Refreshes at most once every 2 seconds.,使符合条件的攻击的外功与牵丝伤害提高10%。每2秒最多刷新一次。
+data.buff.general.MistwillowDenseSmoke.name,Dense Smoke,烟浓
+data.buff.general.MistwillowDenseSmoke.shortName,DS,醉杀
+data.buff.general.MistwillowGracefulWillow.description,Increases Physical and Silkbind damage of matching attacks by 10%. Refreshes at most once every 2 seconds.,使符合条件的攻击的外功与牵丝伤害提高10%。每2秒最多刷新一次。
+data.buff.general.MistwillowGracefulWillow.name,Graceful Willow,柳态
 data.buff.general.Revelry.description,Increases damage dealt by 20%.,造成的伤害提高20%。
 data.buff.general.Revelry.name,Revelry,承欢
 data.buff.general.Revelry.shortName,Revelry,承欢
@@ -186,34 +228,26 @@ data.buff.silkbindDeluge.FloatingGraceDeluge.shortName,FGD,浮生霖
 data.buff.silkbindDeluge.MorningDrizzle.description,"Heals once per second for 5 seconds, beginning immediately.",立即治疗一次，之后每秒治疗一次，持续5秒。
 data.buff.silkbindDeluge.MorningDrizzle.name,Morning Drizzle,朝雨轻尘
 data.buff.silkbindDeluge.MorningDrizzle.shortName,MD,朝雨
-data.buff.silkbindJade.FloatingUmbrella.description,"Unfading Flower's floating umbrella fires every 0.5 seconds, first 0.55 seconds after the throw, and each shot spends 5 Blossoms. While the target carries Lingering Bone, each volley fires one extra shot 0.15 seconds later that also spends 5 Blossoms. It ends when fewer than 5 Blossoms remain, or when another umbrella skill other than Hidden Sword recalls it; ending returns 15 Blossoms at most once every 5 seconds.",不谢花抛出的浮伞每0.5秒射击一次，首发在抛伞0.55秒后，每发消耗5点繁花。目标带有滞骨时，每轮在0.15秒后追加一发，同样消耗5点繁花。剩余繁花不足5点，或施放伞中剑以外的其他伞技能将伞收回时结束；结束时返还15点繁花，每5秒最多一次。
-data.buff.silkbindJade.FloatingUmbrella.name,Floating Umbrella,不谢花·浮伞
-data.buff.silkbindJade.FloatingUmbrella.shortName,Float,浮伞
-data.buff.silkbindJade.FlyingTornado.description,"Gourd Toss T4: the next Forsaken Fame within 3 seconds charges faster, landing its whirlwind 11 frames and finishing 12 frames earlier.",葫芦飞飞T4：3秒内的下一次浮名无寄蓄力更快，龙卷提前11帧命中，施放提前12帧结束。
-data.buff.silkbindJade.FlyingTornado.name,Flying Tornado,葫芦飞飞·龙卷加速
-data.buff.silkbindJade.FlyingTornado.shortName,Tornado,龙卷
-data.buff.silkbindJade.GourdTossThunder.description,Gourd Toss T3: the next Peak's Springless Silence within 15 seconds deals 30% more damage.,葫芦飞飞T3：15秒内的下一次春尽山空伤害提高30%。
-data.buff.silkbindJade.GourdTossThunder.name,Gourd Toss Thunder,葫芦飞飞·春尽山空增伤
-data.buff.silkbindJade.GourdTossThunder.shortName,GT Thunder,葫芦增伤
-data.buff.silkbindJade.Jadebreak.description,"Jadewind Shield's projectile boost. Ballistic skills deal 30% more damage, and Ballistic and Pursuit skills deal another 10% in the separate non-player damage bucket. Lasts 15 seconds.",屏山断翠的弹道强化：弹道类技能伤害提高30%；弹道类与追击技能另在独立的非玩家增伤乘区中提高10%。持续15秒。
 data.buff.silkbindJade.Jadebreak.name,Jadebreak,弹道强化
 data.buff.silkbindJade.Jadebreak.shortName,JB,弹道
-data.buff.silkbindJade.MistwillowHeavy.description,Mistwillow 4-piece: a Light or Ballistic hit increases the Physical and Silkbind damage of Heavy and Pursuit skills by 10% for 15 seconds. Refreshes at most once every 2 seconds.,烟柳四件套：轻击或弹道类技能命中后，重击与追击技能的外功与牵丝伤害提高10%，持续15秒；每2秒最多刷新一次。
-data.buff.silkbindJade.MistwillowHeavy.name,Mistwillow (Heavy & Pursuit),烟柳·重击追击
-data.buff.silkbindJade.MistwillowHeavy.shortName,MW-H,烟柳重
-data.buff.silkbindJade.MistwillowLight.description,Mistwillow 4-piece: a Heavy or Pursuit hit increases the Physical and Silkbind damage of Light and Ballistic skills by 10% for 15 seconds. Refreshes at most once every 2 seconds.,烟柳四件套：重击或追击命中后，轻击与弹道类技能的外功与牵丝伤害提高10%，持续15秒；每2秒最多刷新一次。
-data.buff.silkbindJade.MistwillowLight.name,Mistwillow (Light & Ballistic),烟柳·轻击弹道
-data.buff.silkbindJade.MistwillowLight.shortName,MW-L,烟柳轻
-data.buff.silkbindJade.SpringShock.description,"Each Moon Shatter Spring hit adds a stack. Each stack increases Vernal Umbrella and Inkwell Fan Charged skill damage by 4%, up to 5 stacks. Lasts 15 seconds.",月出惊春每段命中叠加一层；每层使九重春色与青山执笔的蓄力技伤害提高4%，最多5层。持续15秒。
-data.buff.silkbindJade.SpringShock.name,Spring Shock,惊春
-data.buff.silkbindJade.SpringShock.shortName,Shock,惊春
-data.buff.silkbindJade.SpringThunder.description,"Thunderous Bloom: a Light or Heavy hit with no Spring Thunder boost running spends a stack, gaining 15% damage on that hit and on Light or Heavy hits over the next 2 seconds. Lasts up to 12 seconds.",春雷篇：未处于春雷增伤时，轻击或重击命中会消耗一层，使该次命中及之后2秒内的轻击与重击伤害提高15%。最长保留12秒。
+data.buff.silkbindJade.SpringAwayChannel.name,Spring Away Channel,春飞尽·引导
 data.buff.silkbindJade.SpringThunder.name,Spring Thunder,春雷
-data.buff.silkbindJade.SpringThunder.shortName,Thunder,春雷
-data.buff.silkbindJade.SpringThunderBoost.description,Light and Heavy hits deal 15% more damage for 2 seconds after spending a Spring Thunder stack.,消耗一层春雷后，2秒内轻击与重击伤害提高15%。
-data.buff.silkbindJade.SpringThunderBoost.name,Spring Thunder Boost,春雷·增伤
-data.buff.silkbindJade.SpringThunderBoost.shortName,ST Boost,春雷增伤
-data.buff.silkbindJade.Windrider.description,The next Moon Shatter Spring uses its enhanced five-hit form. Granted when Peak's Springless Silence hits a target carrying Lingering Bone or when Jadewind Shield finishes. Lasts 5 seconds.,下一次月出惊春使用强化的五段形态。春尽山空命中带有滞骨的目标，或屏山断翠施放结束时获得。持续5秒。
+data.buff.silkbindJade.SpringThunder.shortName,ST,春雷
+data.buff.silkbindJade.SpringThunderDamage.name,Spring Thunder Damage,春雷·伤害
+data.buff.silkbindJade.SpringThunderDamage.shortName,STD,春雷伤
+data.buff.silkbindJade.SpringThunderSpent.name,Spring Thunder Spent,春雷·已消耗
+data.buff.silkbindJade.StarReacherAirborne.name,Star Reacher (Airborne),纵地摘星（浮空）
+data.buff.silkbindJade.StarReacherAirborne.shortName,SR (Airborne),摘星（浮空）
+data.buff.silkbindJade.StarReacherAirborneEnhanced.name,"Star Reacher (Airborne, enhanced)",纵地摘星（浮空·强化）
+data.buff.silkbindJade.StarReacherAirborneEnhanced.shortName,SR (Airborne),摘星（浮空）
+data.buff.silkbindJade.StarReacherBone.shortName,SR,摘星
+data.buff.silkbindJade.StarReacherBoneEnhanced.name,Star Reacher (Exhausted),纵地摘星（气竭）
+data.buff.silkbindJade.StarReacherBoneEnhanced.shortName,SR (Exhausted),摘星（气竭）
+data.buff.silkbindJade.StartlingSpring.name,Startling Spring,惊春
+data.buff.silkbindJade.StartlingSpring.shortName,SS,惊春
+data.buff.silkbindJade.UnfadingFlowerMode.name,Unfading Flower,不谢花
+data.buff.silkbindJade.UnfadingFlowerMode.shortName,UF,不谢花
+data.buff.silkbindJade.UnfadingFlowerReturn.name,Unfading Flower Return,不谢花·回收
 data.buff.silkbindJade.Windrider.name,Windrider,乘风
 data.buff.silkbindJade.Windrider.shortName,WR,乘风
 data.buff.silkbindWings.Cloudshear.description,Increases all damage and healing by 6%.,全类型伤害与治疗加成提高6%。
@@ -274,7 +308,14 @@ data.buff.stonesplitStrength.Riposte.shortName,Rip,反
 data.buff.stonesplitStrength.ThroatPierced.description,"Gain 2 Physical Penetration and 2% Critical Damage per stack. From T3, Light/Heavy Varied Combos gain an additional 1 Penetration and 1% Critical Damage per stack. From T6, Anxi Soldier and its triggering skill gain the same additional bonus.",每层获得2点外功穿透及2%会心伤害。T3起，轻重击派生技每层额外获得1点穿透及1%会心伤害。T6起，安西军及其触发技能亦获得相同的额外加成。
 data.buff.stonesplitStrength.ThroatPierced.name,Throat-Pierced,穿喉
 data.buff.stonesplitStrength.ThroatPierced.shortName,TP,穿
-data.build.bamboocutDraught.draughtEmpty.name,Draught Empty Build,樽·空白配装
+data.build.bamboocutDraught.draughtFullMax.name,Full Max Build,大外毕业配装
+data.build.bamboocutDraught.draughtFullMaxBp.name,Full Max Build BP,大外毕业配装·断石之构
+data.build.bamboocutDraught.draughtFullMin.name,Full Min Build,小外毕业配装
+data.build.bamboocutDraught.draughtFullMinBp.name,Full Min Build BP,小外毕业配装·断石之构
+data.build.bamboocutDraught.draughtFullyRelayedMax.name,Fully Relayed Max Build,全承音大外配装
+data.build.bamboocutDraught.draughtFullyRelayedMaxBp.name,Fully Relayed Max Build BP,全承音大外配装·断石之构
+data.build.bamboocutDraught.draughtFullyRelayedMin.name,Fully Relayed Min Build,全承音小外配装
+data.build.bamboocutDraught.draughtFullyRelayedMinBp.name,Fully Relayed Min Build BP,全承音小外配装·断石之构
 data.build.bamboocutDust.dustFullMin.name,Full Min Build,小外毕业配装
 data.build.bamboocutDust.dustFullyRelayedMax.name,Fully Relayed Max Build,全承音大外配装
 data.build.bamboocutDust.dustFullyRelayedMin.name,Fully Relayed Min Build,全承音小外配装
@@ -286,6 +327,10 @@ data.build.bamboocutKite.kiteFullyRelayedMinBp.name,Fully Relayed Min Build BP,�
 data.build.bamboocutWind.windFullMin.name,Full Min Build,小外毕业配装
 data.build.bamboocutWind.windFullyRelayedMax.name,Fully Relayed Max Build,全承音大外配装
 data.build.bamboocutWind.windFullyRelayedMin.name,Fully Relayed Min Build,全承音小外配装
+data.build.bellstrikeBolt.boltFull.name,Full Max Build,大外毕业配装
+data.build.bellstrikeBolt.boltFullHawkwing.name,Full Max Build Hawkwing,大外毕业配装·飞隼
+data.build.bellstrikeBolt.boltFullyRelayed.name,Fully Relayed Max Build,全承音大外配装
+data.build.bellstrikeBolt.boltFullyRelayedHawkwing.name,Fully Relayed Max Build Hawkwing,全承音大外配装·飞隼
 data.build.bellstrikeSplendor.splendorFull.name,Full Max Build,大外毕业配装
 data.build.bellstrikeSplendor.splendorFullyRelayed.name,Fully Relayed Max Build,全承音大外配装
 data.build.bellstrikeUmbra.umbraFull.name,Full Max Build,大外毕业配装
@@ -297,8 +342,15 @@ data.build.silkbindDeluge.delugeFullyRelayedMaxHw.name,Fully Relayed Max Build H
 data.build.silkbindDeluge.delugeFullyRelayedMaxIb.name,Fully Relayed Max Build Ivorybloom,全承音大外配装·浣花
 data.build.silkbindDeluge.delugeFullyRelayedMinEw.name,Fully Relayed Min Build Etherwrath,全承音小外配装·撼天
 data.build.silkbindDeluge.delugeFullyRelayedMinIb.name,Fully Relayed Min Build Ivorybloom,全承音小外配装·浣花
-data.build.silkbindJade.jadeFullMax.name,Full Max Build,大外毕业配装
-data.build.silkbindJade.jadeFullyRelayedMax.name,Fully Relayed Max Build,全承音大外配装
+data.build.silkbindJade.jadeBpMax.name,Fully Relayed Max BP,全承音大外·断石之构
+data.build.silkbindJade.jadeBpMin.name,Fully Relayed Min BP,全承音小外·断石之构
+data.build.silkbindJade.jadeFullBp.name,Full Max BP,大外毕业·断石之构
+data.build.silkbindJade.jadeFullyRelayedMax.name,Fully Relayed Max TB,全承音大外配装
+data.build.silkbindJade.jadeFullyRelayedMaxBp.name,Fully Relayed Max BP Mystic,全承音大外·断石之构·奇术
+data.build.silkbindJade.jadeFullyRelayedMin.name,Fully Relayed Min TB,全承音小外·春雷
+data.build.silkbindJade.jadeFullyRelayedMinBp.name,Fully Relayed Min BP Mystic,全承音小外·断石之构·奇术
+data.build.silkbindJade.jadeGraduate.name,Full Max TB,大外毕业·春雷
+data.build.silkbindJade.jadeGraduateShort.name,Full Max BP Mystic,大外毕业·断石之构·奇术
 data.build.silkbindWings.wingsFullyRelayedDoubleMin.name,Fully Relayed Double Min Build,全承音小外小属配装
 data.build.silkbindWings.wingsFullyRelayedMin.name,Fully Relayed Min Build,全承音小外配装
 data.build.silkbindWings.wingsFullyRelayedMinAttribute.name,Fully Relayed Min Attribute Build,全承音小属配装
@@ -313,6 +365,8 @@ data.build.stonesplitStrength.mixedFullyRelayedMin.name,Mixed Fully Relayed Min 
 data.build.stonesplitStrength.pureFullMin.name,Pure Full Min Build,小外纯唐毕业配装
 data.build.stonesplitStrength.pureFullyRelayedMax.name,Pure Fully Relayed Max Build,全承音大外纯唐配装
 data.build.stonesplitStrength.pureFullyRelayedMin.name,Pure Fully Relayed Min Build,全承音小外纯唐配装
+data.debuff.bamboocutDraught.Drunkslay.name,Drunkslay,醉杀
+data.debuff.bamboocutDraught.Drunkslay.shortName,DS,醉杀
 data.debuff.bamboocutDraught.Strayhunt.description,Increases Physical DMG Bonus and all four attribute DMG Bonuses by 2%.,外功伤害加成及全部四种属性伤害加成提高2%。
 data.debuff.bamboocutDraught.Strayhunt.name,Strayhunt,离猎
 data.debuff.bamboocutDraught.Strayhunt.shortName,SH,离猎
@@ -345,11 +399,18 @@ data.debuff.bamboocutWind.Sin.description,"Echoes of Oblivion mark. Lasts 3 seco
 data.debuff.bamboocutWind.Sin.name,Sin,恶身
 data.debuff.bamboocutWind.VendettaToken.name,Vendetta Token,仇杀令
 data.debuff.bamboocutWind.VendettaToken.shortName,VT,仇杀
+data.debuff.bellstrikeBolt.BoltQuanWei.description,8% Physical and Bellstrike DMG from the applier; 14% for VC-series hits with 浮梁一夜 T3.,施加者造成的外功与鸣金伤害提高8%；浮梁一夜T3时，派生系列命中提高14%。
+data.debuff.bellstrikeBolt.BoltQuanWei.name,泉威,泉威
+data.debuff.bellstrikeBolt.BoltZaigeStacks.description,10% 鳴戈 DMG per stack.,每层使鸣戈伤害提高10%。
+data.debuff.bellstrikeBolt.BoltZaigeStacks.name,載戈,载戈
 data.debuff.bellstrikeSplendor.QiImbalance.description,"Increases Qi damage taken by 10%. Increases global HP damage taken by 10% during exhausted, and an additional 10% for Bellstrike damage.",受到的真气伤害提高10%。气竭期间受到的全局气血伤害提高10%，鸣金伤害再额外提高10%。
 data.debuff.bellstrikeSplendor.QiImbalance.name,Qi Imbalance,真气失衡
 data.debuff.bellstrikeSplendor.QiImbalance.shortName,QI,失
 data.debuff.bellstrikeSplendor.SwordSlashDamageBoost.description,"Increases SwordEnergy skill damage by 10% per stack, up to 3 stacks. Hits refresh the 8-second duration.",每层使剑气技能伤害提高10%，最多3层。命中时刷新8秒持续时间。
 data.debuff.bellstrikeSplendor.SwordSlashDamageBoost.name,Sword Slash Damage Boost,剑气增伤
+data.debuff.bellstrikeUmbra.ShatteredStone.description,Reduces Physical Defense by 5% against non-player targets.,对非玩家目标，降低其5%外功防御。
+data.debuff.bellstrikeUmbra.ShatteredStone.name,Shattered Stone,碎石
+data.debuff.bellstrikeUmbra.ShatteredStone.shortName,ShS,碎石
 data.debuff.bellstrikeUmbra.SoulShaken.description,"Ordinary DoT damage taken increases by 5% per stack, plus 5% for Strategic Sword or Heavenquaker Spear. High Bleed instead receives 10% per stack; these bonuses do not stack.",受到的普通持续类伤害每层提高5%，若伤害来源为积矩九剑或九曲惊神枪则额外提高5%。高额流血则改为每层提高10%；上述加成不叠加。
 data.debuff.bellstrikeUmbra.SoulShaken.name,Soul-Shaken,惊神
 data.debuff.bellstrikeUmbra.SoulShaken.shortName,SS,惊
@@ -376,10 +437,7 @@ data.debuff.mystic.LesserToadVenom.name,Lesser Toad Venom,次级蟾毒
 data.debuff.mystic.LesserToadVenom.shortName,LTV,次蟾
 data.debuff.mystic.ToadVenom.name,Toad Venom,蟾毒
 data.debuff.mystic.ToadVenom.shortName,TV,蟾
-data.debuff.silkbindJade.Combo.description,"Blossom Barrage: Spring Sorrow marks the target for 10 seconds, or 15 seconds from T3. The applier's Vernal Umbrella Ballistic skills deal 10% more damage to it; T1 raises this to 25%, and from T4 it is 30% while the target is Exhausted.",花上月令：抛春恨命中时为目标附加连中，持续10秒，T3起为15秒。施加者的九重春色弹道类技能对其伤害提高10%；T1起提高至25%，T4起目标气竭时为30%。
-data.debuff.silkbindJade.Combo.name,Combo,连中
-data.debuff.silkbindJade.Combo.shortName,Combo,连中
-data.debuff.silkbindJade.LingeringBone.description,"Peak's Springless Silence and Forsaken Fame mark a non-player target for 2 seconds. Unfading Flower's floating umbrella fires an extra shot each volley against it, and Peak's Springless Silence grants Windrider on hitting it.",春尽山空与浮名无寄命中非玩家目标时附加，持续2秒。不谢花的浮伞对其每轮追加一发射击；春尽山空命中带有滞骨的目标时获得乘风。
+data.debuff.silkbindJade.JadeCombo.name,Combo,连中
 data.debuff.silkbindJade.LingeringBone.name,Lingering Bone,滞骨
 data.debuff.silkbindJade.LingeringBone.shortName,LB,滞骨
 data.debuff.silkbindWings.Cuncao.description,"Blade's Will stacks require an eligible varied attack, including Rhythm of Accord or End of Gale, to hit at least 3 enemies simultaneously (2 at T4; 3 grants 2 stacks). Lasts 5s, or 8s at T1; up to 5 stacks. Eligible attacks deal 2% more damage per stack, increased to 4% at T3. T6 adds 5% damage against targets at 5 stacks. Cannot build stacks against a single target.",寸草心的适用派生技（包括鼓乐和、煞尽东风）同时命中至少3名敌人时叠加层数（T4降为2名；命中3名时叠加2层）。持续5秒，T1延长至8秒；最多5层。适用攻击每层增伤2%，T3提高至4%。T6对5层目标额外增伤5%。单一目标无法叠加层数。
@@ -427,9 +485,10 @@ data.dot.mystic.Combustion.name,Combustion,爆燃
 data.dot.mystic.Combustion.shortName,Com,燃
 data.dot.mystic.Smolder.name,Smolder,暗灼
 data.dot.mystic.Smolder.shortName,Smo,暗灼
+data.event.Blossoms.name,Event: Add Blossoms,事件: 增加繁花
 data.event.Hellfire.name,Event: Add Hellfire,事件: 增加业火
 data.food.None.name,None,无
-data.food.SimmeringFishSlices.name,Clay Oven Flatbread,缸炉烧饼
+data.food.SimmeringFishSlices.name,Food,食物
 data.food.SimmeringFishSlices.title,Physical Attack,外功攻击
 data.food.SwallowsAgility.name,Swallow’s Agility,巧燕
 data.gear.affixes.hengBladeDmgBoost.name,Art of Heng,横刀武学增伤
@@ -438,6 +497,7 @@ data.gear.affixes.precision.name,Precision,精准
 data.gear.gear.ribbonAndDrum.name,Ribbon & Drum,舞绫鼓
 data.gearSet.Cleftpeak.name,Cleftpeak,断岳
 data.gearSet.Cloudshear.name,Cloudshear,裁云
+data.gearSet.HanMang.name,寒芒,寒芒
 data.gearSet.Ivorybloom.name,Ivorybloom,浣花
 data.gearSet.Jadeware.name,Jadeware,玉斗
 data.gearSet.Mistwillow.name,Mistwillow,烟柳重重
@@ -448,6 +508,8 @@ data.gearSet.SwayingHeights.name,Swaying Heights,岳山倾
 data.gearSet.SwiftGale.name,Swift Gale,急风骤
 data.gearSet.Tiltrim.name,Tiltrim,倾觞
 data.innerway.insightfulStrike.effect.InsightfulStrikeT0.trigger.0.resource.name,Focus,凝神值
+data.martialArt.boshanQuyueSpear.name,撥山取月槍,拨山取月枪
+data.martialArt.jueyuXuanfengSpear.name,決獄懸鋒槍,决狱悬锋枪
 data.martialArt.museflowWaistDrum.name,Museflow Waist Drum,文动霓裳
 data.martialArt.rivenTwinblades.name,Riven Twinblades,断水双诀
 data.martialArt.skystrikeGauntlets.name,Skystrike Gauntlets,悬身拳法
@@ -458,11 +520,14 @@ data.official.profileMap.martialArts.20902.name,Skystrike Gauntlets,悬身拳法
 data.path.bamboocutDraught.name,Draught,樽
 data.path.bamboocutDust.name,Dust,尘
 data.path.bamboocutKite.name,Kite,鸢
+data.path.bellstrikeBolt.name,Bolt,霆
 data.path.mixed.name,Mixed,混搭
 data.path.silkbindWings.name,Wings,翊
 data.path.stonesplitMight.name,Might,威
 data.path.stonesplitStrength.name,Strength,钧
-data.rotation.bamboocutDraught.draughtEmpty.name,Draught Empty Rotation,樽·空白循环
+data.rotation.bamboocutDraught.draughtDummy1Min.name,Dummy 1 Min,木桩1分钟
+data.rotation.bamboocutDraught.draughtDummy1Min10ms.name,Dummy 1 Min 10ms,木桩1分钟10ms
+data.rotation.bamboocutDraught.draughtDummy1MinBp.name,Dummy 1 Min 10ms BP,木桩1分钟10ms·断石之构
 data.rotation.bamboocutDust.dustDummy1Min.name,Dummy 1 Min,木桩1分钟
 data.rotation.bamboocutDust.dustDummy1Min100pc.name,Dummy 1 Min 100% PC,木桩1分钟100%幻鸣
 data.rotation.bamboocutKite.dummy1MinInfiniteVitality.name,Dummy 1 Min Infinite Vitality,木桩1分钟无限精元
@@ -470,6 +535,7 @@ data.rotation.bamboocutKite.dummy1MinIvBp.name,Dummy 1 Min IV BP,木桩1分钟�
 data.rotation.bamboocutKite.dummy1MinIvBpDh.name,Dummy 1 Min IV BP DH,木桩1分钟无限精元·断石之构·叶龙骧首
 data.rotation.bamboocutWind.windDummy1MinInfiniteVitality.name,Dummy 1 Min Infinite Vitality,木桩1分钟无限精元
 data.rotation.bamboocutWind.windDummy1MinIvNoDodge.name,Dummy 1 Min IV No Dodge,木桩1分钟无限精元·无闪避
+data.rotation.bellstrikeBolt.boltDummy1Min.name,Dummy 1 Min,木桩1分钟
 data.rotation.bellstrikeSplendor.dummy1Min81Waves.name,Dummy 1 Min 81 Waves,木桩1分钟81剑气
 data.rotation.bellstrikeUmbra.dummy1Min37BbDh.name,Dummy 1 Min 37 BB DH,木桩1分钟37爆血·叶龙骧首
 data.rotation.bellstrikeUmbra.dummy1Min38Bb.name,Dummy 1 Min 39 BB,木桩1分钟39爆血
@@ -478,7 +544,10 @@ data.rotation.silkbindDeluge.dummy1MinRegularFire.name,Dummy 1 Min Regular Fire,
 data.rotation.silkbindDeluge.dummy1MinSmolder.name,Dummy 1 Min Smolder,木桩1分钟暗灼
 data.rotation.silkbindDeluge.dummy1MinWts.name,Dummy 1 Min WTS,木桩1分钟万物
 data.rotation.silkbindDeluge.dummy1MinWtsTeam.name,Dummy 1 Min WTS Team,木桩1分钟万物组队
-data.rotation.silkbindJade.jadeDummy1Min.name,Dummy 1 Min Standardized,木桩1分钟·标准轴
+data.rotation.silkbindJade.jadeFlying.name,Flying Dummy 1 Min,空中木桩1分钟
+data.rotation.silkbindJade.jadeGrounded.name,Grounded Dummy 1 Min,地面木桩1分钟
+data.rotation.silkbindJade.jadeHybrid.name,Hybrid Dummy 1 Min,混合木桩1分钟
+data.rotation.silkbindJade.jadeThreeRounds.name,Grounded Dummy 30 Sec IV,地面木桩30秒无限精元
 data.rotation.silkbindWings.wingsDummy1MinDawnsun.name,Dummy 1 Min Dawnsun,木桩1分钟·昭阳
 data.rotation.silkbindWings.wingsDummy1MinJadebreaker.name,Dummy 1 Min Jadebreaker,木桩1分钟·撼玉
 data.rotation.stonesplitMight.dummy1Min.name,Dummy 1 min,木桩1分钟
@@ -504,6 +573,49 @@ data.script.Voidrot.description,Affinity DMG +10% against targets below 40% Qi.,
 data.script.Voidrot.name,Voidrot Script,蚀渊帖
 data.script.Wraithstrike.description,Critical DMG +10% against targets below 40% Qi.,对真气低于40%的目标，会心伤害提高10%。
 data.script.Wraithstrike.name,Wraithstrike Script,鬼掣帖
+data.skill.boshanQuyueSpear.BoltBlueCharged.name,挑龍劈馬,挑龙劈马
+data.skill.boshanQuyueSpear.BoltBlueCharged.shortName,Blue Charged,蓝 蓄力
+data.skill.boshanQuyueSpear.BoltBlueCounter.name,霸王破虜,霸王破虏
+data.skill.boshanQuyueSpear.BoltBlueCounter.shortName,Blue Counter,蓝 反击
+data.skill.boshanQuyueSpear.BoltBlueHeavy1.name,撥山重擊1,拨山重击1
+data.skill.boshanQuyueSpear.BoltBlueHeavy1.shortName,Blue Heavy 1,蓝 重击1
+data.skill.boshanQuyueSpear.BoltBlueHeavy2.name,撥山重擊2,拨山重击2
+data.skill.boshanQuyueSpear.BoltBlueHeavy2.shortName,Blue Heavy 2,蓝 重击2
+data.skill.boshanQuyueSpear.BoltBlueHeavy3.name,撥山重擊3,拨山重击3
+data.skill.boshanQuyueSpear.BoltBlueHeavy3.shortName,Blue Heavy 3,蓝 重击3
+data.skill.boshanQuyueSpear.BoltBlueLight1.name,撥山輕擊1,拨山轻击1
+data.skill.boshanQuyueSpear.BoltBlueLight1.shortName,Blue Light 1,蓝 轻击1
+data.skill.boshanQuyueSpear.BoltBlueLight2.name,撥山輕擊2,拨山轻击2
+data.skill.boshanQuyueSpear.BoltBlueLight2.shortName,Blue Light 2,蓝 轻击2
+data.skill.boshanQuyueSpear.BoltBlueLight3.name,撥山輕擊3,拨山轻击3
+data.skill.boshanQuyueSpear.BoltBlueLight3.shortName,Blue Light 3,蓝 轻击3
+data.skill.boshanQuyueSpear.BoltBlueLight4.name,撥山輕擊4,拨山轻击4
+data.skill.boshanQuyueSpear.BoltBlueLight4.shortName,Blue Light 4,蓝 轻击4
+data.skill.boshanQuyueSpear.BoltBlueParrySuccess.name,英布列甲·招架成功,英布列甲·招架成功
+data.skill.boshanQuyueSpear.BoltBlueQ.name,英布列甲,英布列甲
+data.skill.boshanQuyueSpear.BoltBlueQ.shortName,Blue Q,蓝Q
+data.skill.boshanQuyueSpear.BoltBlueQFollowup.name,霸王沉舟,霸王沉舟
+data.skill.boshanQuyueSpear.BoltBlueQFollowup.shortName,Blue Q Follow-up,蓝Q 追击
+data.skill.boshanQuyueSpear.BoltBlueSpecial.name,龍膽巡坡,龙胆巡坡
+data.skill.boshanQuyueSpear.BoltBlueSpecial.shortName,Blue Special,蓝特
+data.skill.boshanQuyueSpear.BoltBlueTab.name,盜跖踏梁,盗跖踏梁
+data.skill.boshanQuyueSpear.BoltBlueTab.shortName,Tab to Blue,易武·蓝
+data.skill.boshanQuyueSpear.BoltBlueVC.name,平風掃寶,平风扫宝
+data.skill.boshanQuyueSpear.BoltBlueVC.shortName,Blue VC,蓝 派生
+data.skill.boshanQuyueSpear.BoltBlueVCBase.name,平風掃寶,平风扫宝
+data.skill.boshanQuyueSpear.BoltBlueVCBase.shortName,Blue VC,蓝 派生
+data.skill.boshanQuyueSpear.BoltBlueVCSharp.name,平風掃寶·鋒銳,平风扫宝·锋锐
+data.skill.boshanQuyueSpear.BoltBlueVCSharp.shortName,Blue VC,蓝 派生
+data.skill.boshanQuyueSpear.BoltEarlyMingGe.name,鳴戈引爆,鸣戈引爆
+data.skill.boshanQuyueSpear.BoltEndFengRui.name,鋒銳結束,锋锐结束
+data.skill.boshanQuyueSpear.BoltEnterFengRui.name,鋒銳啟動,锋锐启動
+data.skill.boshanQuyueSpear.BoltMingGe.name,鳴戈,鸣戈
+data.skill.boshanQuyueSpear.BoltMoonBurst.damageGroup.name,月湧方圓,月涌方圆
+data.skill.boshanQuyueSpear.BoltMoonBurst.name,洪波萬仞,洪波万仞
+data.skill.boshanQuyueSpear.BoltMoonTide.damageGroup.name,月湧方圓,月涌方圆
+data.skill.boshanQuyueSpear.BoltMoonTide.name,潮湧,潮涌
+data.skill.boshanQuyueSpear.BoltQuanWeiExtend.name,泉威延長,泉威延长
+data.skill.boshanQuyueSpear.BoltZaige.name,載戈,载戈
 data.skill.everspringUmbrella.BubblesPhantomUmbrellaSummon.name,Summon Phantom Umbrella (Dreamwrought Bubbles),召唤幻影伞（玲珑泡影）
 data.skill.everspringUmbrella.BubblesResonance.name,Resonance (Dreamwrought Bubbles),共鸣（玲珑泡影）
 data.skill.everspringUmbrella.BubblesResonance.skillBreakdownCategory,Resonance,共鸣
@@ -704,39 +816,58 @@ data.skill.infernalTwinblades.InfernalLight4Cancel.skillBreakdownCategory,Light 
 data.skill.infernalTwinblades.InfernalLight4Rodent.name,Light Attack 4 [Rodent],双刀·轻击4 [鼠鼠]
 data.skill.infernalTwinblades.InfernalLight4Rodent.shortName,A4 [Rodent],轻击4 [鼠鼠]
 data.skill.infernalTwinblades.InfernalLight4Rodent.skillBreakdownCategory,Light Attack,双刀·轻击
-data.skill.inkwellFan.FanDash.name,Inkwell Fan Dash,扇·冲刺
-data.skill.inkwellFan.FanDash.shortName,Fan Dash,扇 冲刺
-data.skill.inkwellFan.FanLight.name,Inkwell Fan Light Attack,扇·轻击
-data.skill.inkwellFan.FanLight.shortName,Fan Light,扇 轻击
-data.skill.inkwellFan.FanLight.skillBreakdownCategory,Inkwell Fan Light Attack,扇·轻击
-data.skill.inkwellFan.FanLightChain.name,Inkwell Fan Light Attack (4 Stages),扇·轻击（4段）
-data.skill.inkwellFan.FanLightChain.shortName,Fan Light x4,扇 轻击（4段）
-data.skill.inkwellFan.FanLightChain.skillBreakdownCategory,Inkwell Fan Light Attack,扇·轻击
+data.skill.inkwellFan.EmeraldBarrier.name,Emerald Barrier,屏山断翠
+data.skill.inkwellFan.EmeraldBarrier.shortName,Fan Q,扇Q
+data.skill.inkwellFan.EmeraldBarrier.skillBreakdownCategory,Emerald Barrier,屏山断翠
+data.skill.inkwellFan.EmeraldBarrierCancel.name,Emerald Barrier [Cancel],屏山断翠（打断）
+data.skill.inkwellFan.EmeraldBarrierCancel.shortName,Fan Q [Cancel],扇Q（打断）
+data.skill.inkwellFan.EmeraldBarrierCancel.skillBreakdownCategory,Emerald Barrier,屏山断翠
+data.skill.inkwellFan.EmeraldBarrierMiss.name,Emerald Barrier [Miss],屏山断翠（未命中）
+data.skill.inkwellFan.EmeraldBarrierMiss.shortName,Fan Q Miss,扇Q（未命中）
+data.skill.inkwellFan.EmeraldBarrierMiss.skillBreakdownCategory,Emerald Barrier,屏山断翠
 data.skill.inkwellFan.ForsakenFame.name,Forsaken Fame,浮名无寄
 data.skill.inkwellFan.ForsakenFame.shortName,Fan Light Charged,扇 轻击 蓄力
-data.skill.inkwellFan.GlowAndFlow.name,Glow and Flow,明月相照
-data.skill.inkwellFan.GlowAndFlow.shortName,Fan Heavy Charged,扇 重击 蓄力
-data.skill.inkwellFan.GlowAndFlow.skillBreakdownCategory,Glow and Flow,明月相照
-data.skill.inkwellFan.GlowAndFlowFull.name,Glow and Flow (Full Charge),明月相照（满蓄）
-data.skill.inkwellFan.GlowAndFlowFull.shortName,Fan Heavy Charged (Full),扇 重击 蓄力（满蓄）
-data.skill.inkwellFan.GlowAndFlowFull.skillBreakdownCategory,Glow and Flow,明月相照
-data.skill.inkwellFan.InkwellFanConversion.name,Inkwell Fan Conversion,扇·易武
-data.skill.inkwellFan.InkwellFanConversion.shortName,Fan Tab,扇 易武
-data.skill.inkwellFan.JadewindShield.name,Jadewind Shield,屏山断翠
-data.skill.inkwellFan.JadewindShield.shortName,Fan Q,扇 Q
-data.skill.inkwellFan.JadewindShieldCancel.name,Jadewind Shield [Cancel],屏山断翠（打断）
-data.skill.inkwellFan.JadewindShieldCancel.shortName,Fan Q [Cancel],扇 Q（打断）
+data.skill.inkwellFan.ForsakenFameCancel.description,Ends at the damage hit. Follow immediately with Deflect or a skill other than Forsaken Fame or an Umbrella skill.,在伤害命中时结束。随后立即接卸势，或接浮名无寄与伞技能以外的技能。
+data.skill.inkwellFan.ForsakenFameCancel.name,Forsaken Fame [Cancel],浮名无寄（打断）
+data.skill.inkwellFan.ForsakenFameCancel.shortName,Fan Light Charged [Cancel],扇 轻击 蓄力（打断）
+data.skill.inkwellFan.ForsakenFameCancel.skillBreakdownCategory,Forsaken Fame,浮名无寄
 data.skill.inkwellFan.MoonShatterSpring.name,Moon Shatter Spring,月出惊春
-data.skill.inkwellFan.MoonShatterSpring.shortName,Fan Pursuit,扇 追击
+data.skill.inkwellFan.MoonShatterSpring.shortName,Fan Heavy Pursuit,扇 追击
 data.skill.inkwellFan.MoonShatterSpring.skillBreakdownCategory,Moon Shatter Spring,月出惊春
-data.skill.inkwellFan.MoonShatterSpringFiveHit.name,Moon Shatter Spring (5 Hits),月出惊春（5段）
-data.skill.inkwellFan.MoonShatterSpringFiveHit.shortName,Fan Pursuit (5 Hits),扇 追击（5段）
-data.skill.inkwellFan.MoonShatterSpringFiveHit.skillBreakdownCategory,Moon Shatter Spring,月出惊春
-data.skill.inkwellFan.MoonShatterSpringThreeHit.name,Moon Shatter Spring (3 Hits),月出惊春（3段）
-data.skill.inkwellFan.MoonShatterSpringThreeHit.shortName,Fan Pursuit (3 Hits),扇 追击（3段）
-data.skill.inkwellFan.MoonShatterSpringThreeHit.skillBreakdownCategory,Moon Shatter Spring,月出惊春
+data.skill.inkwellFan.MoonShatterSpringDispatch.name,Moon Shatter Spring,月出惊春
+data.skill.inkwellFan.MoonShatterSpringDispatch.skillBreakdownCategory,Moon Shatter Spring,月出惊春
+data.skill.inkwellFan.MoonShatterSpringNormal.name,Moon Shatter Spring,月出惊春
+data.skill.inkwellFan.MoonShatterSpringNormal.shortName,Fan Heavy Pursuit [3 hits],扇 重击 追击 [3段]
+data.skill.inkwellFan.MoonShatterSpringNormal.skillBreakdownCategory,Moon Shatter Spring,月出惊春
+data.skill.inkwellFan.MoonShatterSpringWindrider.name,Moon Shatter Spring [Windrider],月出惊春 [乘风]
+data.skill.inkwellFan.MoonShatterSpringWindrider.shortName,Fan Heavy Pursuit [5 hits],扇 重击 追击 [5段]
+data.skill.inkwellFan.MoonShatterSpringWindrider.skillBreakdownCategory,Moon Shatter Spring,月出惊春
 data.skill.inkwellFan.PeaksSpringlessSilence.name,Peak's Springless Silence,春尽山空
 data.skill.inkwellFan.PeaksSpringlessSilence.shortName,Fan Special,扇 特殊
+data.skill.inkwellFan.PeaksSpringlessSilence.skillBreakdownCategory,Peak's Springless Silence,春尽山空
+data.skill.inkwellFan.PeaksSpringlessSilenceCancel.name,Peak's Springless Silence [Cancel],春尽山空（打断）
+data.skill.inkwellFan.PeaksSpringlessSilenceCancel.shortName,Fan Special [Cancel],扇特（打断）
+data.skill.inkwellFan.PeaksSpringlessSilenceCancel.skillBreakdownCategory,Peak's Springless Silence,春尽山空
+data.skill.inkwellFan.StarReacherAirborneGrant.name,Star Reacher,纵地摘星
+data.skill.inkwellFan.StarReacherGrant.name,Star Reacher,纵地摘星
+data.skill.jueyuXuanfengSpear.BoltRedCharged.name,星馳秋野,星驰秋野
+data.skill.jueyuXuanfengSpear.BoltRedCharged.shortName,Red Charged,红 蓄力
+data.skill.jueyuXuanfengSpear.BoltRedHeavy1.name,決獄重擊1,决狱重击1
+data.skill.jueyuXuanfengSpear.BoltRedHeavy1.shortName,Red Heavy 1,红 重击1
+data.skill.jueyuXuanfengSpear.BoltRedLight1.name,決獄輕擊1,决狱轻击1
+data.skill.jueyuXuanfengSpear.BoltRedLight1.shortName,Red Light 1,红 轻击1
+data.skill.jueyuXuanfengSpear.BoltRedQ.name,金科盡詔,金科尽诏
+data.skill.jueyuXuanfengSpear.BoltRedQ.shortName,Red Q,红Q
+data.skill.jueyuXuanfengSpear.BoltRedSpecial.name,玉京崩騰,玉京崩腾
+data.skill.jueyuXuanfengSpear.BoltRedSpecial.shortName,Red Special,红特
+data.skill.jueyuXuanfengSpear.BoltRedTab.name,直貫其鋒,直贯其锋
+data.skill.jueyuXuanfengSpear.BoltRedTab.shortName,Tab to Red,易武·红
+data.skill.jueyuXuanfengSpear.BoltRedVC.name,聽雨斷罪,听雨断罪
+data.skill.jueyuXuanfengSpear.BoltRedVC.shortName,Red VC,红 派生
+data.skill.jueyuXuanfengSpear.BoltRedVCBase.name,聽雨斷罪,听雨断罪
+data.skill.jueyuXuanfengSpear.BoltRedVCBase.shortName,Red VC,红 派生
+data.skill.jueyuXuanfengSpear.BoltRedVCSharp.name,聽雨斷罪·鋒銳,听雨断罪·锋锐
+data.skill.jueyuXuanfengSpear.BoltRedVCSharp.shortName,Red VC,红 派生
 data.skill.mechanism.SummonLightning.name,Summon Lightning,召雷
 data.skill.mortalRopeDart.BladeboundThreadCancel.name,Bladebound Thread [Cancel],牵绳引刃（打断）
 data.skill.mortalRopeDart.BladeboundThreadCancel.shortName,RD Q,绳镖 Q
@@ -787,6 +918,7 @@ data.skill.mystic.BurstingNine2Shots.name,Bursting Nine 2 Shots,衍九矢二连
 data.skill.mystic.BurstingNine2Shots7Hits.name,Bursting Nine 2 Shots [7 hits],衍九矢二连 [7段]
 data.skill.mystic.BurstingNine7Hits.name,Bursting Nine [7 hits],衍九矢 [7段]
 data.skill.mystic.CombustionExplosion.name,Combustion Explosion,爆燃爆炸
+data.skill.mystic.CombustionExplosion.skillBreakdownCategory,Drunken Poet,太白醉月
 data.skill.mystic.DragonHeadTide.name,Dragon Head - Tide,叶龙骧首·叠浪
 data.skill.mystic.DragonsBreath1.name,Dragon's Breath 1-Hit [Cancel],神龙吐火 1击（打断）
 data.skill.mystic.DragonsBreath1.shortName,Breath 1 Hit,吐火1
@@ -798,28 +930,40 @@ data.skill.mystic.DragonsBreathSmolder2.name,Dragon's Breath - Smolder 2-Hit [Ca
 data.skill.mystic.DragonsBreathSmolder2.shortName,Smolder Full,暗灼2
 data.skill.mystic.DrunkenPoet1.name,Drunken Poet 1st Hit,太白醉月第1击
 data.skill.mystic.DrunkenPoet1.shortName,Poet,太白
+data.skill.mystic.DrunkenPoet1.skillBreakdownCategory,Drunken Poet,太白醉月
 data.skill.mystic.DrunkenPoet1Hit.name,Drunken Poet 1 Hit,太白醉月 1击
 data.skill.mystic.DrunkenPoet1Hit.shortName,Poet x1,太白 x1
+data.skill.mystic.DrunkenPoet1Hit.skillBreakdownCategory,Drunken Poet,太白醉月
 data.skill.mystic.DrunkenPoet2.name,Drunken Poet 2nd Hit,太白醉月第2击
 data.skill.mystic.DrunkenPoet2.shortName,Poet,太白
+data.skill.mystic.DrunkenPoet2.skillBreakdownCategory,Drunken Poet,太白醉月
 data.skill.mystic.DrunkenPoet2Hits.name,Drunken Poet 2 Hits,太白醉月 2击
 data.skill.mystic.DrunkenPoet2Hits.shortName,Poet x2,太白 x2
+data.skill.mystic.DrunkenPoet2Hits.skillBreakdownCategory,Drunken Poet,太白醉月
 data.skill.mystic.DrunkenPoet3.name,Drunken Poet 3rd Hit,太白醉月第3击
 data.skill.mystic.DrunkenPoet3.shortName,Poet,太白
+data.skill.mystic.DrunkenPoet3.skillBreakdownCategory,Drunken Poet,太白醉月
 data.skill.mystic.DrunkenPoet3Hits.name,Drunken Poet 3 Hits,太白醉月 3击
 data.skill.mystic.DrunkenPoet3Hits.shortName,Poet x3,太白 x3
+data.skill.mystic.DrunkenPoet3Hits.skillBreakdownCategory,Drunken Poet,太白醉月
 data.skill.mystic.DrunkenPoet4.name,Drunken Poet 4th Hit,太白醉月第4击
 data.skill.mystic.DrunkenPoet4.shortName,Poet,太白
+data.skill.mystic.DrunkenPoet4.skillBreakdownCategory,Drunken Poet,太白醉月
 data.skill.mystic.DrunkenPoet4Hits.name,Drunken Poet 4 Hits,太白醉月 4击
 data.skill.mystic.DrunkenPoet4Hits.shortName,Poet x4,太白 x4
+data.skill.mystic.DrunkenPoet4Hits.skillBreakdownCategory,Drunken Poet,太白醉月
 data.skill.mystic.DrunkenPoet5.name,Drunken Poet 5th Hit [Cancel],太白醉月第5击（打断）
 data.skill.mystic.DrunkenPoet5.shortName,Poet,太白
+data.skill.mystic.DrunkenPoet5.skillBreakdownCategory,Drunken Poet,太白醉月
 data.skill.mystic.DrunkenPoet5HitsCancel.name,Drunken Poet 5 Hits [Cancel],太白醉月 5击（打断）
 data.skill.mystic.DrunkenPoet5HitsCancel.shortName,Poet x5,太白 x5
+data.skill.mystic.DrunkenPoet5HitsCancel.skillBreakdownCategory,Drunken Poet,太白醉月
 data.skill.mystic.DrunkenPoetDrink.name,Drunken Poet Drink,太白醉月·饮酒
 data.skill.mystic.DrunkenPoetDrink.shortName,Drink,饮酒
+data.skill.mystic.DrunkenPoetDrink.skillBreakdownCategory,Drunken Poet,太白醉月
 data.skill.mystic.DrunkenPoetDrinkCancel.name,Drunken Poet Drink [Cancel],太白醉月·饮酒（打断）
 data.skill.mystic.DrunkenPoetDrinkCancel.shortName,Drink,饮酒
+data.skill.mystic.DrunkenPoetDrinkCancel.skillBreakdownCategory,Drunken Poet,太白醉月
 data.skill.mystic.FluteOfTheTides.name,Flute of the Tides Full,箫吟千浪（完整）
 data.skill.mystic.FluteOfTheTides.shortName,Flute Full,箫（完整）
 data.skill.mystic.FluteOfTheTides.skillBreakdownCategory,Flute of the Tides,箫吟千浪
@@ -837,12 +981,14 @@ data.skill.mystic.GhostlyStepsUmbraDodgeMoBlade.name,Ghostly Step - Umbra Dodge 
 data.skill.mystic.GhostlyStepsUmbraDodgeRopeDart.name,Ghostly Step - Umbra Dodge (Rope Dart),阴阳迷踪步·影闪避（绳镖）
 data.skill.mystic.GhostlyStepsUmbraDodgeSpear.name,Ghostly Step - Umbra Dodge (Spear),阴阳迷踪步·影闪避（枪）
 data.skill.mystic.GhostlyStepsUmbraDodgeUmbrella.name,Ghostly Step - Umbra Dodge (Umbrella),阴阳迷踪步·影闪避（伞）
+data.skill.mystic.GoldenBodyCancel.name,Golden Body [Cancel],无相金身（打断）
 data.skill.mystic.LeapingToad.name,Leaping Toad [Cancel],金蟾腾跃（打断）
 data.skill.mystic.LeapingToad.shortName,Toad,金蟾
 data.skill.mystic.QiBlade.name,Qi Blade,气刃
 data.skill.mystic.QiBlade.shortName,Qi Blade,气刃
 data.skill.mystic.SereneBreeze.name,Serene Breeze,清风霁月
 data.skill.mystic.SmolderExplosion.name,Smolder Explosion,暗灼爆炸
+data.skill.mystic.SmolderExplosion.skillBreakdownCategory,Drunken Poet,太白醉月
 data.skill.mystic.SoaringSpin1.name,Soaring Spin 1-Hit,骑龙回马 1击
 data.skill.mystic.SoaringSpin1.shortName,Soaring 1 Hit,骑龙1
 data.skill.mystic.SoaringSpin2.name,Soaring Spin,骑龙回马
@@ -923,6 +1069,15 @@ data.skill.phalanxbaneBlade.PhalanxbaneQ.name,Total Annihilation,荡八荒
 data.skill.phalanxbaneBlade.PhalanxbaneQ.shortName,Mo QQ,荡八荒
 data.skill.phalanxbaneBlade.PhalanxbaneSpecial.name,Legion Summon,唤千军
 data.skill.phalanxbaneBlade.PhalanxbaneSpecial.shortName,Mo Special,唤千军
+data.skill.rivenTwinblades.DrunkslayDamage.name,Drunkslay,醉杀
+data.skill.rivenTwinblades.HeroesBlood.name,Hero's Blood,碧血为迎
+data.skill.rivenTwinblades.HeroesBlood.shortName,TB Special,双刀 特殊技
+data.skill.rivenTwinblades.HeroesBloodInebriate.name,Hero's Blood - Inebriate,碧血为迎·酩酊
+data.skill.rivenTwinblades.HeroesBloodInebriate.shortName,TB Deepdaze Special,碧血为迎·酩酊
+data.skill.rivenTwinblades.Reveldrift.name,Reveldrift,醉戏俗尘
+data.skill.rivenTwinblades.Reveldrift.shortName,TB Q,双刀 Q
+data.skill.rivenTwinblades.ReveldriftCancel.name,Reveldrift [Cancel],醉戏俗尘 [取消]
+data.skill.rivenTwinblades.ReveldriftCancel.shortName,TB Q [Cancel],双刀 Q [取消]
 data.skill.skygraspRopeDart.SkyGrasped.name,Sky Grasped,索天势
 data.skill.skygraspRopeDart.SkyGrasped.shortName,RD Special,绳镖 特殊技
 data.skill.skygraspRopeDart.SnaringLash.name,Snaring Lash,飞来势
@@ -930,6 +1085,42 @@ data.skill.skygraspRopeDart.SnaringLash.shortName,RD Q,绳镖 Q
 data.skill.skygraspRopeDart.SnaringLashCancel.name,Snaring Lash [Cancel],飞来势（打断）
 data.skill.skygraspRopeDart.SnaringLashCancel.shortName,RD Q [Cancel],绳镖 Q（打断）
 data.skill.skygraspRopeDart.SnaringLashFalcon.name,Snaring Lash Falcon,飞来势鹰隼
+data.skill.skystrikeGauntlets.Castlink.name,Castlink,抛杯连环
+data.skill.skystrikeGauntlets.Castlink.shortName,Gauntlet Q2,手甲 Q2
+data.skill.skystrikeGauntlets.CastlinkJadeflush.name,Castlink - Jadeflush,抛杯连环·醉玉
+data.skill.skystrikeGauntlets.CastlinkJadeflush.shortName,Gauntlet Q2 [Inebriate],抛杯连环·醉玉
+data.skill.skystrikeGauntlets.CastlinkSelect.name,Castlink,抛杯连环
+data.skill.skystrikeGauntlets.CastlinkSelect.shortName,Gauntlet Q2,手甲 Q2
+data.skill.skystrikeGauntlets.Dragonquench1.name,Dragonquench - Inebriate,饮龙·酩酊
+data.skill.skystrikeGauntlets.Dragonquench1.shortName,Gauntlet Deepdaze Heavy 1,饮龙·酩酊 1
+data.skill.skystrikeGauntlets.Dragonquench1.skillBreakdownCategory,Dragonquench - Inebriate,饮龙·酩酊
+data.skill.skystrikeGauntlets.Dragonquench2.name,Dragonquench - Inebriate,饮龙·酩酊
+data.skill.skystrikeGauntlets.Dragonquench2.shortName,Gauntlet Deepdaze Heavy 2,饮龙·酩酊 2
+data.skill.skystrikeGauntlets.Dragonquench2.skillBreakdownCategory,Dragonquench - Inebriate,饮龙·酩酊
+data.skill.skystrikeGauntlets.Dragonquench3.name,Dragonquench - Inebriate,饮龙·酩酊
+data.skill.skystrikeGauntlets.Dragonquench3.shortName,Gauntlet Deepdaze Heavy 3,饮龙·酩酊 3
+data.skill.skystrikeGauntlets.Dragonquench3.skillBreakdownCategory,Dragonquench - Inebriate,饮龙·酩酊
+data.skill.skystrikeGauntlets.Dragonquench4.name,Dragonquench - Inebriate,饮龙·酩酊
+data.skill.skystrikeGauntlets.Dragonquench4.shortName,Gauntlet Deepdaze Heavy 4,饮龙·酩酊 4
+data.skill.skystrikeGauntlets.Dragonquench4.skillBreakdownCategory,Dragonquench - Inebriate,饮龙·酩酊
+data.skill.skystrikeGauntlets.Dragonquench4Cancel.name,Dragonquench - Inebriate [Cancel],饮龙·酩酊 [取消]
+data.skill.skystrikeGauntlets.Dragonquench4Cancel.shortName,Gauntlet Deepdaze Heavy 4 [Cancel],饮龙·酩酊 4 [取消]
+data.skill.skystrikeGauntlets.Dragonquench4Cancel.skillBreakdownCategory,Dragonquench - Inebriate,饮龙·酩酊
+data.skill.skystrikeGauntlets.DraughtBingeCheck.name,Binge Check,狂饮值检定
+data.skill.skystrikeGauntlets.EonpourExhausted.name,Eonpour Exhausted,一醉千秋·气竭
+data.skill.skystrikeGauntlets.FalconsPursuit.name,Falcon's Pursuit,鹰隼追击
+data.skill.skystrikeGauntlets.NightwickPrimepick.name,Nightwick - Primepick,醉里挑灯·点将
+data.skill.skystrikeGauntlets.NightwickPrimepick.shortName,Gauntlet Defense Break,醉里挑灯·点将
+data.skill.skystrikeGauntlets.NightwickTipsylay.name,Nightwick - Tipsylay,醉里挑灯·醉卧
+data.skill.skystrikeGauntlets.NightwickTipsylay.shortName,Gauntlet Special,手甲 特殊技
+data.skill.skystrikeGauntlets.Peakfall.name,Peakfall,颓山
+data.skill.skystrikeGauntlets.Peakfall.shortName,Gauntlet Q1,手甲 Q1
+data.skill.skystrikeGauntlets.PeakfallJadeflush.name,Peakfall - Jadeflush,颓山·醉玉
+data.skill.skystrikeGauntlets.PeakfallJadeflush.shortName,Gauntlet Q1 [Inebriate],颓山·醉玉
+data.skill.skystrikeGauntlets.PeakfallSelect.name,Peakfall,颓山
+data.skill.skystrikeGauntlets.PeakfallSelect.shortName,Gauntlet Q1,手甲 Q1
+data.skill.skystrikeGauntlets.Whaledraft.name,Whaledraft,长鲸吸川
+data.skill.skystrikeGauntlets.Whaledraft.shortName,Gauntlet Heavy Drink,长鲸吸川
 data.skill.snowpartingBlade.AnxiSoldierGeneralsBaneStab.name,Anxi Soldier General's Bane: Stab,安西军·白刃杀将·刺
 data.skill.snowpartingBlade.AnxiSoldierGeneralsBaneStab.skillBreakdownCategory,Heng Blade Anxi Soldier,横刀安西军
 data.skill.snowpartingBlade.AnxiSoldierSnowbreakSpring.name,Anxi Soldier Snowbreak Spring,安西军·拨雪寻春
@@ -1048,70 +1239,46 @@ data.skill.unfetteredRopeDart.SoulSweep.name,Soul Sweep,履虚扫尘
 data.skill.unfetteredRopeDart.SoulSweep.shortName,RD Q,绳镖 Q
 data.skill.unfetteredRopeDart.SoulSweepCancel.name,Soul Sweep [Cancel],履虚扫尘（打断）
 data.skill.unfetteredRopeDart.SoulSweepCancel.shortName,RD Q [Cancel],绳镖 Q（打断）
-data.skill.vernalUmbrella.ApricotHeaven.name,Apricot Heaven,杏花天
-data.skill.vernalUmbrella.ApricotHeaven.shortName,Umbrella Heavy Charged,伞 重击 蓄力
-data.skill.vernalUmbrella.ApricotHeaven.skillBreakdownCategory,Apricot Heaven,杏花天
-data.skill.vernalUmbrella.ApricotHeavenEnhanced.name,Apricot Heaven (Enhanced Fall),杏花天（强化下落）
-data.skill.vernalUmbrella.ApricotHeavenEnhanced.shortName,Umbrella Heavy Charged (Enhanced),伞 重击 蓄力（强化）
-data.skill.vernalUmbrella.ApricotHeavenEnhanced.skillBreakdownCategory,Apricot Heaven,杏花天
-data.skill.vernalUmbrella.BambooBreeze.name,Bamboo Breeze,风敲竹
-data.skill.vernalUmbrella.BambooBreeze.shortName,Umbrella Light VC,伞 轻击 派生
 data.skill.vernalUmbrella.ColorfulPhoenix.name,Colorful Phoenix,彩凤飞
-data.skill.vernalUmbrella.ColorfulPhoenix.shortName,Umbrella Heavy VC,伞 重击 派生
+data.skill.vernalUmbrella.ColorfulPhoenix.shortName,Colorful Phoenix,伞 重击 派生
 data.skill.vernalUmbrella.ColorfulPhoenix.skillBreakdownCategory,Colorful Phoenix,彩凤飞
-data.skill.vernalUmbrella.ColorfulPhoenixStrikes.name,Colorful Phoenix Strikes,彩凤飞·派生段
-data.skill.vernalUmbrella.ColorfulPhoenixStrikes.skillBreakdownCategory,Colorful Phoenix,彩凤飞
-data.skill.vernalUmbrella.FloatingUmbrellaExtraShot.name,Floating Umbrella Shot (Lingering Bone),不谢花·浮伞（滞骨追加）
-data.skill.vernalUmbrella.FloatingUmbrellaExtraShot.skillBreakdownCategory,Floating Umbrella,不谢花·浮伞
-data.skill.vernalUmbrella.FloatingUmbrellaRecall.name,Floating Umbrella Recall,不谢花·收伞
-data.skill.vernalUmbrella.FloatingUmbrellaShot.name,Floating Umbrella Shot,不谢花·浮伞
-data.skill.vernalUmbrella.FloatingUmbrellaShot.skillBreakdownCategory,Floating Umbrella,不谢花·浮伞
-data.skill.vernalUmbrella.HiddenSwordHeavy1.name,Hidden Sword Heavy Attack 1,伞中剑·重击1
-data.skill.vernalUmbrella.HiddenSwordHeavy1.shortName,Hidden Sword H1,伞中剑 重击1
-data.skill.vernalUmbrella.HiddenSwordHeavy1.skillBreakdownCategory,Hidden Sword,伞中剑
-data.skill.vernalUmbrella.HiddenSwordHeavy2.name,Hidden Sword Heavy Attack 2,伞中剑·重击2
-data.skill.vernalUmbrella.HiddenSwordHeavy2.shortName,Hidden Sword H2,伞中剑 重击2
-data.skill.vernalUmbrella.HiddenSwordHeavy2.skillBreakdownCategory,Hidden Sword,伞中剑
-data.skill.vernalUmbrella.HiddenSwordHeavy3.name,Hidden Sword Heavy Attack 3,伞中剑·重击3
-data.skill.vernalUmbrella.HiddenSwordHeavy3.shortName,Hidden Sword H3,伞中剑 重击3
-data.skill.vernalUmbrella.HiddenSwordHeavy3.skillBreakdownCategory,Hidden Sword,伞中剑
-data.skill.vernalUmbrella.HiddenSwordHeavyAlt.name,Hidden Sword Heavy Attack (Alt),伞中剑·重击（独立）
-data.skill.vernalUmbrella.HiddenSwordHeavyAlt.shortName,Hidden Sword H (Alt),伞中剑 重击（独立）
-data.skill.vernalUmbrella.HiddenSwordHeavyAlt.skillBreakdownCategory,Hidden Sword,伞中剑
-data.skill.vernalUmbrella.HiddenSwordLight1.name,Hidden Sword Light Attack 1,伞中剑·轻击1
-data.skill.vernalUmbrella.HiddenSwordLight1.shortName,Hidden Sword L1,伞中剑 轻击1
-data.skill.vernalUmbrella.HiddenSwordLight1.skillBreakdownCategory,Hidden Sword,伞中剑
-data.skill.vernalUmbrella.HiddenSwordLight2.name,Hidden Sword Light Attack 2,伞中剑·轻击2
-data.skill.vernalUmbrella.HiddenSwordLight2.shortName,Hidden Sword L2,伞中剑 轻击2
-data.skill.vernalUmbrella.HiddenSwordLight2.skillBreakdownCategory,Hidden Sword,伞中剑
-data.skill.vernalUmbrella.HiddenSwordLight3.name,Hidden Sword Light Attack 3,伞中剑·轻击3
-data.skill.vernalUmbrella.HiddenSwordLight3.shortName,Hidden Sword L3,伞中剑 轻击3
-data.skill.vernalUmbrella.HiddenSwordLight3.skillBreakdownCategory,Hidden Sword,伞中剑
-data.skill.vernalUmbrella.HiddenSwordLight4.name,Hidden Sword Light Attack 4,伞中剑·轻击4
-data.skill.vernalUmbrella.HiddenSwordLight4.shortName,Hidden Sword L4,伞中剑 轻击4
-data.skill.vernalUmbrella.HiddenSwordLight4.skillBreakdownCategory,Hidden Sword,伞中剑
-data.skill.vernalUmbrella.HiddenSwordLightAlt.name,Hidden Sword Light Attack (Alt),伞中剑·轻击（独立）
-data.skill.vernalUmbrella.HiddenSwordLightAlt.shortName,Hidden Sword L (Alt),伞中剑 轻击（独立）
-data.skill.vernalUmbrella.HiddenSwordLightAlt.skillBreakdownCategory,Hidden Sword,伞中剑
+data.skill.vernalUmbrella.colorfulphoenix1.name,Colorful Phoenix [1 hits],彩凤飞 [1段]
+data.skill.vernalUmbrella.colorfulphoenix1.shortName,Colorful Phoenix [1 hits],彩凤飞 [1段]
+data.skill.vernalUmbrella.colorfulphoenix1.skillBreakdownCategory,Colorful Phoenix,彩凤飞
+data.skill.vernalUmbrella.colorfulphoenix2.name,Colorful Phoenix [2 hits],彩凤飞 [2段]
+data.skill.vernalUmbrella.colorfulphoenix2.shortName,Colorful Phoenix [2 hits],彩凤飞 [2段]
+data.skill.vernalUmbrella.colorfulphoenix2.skillBreakdownCategory,Colorful Phoenix,彩凤飞
+data.skill.vernalUmbrella.ColorfulPhoenix35Blossoms.name,Colorful Phoenix [35 Blossoms],彩凤飞 [35繁花]
+data.skill.vernalUmbrella.ColorfulPhoenix35Blossoms.shortName,Colorful Phoenix [35 Blossoms],彩凤飞 [35繁花]
+data.skill.vernalUmbrella.ColorfulPhoenix35Blossoms.skillBreakdownCategory,Colorful Phoenix,彩凤飞
+data.skill.vernalUmbrella.JadeComboExtension.name,Combo Extension,连中·延长
 data.skill.vernalUmbrella.SpringAway.name,Spring Away,春飞尽
 data.skill.vernalUmbrella.SpringAway.shortName,Umbrella Light Charged,伞 轻击 蓄力
 data.skill.vernalUmbrella.SpringAway.skillBreakdownCategory,Spring Away,春飞尽
-data.skill.vernalUmbrella.SpringAway12.name,Spring Away (12 Shots),春飞尽（12发）
-data.skill.vernalUmbrella.SpringAway12.shortName,Umbrella Light Charged (12),伞 轻击 蓄力（12发）
-data.skill.vernalUmbrella.SpringAway12.skillBreakdownCategory,Spring Away,春飞尽
-data.skill.vernalUmbrella.SpringAwayLift.name,Spring Away Lift,春飞尽·挑起
-data.skill.vernalUmbrella.SpringAwayLift.skillBreakdownCategory,Spring Away,春飞尽
+data.skill.vernalUmbrella.SpringAwayProjectile.name,Spring Away Projectile,春飞尽·弹道
+data.skill.vernalUmbrella.SpringAwayProjectile.shortName,Umbrella Light Charged,伞 轻击 蓄力
+data.skill.vernalUmbrella.SpringAwayProjectile.skillBreakdownCategory,Spring Away,春飞尽
 data.skill.vernalUmbrella.SpringSorrow.name,Spring Sorrow,抛春恨
 data.skill.vernalUmbrella.SpringSorrow.shortName,Umbrella Q,伞 Q
-data.skill.vernalUmbrella.UmbrellaDash.name,Umbrella Dash,伞·冲刺
-data.skill.vernalUmbrella.UmbrellaDash.shortName,Umbrella Dash,伞 冲刺
-data.skill.vernalUmbrella.UmbrellaDash.skillBreakdownCategory,Umbrella Dash,伞·冲刺
-data.skill.vernalUmbrella.UmbrellaDashBullet.name,Umbrella Dash Bullet,伞·冲刺弹道
-data.skill.vernalUmbrella.UmbrellaDashBullet.skillBreakdownCategory,Umbrella Dash,伞·冲刺
+data.skill.vernalUmbrella.SpringSorrowBarrage.name,Spring Sorrow,抛春恨
+data.skill.vernalUmbrella.SpringSorrowBarrage.shortName,Umbrella Q,伞 Q
+data.skill.vernalUmbrella.SpringSorrowNormal.name,Spring Sorrow,抛春恨
+data.skill.vernalUmbrella.SpringSorrowNormal.shortName,Umbrella Q,伞 Q
 data.skill.vernalUmbrella.UnfadingFlower.name,Unfading Flower,不谢花
-data.skill.vernalUmbrella.UnfadingFlower.shortName,Umbrella Special,伞 特殊
-data.skill.vernalUmbrella.VernalUmbrellaConversion.name,Vernal Umbrella Conversion,伞·易武
-data.skill.vernalUmbrella.VernalUmbrellaConversion.shortName,Umbrella Tab,伞 易武
+data.skill.vernalUmbrella.UnfadingFlower.shortName,UF,伞 特殊
+data.skill.vernalUmbrella.UnfadingFlowerCancel.name,Unfading Flower [Cancel],不谢花（打断）
+data.skill.vernalUmbrella.UnfadingFlowerCancel.shortName,UF [Cancel],不谢花（打断）
+data.skill.vernalUmbrella.UnfadingFlowerProjectile.name,Unfading Flower,不谢花
+data.skill.vernalUmbrella.UnfadingFlowerProjectile.shortName,UF,不谢花
+data.skill.vernalUmbrella.UnfadingFlowerRelease.name,Unfading Flower,不谢花
+data.skill.vernalUmbrella.UnfadingFlowerRelease.shortName,UF,不谢花
+data.skill.vernalUmbrella.UnfadingFlowerRelease.skillBreakdownCategory,Unfading Flower Heavy Attack,不谢花·重击
+data.skill.vernalUmbrella.UnfadingFlowerReleaseCancel.name,Unfading Flower [Cancel],不谢花（打断）
+data.skill.vernalUmbrella.UnfadingFlowerReleaseCancel.shortName,UF [Cancel],不谢花（打断）
+data.skill.vernalUmbrella.UnfadingFlowerReleaseCancel.skillBreakdownCategory,Unfading Flower Heavy Attack,不谢花·重击
+data.skill.vernalUmbrella.UnfadingFlowerVolley.name,Unfading Flower Volley,不谢花·齐射
+data.skill.vernalUmbrella.VernalHeavy.name,Vernal Umbrella Heavy,九重春色·重击
+data.skill.vernalUmbrella.VernalHeavy.shortName,Umbrella Heavy,伞 重击
 data.skill.willowbendFan.BoundlessBloom.name,Boundless Bloom,不尽春生
 data.skill.willowbendFan.BoundlessBloom.shortName,Fan Q (Enhanced),扇Q（强化）
 data.skill.willowbendFan.EndOfGale.name,End of Gale,煞尽东风
@@ -1193,6 +1360,9 @@ stat.vsBossDmg,vs Boss DMG,对首领单位增伤
 system.abrasion,Abrasion,擦伤
 system.affinity,Affinity,会意
 system.armorSet.moonflare,Moonflare,桂月
+system.attunement.boltVariedComboBoost,懸鋒取月·輕重擊派生增傷,悬锋取月·轻重击派生增伤
+system.attunement.boshanQuyueSpearMartialBoost,撥山取月槍·武學技增傷,拨山取月枪·武学技增伤
+system.attunement.boshanQuyueSpearSpecialBoost,撥山取月槍·特殊技增傷,拨山取月枪·特殊技增伤
 system.attunement.driftcleaveDeepdazeBoost,Driftcleave - Deepdaze Skill DMG Boost,悬身断水·浓醺技增伤
 system.attunement.everspringMartialBoost,Everspring Umbrella - Martial Art Skill DMG Boost,醉梦游春·武学技增伤
 system.attunement.everspringSpecialBoost,Everspring Umbrella - Special Skill DMG Boost,醉梦游春·特殊技增伤
@@ -1207,6 +1377,8 @@ system.attunement.infernalMartialBoost,Infernal Twinblades Martial Art Skill DMG
 system.attunement.infernalSpecialBoost,Infernal Twinblades Special Skill DMG Boost,泥犁三垢·特殊技增伤
 system.attunement.inkwellChargedBoost,Inkwell Fan Charged Skill DMG Boost,青山执笔·蓄力技增伤
 system.attunement.inkwellSpecialPursuitBoost,Inkwell Fan - Special and Pursuit Skill DMG Boost,青山执笔·特殊及追击技增伤
+system.attunement.jueyuXuanfengSpearMartialBoost,決獄懸鋒槍·武學技增傷,决狱悬锋枪·武学技增伤
+system.attunement.jueyuXuanfengSpearSpecialBoost,決獄懸鋒槍·特殊技增傷,决狱悬锋枪·特殊技增伤
 system.attunement.mortalMartialBoost,Mortal Rope Dart - Martial Art Skill DMG Boost,粟子游尘·武学技增伤
 system.attunement.mortalRodentBoost,Mortal Rope Dart - Rodent DMG Boost,粟子游尘·鼠鼠增伤
 system.attunement.museflowWaistDrumLightHeavyVariedComboBoost,Museflow Waist Drum - Light/Heavy Attack & Varied Combo DMG Boost,文动霓裳·轻重击及派生技增伤
@@ -1249,7 +1421,6 @@ system.attunement.unfetteredSpecialBoost,Unfettered Rope Dart - Special Skill DM
 system.attunement.vernalLightHeavyVariedComboBoost,Vernal Umbrella - Light/Heavy Attack & Varied Combo DMG Boost,九重春色·轻重击及派生技增伤
 system.attunement.vernalMartialBoost,Vernal Umbrella Martial Art Skill DMG Boost,九重春色·武学技增伤
 system.attunement.vernalProjectile280304Boost,Vernal Umbrella - Frequent Projectile DMG Boost,九重春色·高频弹道技增伤
-system.attunement.vernalProjectile280305Boost,Vernal Umbrella Frequent Projectile DMG Boost,九重春色·高频弹道技增伤
 system.attunement.willowbendFanHeavyVariedComboBoost,Willowbend Fan - Heavy Attack & Varied Combo DMG Boost,杏游草野·重击及派生技增伤
 system.attunement.willowbendFanMartialBoost,Willowbend Fan - Martial Art Skill DMG Boost,杏游草野·武学技增伤
 system.critical,Critical,会心
@@ -1294,6 +1465,7 @@ system.innerWay.eveningSnow,Evening Snow,晚雪间
 system.innerWay.exquisiteScenery,Exquisite Scenery,山河绝韵
 system.innerWay.fivefoldBleed,Fivefold Bleed,极乐泣血
 system.innerWay.frostCladNight,Frost-Clad Night,霜天白夜
+system.innerWay.fuLiangYiYe,浮梁一夜,浮梁一夜
 system.innerWay.furyHarvest,Fury Harvest,怒斩马
 system.innerWay.gourdToss,Gourd Toss,葫芦飞飞
 system.innerWay.harmonySong,Harmony Song,相和歌
@@ -1303,6 +1475,7 @@ system.innerWay.insightfulStrike,Insightful Strike,凝神章
 system.innerWay.lightAndShadowAlike,Light and Shadow Alike,明晦同尘
 system.innerWay.lightAnew,Light Anew,灯儿亮
 system.innerWay.mendingLoom,Mending Loom,千丝蛊
+system.innerWay.mingFeiTongPan,明非通判,明非通判
 system.innerWay.mistwing,Mistwing,燕别云岫
 system.innerWay.moraleChant,Morale Chant,易水歌
 system.innerWay.mountainsMight,Mountain's Might,千山法
@@ -1314,6 +1487,7 @@ system.innerWay.royalRemedy,Royal Remedy,君臣药
 system.innerWay.sandswirlTail,Sandswirl Tail,沙摆尾
 system.innerWay.seasonalEdge,Seasonal Edge,四时无常
 system.innerWay.shadowAssault,Shadow Assault,山月无影
+system.innerWay.shenDuanQingFeng,神斷青鋒,神断青锋
 system.innerWay.skyGripped,Sky Gripped,擒天势
 system.innerWay.skyspeak,Skyspeak,飞仙醉言
 system.innerWay.soaringHigh,Soaring High,扶摇直上
@@ -1321,6 +1495,7 @@ system.innerWay.songOfTang,Song of Tang,大唐歌
 system.innerWay.starReacher,Star Reacher,纵地摘星
 system.innerWay.steadfastDevotion,Steadfast Devotion,孤忠不辞
 system.innerWay.steadfastStance,Steadfast Stance,铁身诀
+system.innerWay.suiXingQieTao,歲星竊桃,岁星窃桃
 system.innerWay.swordHorizon,Sword Horizon,剑气纵横
 system.innerWay.swordMorph,Sword Morph,无名心法
 system.innerWay.throatPiercingArt,Throat-Piercing Art,穿喉诀
@@ -1334,6 +1509,7 @@ system.innerWay.wildfireSpark,Wildfire Spark,燎原星火
 system.innerWay.wildfireSurge,Wildfire Surge,燎原踏
 system.innerWay.windBeneathWings,Wind Beneath Wings,生龙活虎
 system.innerWay.wolfchasersArt,Wolfchaser's Art,逐狼心经
+system.innerWay.yueYongFangYuan,月湧方圓,月涌方圆
 system.innerWay.zephyrWhispers,Zephyr Whispers,风知意
 system.martialArt.everspringUmbrella,Everspring Umbrella,醉梦游春
 system.martialArt.heavenQuakerSpear,HeavenQuaker Spear,九曲惊神枪
@@ -1359,11 +1535,13 @@ system.path.jade,Jade,玉
 system.path.splendor,Splendor,虹
 system.path.umbra,Umbra,影
 system.path.wind,Wind,风
+system.resource.binge,Binge,狂饮值
 system.resource.blossoms,Blossoms,繁花
 system.resource.endurance,Endurance,耐力
 system.resource.heavensWill,Heaven's Will,天志
 system.resource.hellfire,Hellfire,业火
 system.resource.nobleWill,Noble Will,雅意
+system.resource.spearMomentum,槍勢,枪势
 system.resource.swordsZenith,Sword's Zenith,纵横剑意
 system.resource.vitality,Vitality,精元
 system.setPieces.0,0,0
@@ -1411,6 +1589,7 @@ ui.app.averageHps,Average HPS,平均秒疗
 ui.app.averageStack,Average stack,平均层数
 ui.app.avgCastTime,Avg Cast Time,平均施放时间
 ui.app.baseAttributes,Base Attributes:,基础属性：
+ui.app.blossomsChange,Blossoms change (+ adds / - subtracts),繁花变化（+ 增加 / - 减少）
 ui.app.bossTalent,Boss Talent,首领天赋
 ui.app.both,Both,两者
 ui.app.bowRingSet,Bow/Ring Set,弓玦套装
@@ -1474,6 +1653,7 @@ ui.app.duplicate,Duplicate,创建副本
 ui.app.duration,Duration,持续时间
 ui.app.editRotationName,Edit rotation name,编辑循环名称
 ui.app.effect,Effect,效果
+ui.app.effective,Effective,实际
 ui.app.effectiveAffinity,Effective Affinity,实际会意
 ui.app.effectiveCritical,Effective Critical,实际会心
 ui.app.effectiveMaxAttack,Eff. Max {name} ATK,实际最大{name}攻击

@@ -39,6 +39,10 @@ export function pathRequiresDev(definition: PathDefinition) {
   return definition.status !== "available" && definition.status !== "preview" && definition.status !== "plannerOnly"
 }
 
+export function pathIsSelectable(definition: PathDefinition, devMode: boolean) {
+  return !pathRequiresDev(definition) || devMode
+}
+
 export function pathStatusLabel(definition: PathDefinition) {
   switch (definition.status) {
     case "plannerOnly":

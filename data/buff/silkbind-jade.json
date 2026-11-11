@@ -1,299 +1,194 @@
 {
-  "FloatingUmbrella": {
-    "name": "Floating Umbrella",
-    "shortName": "Float",
-    "showCoverage": true,
-    "description": "Unfading Flower's floating umbrella fires every 0.5 seconds, first 0.55 seconds after the throw, and each shot spends 5 Blossoms. While the target carries Lingering Bone, each volley fires one extra shot 0.15 seconds later that also spends 5 Blossoms. It ends when fewer than 5 Blossoms remain, or when another umbrella skill other than Hidden Sword recalls it; ending returns 15 Blossoms at most once every 5 seconds.",
-    "maxStack": 1,
-    "refresh": true,
-    "periodic": {
-      "interval": 0.5,
-      "firstTick": 0.55,
-      "resetOnRefresh": true,
-      "action": [
-        {
-          "type": "trigger",
-          "value": "FloatingUmbrellaShot",
-          "requirement": [{ "target": "resource", "value": "Blossoms", "comparison": ">=", "amount": 5 }]
-        },
-        {
-          "type": "consumeResource",
-          "value": "Blossoms",
-          "amount": 5,
-          "requirement": [{ "target": "resource", "value": "Blossoms", "comparison": ">=", "amount": 5 }]
-        },
-        {
-          "type": "trigger",
-          "value": "FloatingUmbrellaExtraShot",
-          "requirement": [
-            { "target": "target", "value": "LingeringBone" },
-            { "target": "resource", "value": "Blossoms", "comparison": ">=", "amount": 5 }
-          ]
-        },
-        {
-          "type": "consumeResource",
-          "value": "Blossoms",
-          "amount": 5,
-          "requirement": [
-            { "target": "target", "value": "LingeringBone" },
-            { "target": "resource", "value": "Blossoms", "comparison": ">=", "amount": 5 }
-          ]
-        },
-        {
-          "type": "trigger",
-          "value": "FloatingUmbrellaRecall",
-          "requirement": [{ "target": "resource", "value": "Blossoms", "comparison": "<", "amount": 5 }]
-        }
-      ]
-    },
-    "trigger": {
-      "event": "skillStart",
-      "requirement": [
-        { "target": "skillTag", "value": "Umbrella" },
-        { "operator": "not", "operand": [{ "target": "skillTag", "value": "Triggered" }] },
-        { "operator": "not", "operand": [{ "target": "skillTag", "value": "HiddenSword" }] }
-      ],
-      "action": { "type": "trigger", "value": "FloatingUmbrellaRecall" }
-    }
-  },
   "Jadebreak": {
     "name": "Jadebreak",
-    "shortName": "JB",
-    "showCoverage": true,
-    "description": "Jadewind Shield's projectile boost. Ballistic skills deal 30% more damage, and Ballistic and Pursuit skills deal another 10% in the separate non-player damage bucket. Lasts 15 seconds.",
     "duration": 15,
     "maxStack": 1,
     "refresh": true,
+    "showCoverage": true,
     "effect": [
       {
-        "requirement": [{ "target": "skillTag", "value": "Ballistic" }],
-        "effect": { "dmgBonus": 0.3, "baseDMGBonus": 0.1 }
+        "requirement": [
+          {
+            "operator": "or",
+            "operand": [
+              { "target": "skillTag", "value": "Ballistic" },
+              { "target": "skillTag", "value": "JadebreakProjectile" }
+            ]
+          }
+        ],
+        "effect": { "hpDMGBonus": 0.3 }
       },
-      { "requirement": [{ "target": "skillTag", "value": "Pursuit" }], "effect": { "baseDMGBonus": 0.1 } }
-    ]
+      {
+        "requirement": [
+          {
+            "operator": "or",
+            "operand": [
+              { "target": "skillTag", "value": "Ballistic" },
+              { "target": "skillTag", "value": "Pursuit" },
+              { "target": "skillTag", "value": "JadebreakProjectile" }
+            ]
+          }
+        ],
+        "effect": { "hpDMGBonus": 0.1 }
+      }
+    ],
+    "shortName": "JB"
   },
-  "Windrider": {
-    "name": "Windrider",
-    "shortName": "WR",
-    "description": "The next Moon Shatter Spring uses its enhanced five-hit form. Granted when Peak's Springless Silence hits a target carrying Lingering Bone or when Jadewind Shield finishes. Lasts 5 seconds.",
-    "duration": 5,
+  "Windrider": { "name": "Windrider", "duration": 5, "maxStack": 1, "refresh": true, "shortName": "WR" },
+  "UnfadingFlowerMode": {
+    "name": "Unfading Flower",
     "maxStack": 1,
-    "refresh": true
-  },
-  "SpringShock": {
-    "name": "Spring Shock",
-    "shortName": "Shock",
+    "refresh": false,
     "showCoverage": true,
-    "description": "Each Moon Shatter Spring hit adds a stack. Each stack increases Vernal Umbrella and Inkwell Fan Charged skill damage by 4%, up to 5 stacks. Lasts 15 seconds.",
-    "duration": 15,
-    "maxStack": 5,
-    "refresh": true,
-    "stackEffects": [
-      [
-        {
-          "requirement": [
-            { "target": "skillTag", "value": "Charged" },
-            {
-              "operator": "or",
-              "operand": [
-                { "target": "skillTag", "value": "VernalUmbrella" },
-                { "target": "skillTag", "value": "InkwellFan" }
-              ]
-            }
-          ],
-          "effect": { "dmgBonus": 0.04 }
-        }
-      ],
-      [
-        {
-          "requirement": [
-            { "target": "skillTag", "value": "Charged" },
-            {
-              "operator": "or",
-              "operand": [
-                { "target": "skillTag", "value": "VernalUmbrella" },
-                { "target": "skillTag", "value": "InkwellFan" }
-              ]
-            }
-          ],
-          "effect": { "dmgBonus": 0.08 }
-        }
-      ],
-      [
-        {
-          "requirement": [
-            { "target": "skillTag", "value": "Charged" },
-            {
-              "operator": "or",
-              "operand": [
-                { "target": "skillTag", "value": "VernalUmbrella" },
-                { "target": "skillTag", "value": "InkwellFan" }
-              ]
-            }
-          ],
-          "effect": { "dmgBonus": 0.12 }
-        }
-      ],
-      [
-        {
-          "requirement": [
-            { "target": "skillTag", "value": "Charged" },
-            {
-              "operator": "or",
-              "operand": [
-                { "target": "skillTag", "value": "VernalUmbrella" },
-                { "target": "skillTag", "value": "InkwellFan" }
-              ]
-            }
-          ],
-          "effect": { "dmgBonus": 0.16 }
-        }
-      ],
-      [
-        {
-          "requirement": [
-            { "target": "skillTag", "value": "Charged" },
-            {
-              "operator": "or",
-              "operand": [
-                { "target": "skillTag", "value": "VernalUmbrella" },
-                { "target": "skillTag", "value": "InkwellFan" }
-              ]
-            }
-          ],
-          "effect": { "dmgBonus": 0.2 }
-        }
-      ]
-    ]
-  },
-  "GourdTossThunder": {
-    "name": "Gourd Toss Thunder",
-    "shortName": "GT Thunder",
-    "description": "Gourd Toss T3: the next Peak's Springless Silence within 15 seconds deals 30% more damage.",
-    "duration": 15,
-    "maxStack": 1,
-    "refresh": true,
-    "effect": [
-      { "requirement": [{ "target": "skillTag", "value": "PeaksSpringlessSilence" }], "effect": { "dmgBonus": 0.3 } }
-    ]
-  },
-  "FlyingTornado": {
-    "name": "Flying Tornado",
-    "shortName": "Tornado",
-    "description": "Gourd Toss T4: the next Forsaken Fame within 3 seconds charges faster, landing its whirlwind 11 frames and finishing 12 frames earlier.",
-    "duration": 3,
-    "maxStack": 1,
-    "refresh": true
+    "resourceRates": [
+      {
+        "resource": "Blossoms",
+        "regeneration": 0,
+        "onDepleted": [
+          { "type": "consume", "target": "self", "value": "UnfadingFlowerMode", "stack": "all", "time": 0 },
+          { "type": "addResource", "value": "Blossoms", "amount": 15, "time": 0.2 }
+        ]
+      },
+      { "resource": "Blossoms", "consumption": 25, "requirement": [{ "target": "target", "value": "Airborne" }] }
+    ],
+    "periodic": {
+      "firstTick": 0.55,
+      "interval": 0.5,
+      "action": [{ "type": "trigger", "value": "UnfadingFlowerVolley", "time": 0 }]
+    },
+    "duration": 30,
+    "action": [{ "type": "apply", "target": "self", "value": "UnfadingFlowerReturn", "time": "expire" }],
+    "shortName": "UF",
+    "blocksSkillTags": ["Umbrella"]
   },
   "SpringThunder": {
     "name": "Spring Thunder",
-    "shortName": "Thunder",
-    "showCoverage": true,
-    "description": "Thunderous Bloom: a Light or Heavy hit with no Spring Thunder boost running spends a stack, gaining 15% damage on that hit and on Light or Heavy hits over the next 2 seconds. Lasts up to 12 seconds.",
     "duration": 12,
-    "maxStack": 5,
-    "refresh": false,
+    "maxStack": 3,
+    "refresh": true,
+    "showCoverage": true,
+    "shortName": "ST"
+  },
+  "SpringThunderDamage": {
+    "name": "Spring Thunder Damage",
+    "duration": 1,
+    "maxStack": 1,
+    "refresh": true,
+    "shortName": "STD"
+  },
+  "StarReacherBone": {
+    "name": "Star Reacher",
+    "duration": 8,
+    "maxStack": 1,
+    "refresh": true,
     "effect": [
       {
-        "requirement": [
-          {
-            "operator": "or",
-            "operand": [
-              { "target": "skillTag", "value": "Light" },
-              { "target": "skillTag", "value": "Heavy" }
-            ]
-          },
-          { "operator": "not", "operand": [{ "target": "self", "value": "SpringThunderBoost" }] }
-        ],
-        "effect": { "dmgBonus": 0.15 }
+        "requirement": [{ "operator": "not", "operand": [{ "target": "self", "value": "StarReacherT1" }] }],
+        "effect": { "physicalAttackBonus": 0.05 }
       }
     ],
-    "trigger": {
-      "event": "damage",
-      "requirement": [
-        {
-          "operator": "or",
-          "operand": [
-            { "target": "skillTag", "value": "Light" },
-            { "target": "skillTag", "value": "Heavy" }
-          ]
-        },
-        { "operator": "not", "operand": [{ "target": "self", "value": "SpringThunderBoost" }] }
-      ],
-      "action": [
-        { "type": "consume", "target": "self", "value": "SpringThunder" },
-        { "type": "apply", "target": "self", "value": "SpringThunderBoost" }
-      ]
-    }
+    "showCoverage": true,
+    "shortName": "SR"
   },
-  "SpringThunderBoost": {
-    "name": "Spring Thunder Boost",
-    "shortName": "ST Boost",
-    "description": "Light and Heavy hits deal 15% more damage for 2 seconds after spending a Spring Thunder stack.",
-    "duration": 2,
+  "StarReacherBoneEnhanced": {
+    "name": "Star Reacher (Exhausted)",
+    "duration": 8,
+    "maxStack": 1,
+    "refresh": true,
+    "effect": [{ "requirement": [], "effect": { "physicalAttackBonus": 0.15 } }],
+    "showCoverage": true,
+    "shortName": "SR (Exhausted)"
+  },
+  "SpringThunderSpent": {
+    "name": "Spring Thunder Spent",
+    "duration": 0.000001,
+    "maxStack": 1,
+    "refresh": true,
+    "hidden": true
+  },
+  "UnfadingFlowerReturn": {
+    "name": "Unfading Flower Return",
+    "duration": 0.2,
+    "maxStack": 1,
+    "hidden": true,
+    "action": [{ "type": "addResource", "value": "Blossoms", "amount": 15, "time": "expire" }]
+  },
+  "StartlingSpring": {
+    "name": "Startling Spring",
+    "shortName": "SS",
+    "duration": 15,
+    "maxStack": 5,
+    "refresh": true,
+    "showCoverage": true,
+    "stackEffects": [
+      [
+        {
+          "requirement": [{ "target": "skillTag", "value": "Charged" }],
+          "effect": { "hpDMGBonus": 0.04, "resourceCostBonus": { "Endurance": 0.04 } }
+        }
+      ],
+      [
+        {
+          "requirement": [{ "target": "skillTag", "value": "Charged" }],
+          "effect": { "hpDMGBonus": 0.08, "resourceCostBonus": { "Endurance": 0.08 } }
+        }
+      ],
+      [
+        {
+          "requirement": [{ "target": "skillTag", "value": "Charged" }],
+          "effect": { "hpDMGBonus": 0.12, "resourceCostBonus": { "Endurance": 0.12 } }
+        }
+      ],
+      [
+        {
+          "requirement": [{ "target": "skillTag", "value": "Charged" }],
+          "effect": { "hpDMGBonus": 0.16, "resourceCostBonus": { "Endurance": 0.16 } }
+        }
+      ],
+      [
+        {
+          "requirement": [{ "target": "skillTag", "value": "Charged" }],
+          "effect": { "hpDMGBonus": 0.2, "resourceCostBonus": { "Endurance": 0.2 } }
+        }
+      ]
+    ]
+  },
+  "SpringAwayChannel": {
+    "name": "Spring Away Channel",
+    "duration": 10,
     "maxStack": 1,
     "refresh": false,
-    "effect": [
+    "hidden": true,
+    "resourceRates": [
       {
-        "requirement": [
-          {
-            "operator": "or",
-            "operand": [
-              { "target": "skillTag", "value": "Light" },
-              { "target": "skillTag", "value": "Heavy" }
-            ]
-          }
-        ],
-        "effect": { "dmgBonus": 0.15 }
+        "resource": "Endurance",
+        "regeneration": 0,
+        "consumption": 10,
+        "onDepleted": [{ "type": "consume", "target": "self", "value": "SpringAwayChannel", "stack": "all", "time": 0 }]
       }
     ]
   },
-  "MistwillowLight": {
-    "name": "Mistwillow (Light & Ballistic)",
-    "shortName": "MW-L",
-    "showCoverage": true,
-    "description": "Mistwillow 4-piece: a Heavy or Pursuit hit increases the Physical and Silkbind damage of Light and Ballistic skills by 10% for 15 seconds. Refreshes at most once every 2 seconds.",
-    "duration": 15,
-    "cooldown": 2,
+  "StarReacherAirborne": {
+    "name": "Star Reacher (Airborne)",
+    "duration": 8,
     "maxStack": 1,
     "refresh": true,
     "effect": [
       {
-        "requirement": [
-          {
-            "operator": "or",
-            "operand": [
-              { "target": "skillTag", "value": "Light" },
-              { "target": "skillTag", "value": "Ballistic" }
-            ]
-          }
-        ],
-        "effect": { "stat": { "physDmgBonus": 0.1, "silkbindDmgBonus": 0.1 } }
+        "requirement": [{ "operator": "not", "operand": [{ "target": "self", "value": "StarReacherT1" }] }],
+        "effect": { "physicalAttackBonus": 0.1 }
       }
-    ]
-  },
-  "MistwillowHeavy": {
-    "name": "Mistwillow (Heavy & Pursuit)",
-    "shortName": "MW-H",
+    ],
     "showCoverage": true,
-    "description": "Mistwillow 4-piece: a Light or Ballistic hit increases the Physical and Silkbind damage of Heavy and Pursuit skills by 10% for 15 seconds. Refreshes at most once every 2 seconds.",
-    "duration": 15,
-    "cooldown": 2,
+    "shortName": "SR (Airborne)"
+  },
+  "StarReacherAirborneEnhanced": {
+    "name": "Star Reacher (Airborne, enhanced)",
+    "duration": 8,
     "maxStack": 1,
     "refresh": true,
-    "effect": [
-      {
-        "requirement": [
-          {
-            "operator": "or",
-            "operand": [
-              { "target": "skillTag", "value": "Heavy" },
-              { "target": "skillTag", "value": "Pursuit" }
-            ]
-          }
-        ],
-        "effect": { "stat": { "physDmgBonus": 0.1, "silkbindDmgBonus": 0.1 } }
-      }
-    ]
+    "effect": [{ "requirement": [], "effect": { "physicalAttackBonus": 0.25 } }],
+    "showCoverage": true,
+    "shortName": "SR (Airborne)"
   }
 }

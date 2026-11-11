@@ -1,4 +1,24 @@
 {
+  "GoldenBodyCancel": {
+    "name": "Golden Body [Cancel]",
+    "castTime": 0.5,
+    "cooldown": 20,
+    "cooldownGroup": "GoldenBody",
+    "action": [
+      { "type": "apply", "target": "self", "value": "Shield", "duration": 10, "reapply": true, "time": 0.5 },
+      {
+        "type": "extend",
+        "target": "self",
+        "value": "Shield",
+        "duration": 2,
+        "time": 0.5,
+        "requirement": [{ "target": "self", "value": "FormBend4" }]
+      }
+    ],
+    "modifier": [],
+    "tags": ["Mystic", "Golden Body", "Shield"],
+    "ignorePing": true
+  },
   "SoaringSpin1": {
     "name": "Soaring Spin 1-Hit",
     "shortName": "Soaring 1 Hit",
@@ -34,7 +54,8 @@
     ],
     "modifier": [],
     "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "Soaring Spin"],
-    "ignorePing": true
+    "ignorePing": true,
+    "attackResponse": { "duration": 0.5, "onSuccess": "PerfectDodgeSuccess" }
   },
   "SoaringSpin2": {
     "name": "Soaring Spin",
@@ -79,7 +100,8 @@
     ],
     "modifier": [],
     "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "Soaring Spin"],
-    "ignorePing": true
+    "ignorePing": true,
+    "attackResponse": { "duration": 0.5, "onSuccess": "PerfectDodgeSuccess" }
   },
   "LeapingToad": {
     "name": "Leaping Toad [Cancel]",
@@ -151,8 +173,9 @@
       }
     ],
     "modifier": [],
-    "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet"],
-    "ignorePing": true
+    "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet", "SubAction"],
+    "ignorePing": true,
+    "skillBreakdownCategory": "Drunken Poet"
   },
   "DrunkenPoetDrinkCancel": {
     "name": "Drunken Poet Drink [Cancel]",
@@ -180,7 +203,8 @@
     ],
     "modifier": [],
     "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet"],
-    "ignorePing": true
+    "ignorePing": true,
+    "skillBreakdownCategory": "Drunken Poet"
   },
   "DrunkenPoet1Hit": {
     "ignorePing": true,
@@ -196,7 +220,8 @@
       { "value": "DrunkenPoet1", "requirement": [{ "target": "self", "value": "Intoxicated" }] }
     ],
     "modifier": [],
-    "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet"]
+    "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet"],
+    "skillBreakdownCategory": "Drunken Poet"
   },
   "DrunkenPoet2Hits": {
     "ignorePing": true,
@@ -213,7 +238,8 @@
       { "value": "DrunkenPoet2", "requirement": [{ "target": "self", "value": "Intoxicated" }] }
     ],
     "modifier": [],
-    "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet"]
+    "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet"],
+    "skillBreakdownCategory": "Drunken Poet"
   },
   "DrunkenPoet3Hits": {
     "ignorePing": true,
@@ -231,7 +257,8 @@
       { "value": "DrunkenPoet3", "requirement": [{ "target": "self", "value": "Intoxicated" }] }
     ],
     "modifier": [],
-    "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet"]
+    "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet"],
+    "skillBreakdownCategory": "Drunken Poet"
   },
   "DrunkenPoet4Hits": {
     "ignorePing": true,
@@ -250,7 +277,8 @@
       { "value": "DrunkenPoet4", "requirement": [{ "target": "self", "value": "Intoxicated" }] }
     ],
     "modifier": [],
-    "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet"]
+    "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet"],
+    "skillBreakdownCategory": "Drunken Poet"
   },
   "DrunkenPoet5HitsCancel": {
     "ignorePing": true,
@@ -270,7 +298,8 @@
       { "value": "DrunkenPoet5", "requirement": [{ "target": "self", "value": "Intoxicated" }] }
     ],
     "modifier": [],
-    "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet"]
+    "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet"],
+    "skillBreakdownCategory": "Drunken Poet"
   },
   "DrunkenPoet1": {
     "name": "Drunken Poet 1st Hit",
@@ -318,7 +347,8 @@
     ],
     "modifier": [],
     "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet", "SubAction"],
-    "ignorePing": true
+    "ignorePing": true,
+    "skillBreakdownCategory": "Drunken Poet"
   },
   "DrunkenPoet2": {
     "name": "Drunken Poet 2nd Hit",
@@ -366,7 +396,8 @@
     ],
     "modifier": [],
     "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet", "SubAction"],
-    "ignorePing": true
+    "ignorePing": true,
+    "skillBreakdownCategory": "Drunken Poet"
   },
   "DrunkenPoet3": {
     "name": "Drunken Poet 3rd Hit",
@@ -414,7 +445,8 @@
     ],
     "modifier": [],
     "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet", "SubAction"],
-    "ignorePing": true
+    "ignorePing": true,
+    "skillBreakdownCategory": "Drunken Poet"
   },
   "DrunkenPoet4": {
     "name": "Drunken Poet 4th Hit",
@@ -462,7 +494,8 @@
     ],
     "modifier": [],
     "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet", "SubAction"],
-    "ignorePing": true
+    "ignorePing": true,
+    "skillBreakdownCategory": "Drunken Poet"
   },
   "DrunkenPoet5": {
     "name": "Drunken Poet 5th Hit [Cancel]",
@@ -506,7 +539,8 @@
         "reapply": true,
         "time": 0.5382,
         "requirement": [{ "target": "self", "value": "FuryHarvestT6" }]
-      }
+      },
+      { "type": "addResource", "value": "Vitality", "amount": 4, "time": 0.5382 }
     ],
     "modifier": [
       {
@@ -515,7 +549,8 @@
       }
     ],
     "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet", "SubAction"],
-    "ignorePing": true
+    "ignorePing": true,
+    "skillBreakdownCategory": "Drunken Poet"
   },
   "CombustionExplosion": {
     "name": "Combustion Explosion",
@@ -533,7 +568,8 @@
     ],
     "modifier": [],
     "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet", "Triggered"],
-    "ignorePing": true
+    "ignorePing": true,
+    "skillBreakdownCategory": "Drunken Poet"
   },
   "SmolderExplosion": {
     "name": "Smolder Explosion",
@@ -550,7 +586,8 @@
     ],
     "modifier": [],
     "tags": ["DirectDamage", "Mystic", "SingleTargetMystic", "DrunkenPoet", "Triggered"],
-    "ignorePing": true
+    "ignorePing": true,
+    "skillBreakdownCategory": "Drunken Poet"
   },
   "DragonsBreath1": {
     "name": "Dragon's Breath 1-Hit [Cancel]",

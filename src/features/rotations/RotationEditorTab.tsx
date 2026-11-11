@@ -472,10 +472,11 @@ export function RotationEditorTab({
       let steps = current.steps.map((step, stepIndex) => {
         if (stepIndex !== index) return step
         switch (value) {
+          case "__event:Blossoms":
           case "__event:Hellfire":
             return {
               type: "event",
-              event: "Hellfire",
+              event: value === "__event:Blossoms" ? "Blossoms" : "Hellfire",
               startTime: previousSkill ? previousSkill.startTime - anchorTime : 0,
               amount: 0,
             }
@@ -626,6 +627,7 @@ export function RotationEditorTab({
     const step = rotation.steps[stepIndex]
     if (Number.isFinite(value) && step?.type === "event") {
       switch (step.event) {
+        case "Blossoms":
         case "Hellfire":
           updateStep(stepIndex, { amount: value })
           break
@@ -1230,9 +1232,23 @@ export function RotationEditorTab({
     rotation.steps.some(step => step.type === "event" && step.event === "Hellfire")
   const showZenithColumn = pathId === "bellstrikeUmbra" || settings.weapons.includes("strategicSword")
   const showNobleWillColumn = pathId === "silkbindWings" || settings.weapons.includes("museflowWaistDrum")
-  const showBlossomsColumn = pathId === "silkbindJade" || settings.weapons.includes("vernalUmbrella")
   const showHeavensWillColumn = settings.weapons.includes("heavenwill") && settings.weapons.includes("skygrasp")
-  const showEnduranceColumn = rotationUsesEndurance(timeline)
+  const showBlossoms =
+    pathId === "silkbindJade" ||
+    settings.weapons.includes("vernalUmbrella") ||
+    rotation.steps.some(step => step.type === "event" && step.event === "Blossoms")
+  const displayedResources = [
+    ...(pathId === "bamboocutDraught" ||
+    settings.weapons.includes("skystrikeGauntlets") ||
+    settings.weapons.includes("rivenTwinblades")
+      ? [{ resource: "Binge", label: t("system.resource.binge") }]
+      : []),
+    ...(showBlossoms ? [{ resource: "Blossoms", label: t("system.resource.blossoms") }] : []),
+    ...(pathId === "bellstrikeBolt" ? [{ resource: "SpearMomentum", label: t("system.resource.spearMomentum") }] : []),
+    ...(showBlossoms || rotationUsesEndurance(timeline)
+      ? [{ resource: "Endurance", label: t("system.resource.endurance") }]
+      : []),
+  ]
   const showVitalityColumn = useMemo(
     () =>
       rotation.steps.some(step => {
@@ -1250,10 +1266,9 @@ export function RotationEditorTab({
     showHellfireColumn ? "minmax(0, 0.7fr)" : "",
     showZenithColumn ? "minmax(0, 0.7fr)" : "",
     showNobleWillColumn ? "minmax(0, 0.7fr)" : "",
-    showBlossomsColumn ? "minmax(0, 0.7fr)" : "",
     showHeavensWillColumn ? "minmax(0, 0.9fr)" : "",
     showVitalityColumn ? "minmax(0, 0.7fr)" : "",
-    showEnduranceColumn ? "minmax(0, 0.7fr)" : "",
+    ...displayedResources.map(() => "minmax(0, 0.7fr)"),
   ]
     .filter(Boolean)
     .join(" ")
@@ -2056,10 +2071,11 @@ export function RotationEditorTab({
                   {showHellfireColumn && <span>{t("system.resource.hellfire")}</span>}
                   {showZenithColumn && <span>{t("system.resource.swordsZenith")}</span>}
                   {showNobleWillColumn && <span>{t("system.resource.nobleWill")}</span>}
-                  {showBlossomsColumn && <span>{t("system.resource.blossoms")}</span>}
                   {showHeavensWillColumn && <span>{t("system.resource.heavensWill")}</span>}
                   {showVitalityColumn && <span>{t("system.resource.vitality")}</span>}
-                  {showEnduranceColumn && <span>{t("system.resource.endurance")}</span>}
+                  {displayedResources.map(({ resource, label }) => (
+                    <span key={resource}>{label}</span>
+                  ))}
                   <span className="rotation-damage-heading">{t("ui.app.damage")}</span>
                   <span>{t("ui.app.buff")}</span>
                   <span>{t("ui.app.debuff")}</span>
@@ -2095,10 +2111,11 @@ export function RotationEditorTab({
                             {showHellfireColumn && <span aria-hidden="true" />}
                             {showZenithColumn && <span aria-hidden="true" />}
                             {showNobleWillColumn && <span aria-hidden="true" />}
-                            {showBlossomsColumn && <span aria-hidden="true" />}
                             {showHeavensWillColumn && <span aria-hidden="true" />}
                             {showVitalityColumn && <span aria-hidden="true" />}
-                            {showEnduranceColumn && <span aria-hidden="true" />}
+                            {displayedResources.map(({ resource }) => (
+                              <span key={resource} aria-hidden="true" />
+                            ))}
                             <span className="rotation-damage-value" data-mobile-label={t("ui.app.damage")}>
                               {formatThroughput(damage)}
                             </span>
@@ -2324,6 +2341,12 @@ export function RotationEditorTab({
                       Array.from(actionState?.debuffs.values() ?? []).filter(
                         effect => effect.expiresAt === undefined || effect.expiresAt > actionTime,
                       ) ?? []
+                    const fengRui = row.buffs.get("BoltFengRui")
+                    const fengRuiActive = Boolean(
+                      fengRui && (fengRui.expiresAt === undefined || fengRui.expiresAt > startTime),
+                    )
+                    const actionFengRuiActive = actionBuffs.some(effect => effect.name === "BoltFengRui")
+                    const fengRuiLabel = gameText(calculationDefinitions.effectDefinitions.BoltFengRui?.name ?? "鋒銳")
                     const skillDamageRows =
                       !isAction && row.kind === "rotation" ? (damageRowsByOwner.get(row.id) ?? [row]) : [row]
                     const skillExpectedStacks = skillDamageRows.reduce<
@@ -2748,11 +2771,6 @@ export function RotationEditorTab({
                                 {formatNumber(row.resources.NobleWill ?? 0)}
                               </span>
                             )}
-                            {showBlossomsColumn && (
-                              <span data-mobile-label={t("system.resource.blossoms")}>
-                                {formatNumber(row.resources.Blossoms ?? 0)}
-                              </span>
-                            )}
                             {showHeavensWillColumn && (
                               <span data-mobile-label={t("system.resource.heavensWill")}>
                                 {formatNumber(row.resources.HeavensWill ?? 0)}
@@ -2765,11 +2783,50 @@ export function RotationEditorTab({
                                   : formatResourceRange(row.resources.Vitality ?? 0, row.resourceRanges?.Vitality)}
                               </span>
                             )}
-                            {showEnduranceColumn && (
-                              <span data-mobile-label={t("system.resource.endurance")}>
-                                {formatResourceRange(row.resources.Endurance ?? 0, row.resourceRanges?.Endurance)}
+                            {displayedResources.map(({ resource: displayedResource, label: resourceLabel }) => (
+                              <span
+                                key={displayedResource}
+                                data-mobile-label={resourceLabel}
+                                className={
+                                  displayedResource === "SpearMomentum" && fengRuiActive
+                                    ? "rotation-resource-feng-rui"
+                                    : undefined
+                                }
+                                title={
+                                  displayedResource === "SpearMomentum" && fengRuiActive ? fengRuiLabel : undefined
+                                }
+                              >
+                                {isManualEvent && step.event === "Blossoms" && displayedResource === "Blossoms" ? (
+                                  rowReadOnly ? (
+                                    <span>
+                                      {step.amount > 0 ? "+" : ""}
+                                      {formatNumber(step.amount)}
+                                    </span>
+                                  ) : (
+                                    <input
+                                      className="rotation-event-time"
+                                      aria-label={t("ui.app.blossomsChange")}
+                                      title={t("ui.app.blossomsChange")}
+                                      type="number"
+                                      step="0.01"
+                                      value={eventHPDrafts[row.id] ?? String(step.amount)}
+                                      onChange={event =>
+                                        setEventHPDrafts(current => ({ ...current, [row.id]: event.target.value }))
+                                      }
+                                      onBlur={() => commitEventHP(row.id, row.rotationIndex ?? 0)}
+                                      onKeyDown={event => {
+                                        if (event.key === "Enter") event.currentTarget.blur()
+                                      }}
+                                    />
+                                  )
+                                ) : (
+                                  formatResourceRange(
+                                    row.resources[displayedResource] ?? 0,
+                                    row.resourceRanges?.[displayedResource],
+                                  )
+                                )}
                               </span>
-                            )}
+                            ))}
                             <span className="rotation-damage-value" data-mobile-label={t("ui.app.damage")}>
                               {isManualEvent ? (
                                 step.event === "MartialArt" ? (
@@ -3107,11 +3164,6 @@ export function RotationEditorTab({
                                     {formatNumber(actionState?.resources.NobleWill ?? row.resources.NobleWill ?? 0)}
                                   </span>
                                 )}
-                                {showBlossomsColumn && (
-                                  <span data-mobile-label={t("system.resource.blossoms")}>
-                                    {formatNumber(actionState?.resources.Blossoms ?? row.resources.Blossoms ?? 0)}
-                                  </span>
-                                )}
                                 {showHeavensWillColumn && (
                                   <span data-mobile-label={t("system.resource.heavensWill")}>
                                     {formatNumber(actionState?.resources.HeavensWill ?? row.resources.HeavensWill ?? 0)}
@@ -3127,14 +3179,30 @@ export function RotationEditorTab({
                                         )}
                                   </span>
                                 )}
-                                {showEnduranceColumn && (
-                                  <span data-mobile-label={t("system.resource.endurance")}>
+                                {displayedResources.map(({ resource: displayedResource, label: resourceLabel }) => (
+                                  <span
+                                    key={displayedResource}
+                                    data-mobile-label={resourceLabel}
+                                    className={
+                                      displayedResource === "SpearMomentum" && actionFengRuiActive
+                                        ? "rotation-resource-feng-rui"
+                                        : undefined
+                                    }
+                                    title={
+                                      displayedResource === "SpearMomentum" && actionFengRuiActive
+                                        ? fengRuiLabel
+                                        : undefined
+                                    }
+                                  >
                                     {formatResourceRange(
-                                      actionState?.resources.Endurance ?? row.resources.Endurance ?? 0,
-                                      actionState?.resourceRanges?.Endurance ?? row.resourceRanges?.Endurance,
+                                      actionState?.resources[displayedResource] ??
+                                        row.resources[displayedResource] ??
+                                        0,
+                                      actionState?.resourceRanges?.[displayedResource] ??
+                                        row.resourceRanges?.[displayedResource],
                                     )}
                                   </span>
-                                )}
+                                ))}
                                 <span className="rotation-action-damage" data-mobile-label={t("ui.app.damage")}>
                                   {actionCalculated ? (
                                     <RotationActionBreakdownValue

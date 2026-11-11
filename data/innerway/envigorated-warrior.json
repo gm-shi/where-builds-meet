@@ -8,7 +8,8 @@
     "BamboocutWind",
     "BamboocutDust",
     "BamboocutDraught",
-    "SilkbindWings"
+    "SilkbindWings",
+    "SilkbindJade"
   ],
   "effect": {
     "EnvigoratedWarriorT0": {
@@ -55,7 +56,11 @@
                 75.6,
                 81.6,
                 88,
-                95
+                95,
+                101.8,
+                109.2,
+                117.1,
+                125.6
               ]
             }
           }

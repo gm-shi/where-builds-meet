@@ -9,6 +9,7 @@ type Environment = Parameters<typeof buildPresetRotationBundle>[0]
 const dataRoot = new URL("../../data/", import.meta.url)
 // Rotations without an override use their path's default build.
 export const snapshotBuildOverrides: Record<string, string> = {
+  "silkbindJade/jade-three-rounds": "jade-fully-relayed-max-bp",
   "bamboocutKite/dummy-1-min-infinite-vitality": "kite-fully-relayed-min",
   "stonesplitStrength/pure-dummy-1-min": "pure-fully-relayed-min",
   "stonesplitStrength/pure-dummy-1-min-infinite-vitality": "pure-fully-relayed-min",
@@ -70,7 +71,7 @@ export async function loadDpsSnapshotFixtures(breakthrough = dpsSnapshotEnvironm
   return cases
 }
 
-/** Accepted regression cases cover every build/rotation pair at both current breakthroughs. */
+/** Accepted regression cases cover every build/rotation pair at baseline Solo Levels 18 and 19. */
 export async function loadDpsSnapshotCases() {
   const levels = await Promise.all(["18", "19"].map(breakthrough => loadDpsSnapshotFixtures(breakthrough)))
   const groups = [...new Set(levels.flat().map(entry => entry.buildGroup))]

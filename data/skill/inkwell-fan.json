@@ -1,435 +1,561 @@
 {
-  "JadewindShield": {
-    "name": "Jadewind Shield",
+  "EmeraldBarrier": {
+    "name": "Emerald Barrier",
     "shortName": "Fan Q",
-    "castTime": 1.0166666666666666,
-    "cooldown": 15,
-    "cooldownGroup": "JadewindShield",
+    "castTime": 1.02,
     "action": [
-      { "type": "apply", "target": "self", "value": "Jadebreak", "time": 0 },
-      { "type": "damage", "phyCoef": 0.9271, "phyBonus": 257, "attrBonus": 140, "time": 0.15, "attrCoef": 0.9271 },
-      { "type": "apply", "target": "self", "value": "Windrider", "time": 1.0166666666666666 }
+      { "type": "apply", "target": "self", "value": "Jadebreak", "time": 0.167 },
+      { "type": "damage", "phyCoef": 0.92712, "attrCoef": 0.92712, "phyBonus": 257, "attrBonus": 140, "time": 0.15006 },
+      { "type": "apply", "target": "self", "value": "Windrider", "time": 1.02 }
     ],
     "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "MartialArt", "Fan", "InkwellFan", "JadewindShield"],
+    "tags": ["MartialArts", "DirectDamage", "Fan", "InkwellFan", "MartialArt"],
     "martialArt": "inkwellFan",
-    "weapon": "Fan"
-  },
-  "JadewindShieldCancel": {
-    "name": "Jadewind Shield [Cancel]",
-    "shortName": "Fan Q [Cancel]",
-    "castTime": 0.16666666666666666,
+    "weapon": "Fan",
     "cooldown": 15,
-    "cooldownGroup": "JadewindShield",
-    "action": [
-      { "type": "apply", "target": "self", "value": "Jadebreak", "time": 0 },
-      { "type": "damage", "phyCoef": 0.9271, "phyBonus": 257, "attrBonus": 140, "time": 0, "attrCoef": 0.9271 }
-    ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "MartialArt", "Fan", "InkwellFan", "JadewindShield"],
-    "martialArt": "inkwellFan",
-    "weapon": "Fan"
-  },
-  "PeaksSpringlessSilence": {
-    "name": "Peak's Springless Silence",
-    "shortName": "Fan Special",
-    "castTime": 1.1166666666666667,
-    "cooldown": 12,
-    "cooldownUses": { "function": "switch", "param1": "GourdTossT0", "param2": { "true": 2 }, "fallback": 1 },
+    "cooldownUses": 2,
     "cooldownRecovery": "sequential",
+    "cooldownGroup": "EmeraldBarrier",
+    "skillBreakdownCategory": "Emerald Barrier",
+    "attackResponse": { "duration": 0.4, "onSuccess": "PerfectDodgeSuccess" }
+  },
+  "EmeraldBarrierMiss": {
+    "name": "Emerald Barrier [Miss]",
+    "shortName": "Fan Q Miss",
+    "castTime": 1.02,
     "action": [
-      {
-        "type": "damage",
-        "phyCoef": 1.273401,
-        "phyBonus": 353.225,
-        "attrBonus": 192.035,
-        "time": 0.55,
-        "attrCoef": 1.273401
-      },
-      { "type": "apply", "target": "target", "value": "LingeringBone", "time": 0.55 },
-      {
-        "type": "apply",
-        "target": "self",
-        "value": "Windrider",
-        "time": 0.55,
-        "requirement": [{ "target": "target", "value": "LingeringBone" }]
-      },
-      {
-        "type": "apply",
-        "target": "self",
-        "value": "GourdTossThunder",
-        "time": 0.55,
-        "requirement": [{ "target": "self", "value": "GourdTossT3" }]
-      },
-      {
-        "type": "clearCD",
-        "value": "PeaksSpringlessSilence",
-        "seconds": 3,
-        "time": 0.55,
-        "requirement": [{ "target": "self", "value": "GourdTossT3" }]
-      },
-      {
-        "type": "clearCD",
-        "value": "PeaksSpringlessSilence",
-        "seconds": 2,
-        "time": 0.55,
-        "requirement": [
-          { "target": "self", "value": "GourdTossT6" },
-          { "target": "target", "value": "LingeringBone" }
-        ]
-      },
-      {
-        "type": "clearCD",
-        "value": "MoonShatterSpring",
-        "time": 0.55,
-        "requirement": [
-          { "target": "self", "value": "GourdTossT6" },
-          { "target": "target", "value": "LingeringBone" }
-        ]
-      },
-      {
-        "type": "clearCD",
-        "value": "PeaksSpringlessSilence",
-        "seconds": 3,
-        "time": 1.1166666666666667,
-        "requirement": [{ "target": "self", "value": "GourdTossT1" }]
-      },
-      {
-        "type": "apply",
-        "target": "self",
-        "value": "FlyingTornado",
-        "time": 1.1166666666666667,
-        "requirement": [{ "target": "self", "value": "GourdTossT4" }]
-      }
+      { "type": "apply", "target": "self", "value": "Jadebreak", "time": 0.167 },
+      { "type": "apply", "target": "self", "value": "Windrider", "time": 1.02 }
     ],
-    "modifier": [{ "requirement": [{ "target": "self", "value": "GourdTossT0" }], "effect": { "cooldown": 15 } }],
-    "tags": ["DirectDamage", "MartialArts", "Special", "Fan", "InkwellFan", "PeaksSpringlessSilence"],
+    "modifier": [],
+    "tags": ["MartialArts", "DirectDamage", "Fan", "InkwellFan", "MartialArt"],
     "martialArt": "inkwellFan",
-    "weapon": "Fan"
+    "weapon": "Fan",
+    "cooldown": 15,
+    "cooldownUses": 2,
+    "cooldownRecovery": "sequential",
+    "cooldownGroup": "EmeraldBarrier",
+    "skillBreakdownCategory": "Emerald Barrier",
+    "attackResponse": { "duration": 0.4, "onSuccess": "PerfectDodgeSuccess" }
   },
   "ForsakenFame": {
     "name": "Forsaken Fame",
     "shortName": "Fan Light Charged",
-    "castTime": 1.6333333333333333,
+    "castTime": 1.63,
     "action": [
-      { "type": "consume", "target": "self", "value": "FlyingTornado", "stack": "all", "time": 0 },
-      { "type": "consumeResource", "value": "Endurance", "amount": 16.5, "time": 0.24000000000000002 },
       {
         "type": "damage",
         "phyCoef": 1.9044,
+        "attrCoef": 1.9044,
         "phyBonus": 527,
         "attrBonus": 287,
-        "time": 1.1833333333333333,
-        "attrCoef": 1.9044
+        "time": 1.19,
+        "damageScale": 1.45
       },
-      { "type": "apply", "target": "target", "value": "LingeringBone", "time": 1.1833333333333333 },
-      { "type": "addResource", "value": "Endurance", "amount": 10, "time": 1.6333333333333333 }
+      { "type": "apply", "target": "target", "value": "LingeringBone", "time": 1.19 },
+      { "type": "addResource", "value": "Endurance", "amount": 10, "time": 1.19 }
     ],
-    "modifier": [
-      { "effect": { "baseDMGBonus": 0.45 } },
-      {
-        "requirement": [{ "target": "self", "value": "FlyingTornado" }],
-        "effect": {
-          "castTimeModifier": {
-            "function": "segment",
-            "param1": "actionTime",
-            "param2": [0.5, 1.4],
-            "param3": [0, -0.18333333333333332, -0.2]
-          }
-        }
-      }
+    "modifier": [],
+    "tags": [
+      "MartialArts",
+      "DirectDamage",
+      "Fan",
+      "InkwellFan",
+      "Light",
+      "Charged",
+      "AppliesLingeringBone",
+      "JadebreakProjectile"
     ],
-    "tags": ["DirectDamage", "MartialArts", "Charged", "Light", "Ballistic", "Fan", "InkwellFan", "ForsakenFame"],
     "martialArt": "inkwellFan",
     "weapon": "Fan"
+  },
+  "ForsakenFameCancel": {
+    "name": "Forsaken Fame [Cancel]",
+    "shortName": "Fan Light Charged [Cancel]",
+    "description": "Ends at the damage hit. Follow immediately with Deflect or a skill other than Forsaken Fame or an Umbrella skill.",
+    "castTime": 1.19,
+    "action": [
+      {
+        "type": "damage",
+        "phyCoef": 1.9044,
+        "attrCoef": 1.9044,
+        "phyBonus": 527,
+        "attrBonus": 287,
+        "time": 1.19,
+        "damageScale": 1.45
+      },
+      { "type": "apply", "target": "target", "value": "LingeringBone", "time": 1.19 },
+      { "type": "addResource", "value": "Endurance", "amount": 10, "time": 1.19 }
+    ],
+    "modifier": [],
+    "tags": [
+      "MartialArts",
+      "DirectDamage",
+      "Fan",
+      "InkwellFan",
+      "Light",
+      "Charged",
+      "AppliesLingeringBone",
+      "JadebreakProjectile"
+    ],
+    "martialArt": "inkwellFan",
+    "weapon": "Fan",
+    "skillBreakdownCategory": "Forsaken Fame"
+  },
+  "StarReacherGrant": {
+    "name": "Star Reacher",
+    "castTime": 0,
+    "cooldown": 1,
+    "tags": ["Triggered"],
+    "action": [
+      {
+        "type": "consume",
+        "target": "self",
+        "value": "StarReacherBone",
+        "stack": "all",
+        "requirement": [
+          { "operator": "not", "operand": [{ "target": "self", "value": "StarReacherAirborne" }] },
+          { "operator": "not", "operand": [{ "target": "self", "value": "StarReacherAirborneEnhanced" }] }
+        ]
+      },
+      {
+        "type": "consume",
+        "target": "self",
+        "value": "StarReacherBoneEnhanced",
+        "stack": "all",
+        "requirement": [
+          { "operator": "not", "operand": [{ "target": "self", "value": "StarReacherAirborne" }] },
+          { "operator": "not", "operand": [{ "target": "self", "value": "StarReacherAirborneEnhanced" }] }
+        ]
+      },
+      {
+        "type": "apply",
+        "target": "self",
+        "value": "StarReacherBone",
+        "time": 0,
+        "requirement": [
+          {
+            "operator": "not",
+            "operand": [
+              [
+                { "target": "self", "value": "StarReacherT3" },
+                {
+                  "operator": "or",
+                  "operand": [
+                    { "target": "target", "value": "Exhausted" },
+                    { "target": "targetQiPercentage", "comparison": "<", "amount": 30 }
+                  ]
+                }
+              ]
+            ]
+          },
+          { "operator": "not", "operand": [{ "target": "self", "value": "StarReacherAirborne" }] },
+          { "operator": "not", "operand": [{ "target": "self", "value": "StarReacherAirborneEnhanced" }] }
+        ]
+      },
+      {
+        "type": "apply",
+        "target": "self",
+        "value": "StarReacherBoneEnhanced",
+        "time": 0,
+        "requirement": [
+          { "target": "self", "value": "StarReacherT3" },
+          {
+            "operator": "or",
+            "operand": [
+              { "target": "target", "value": "Exhausted" },
+              { "target": "targetQiPercentage", "comparison": "<", "amount": 30 }
+            ]
+          },
+          { "operator": "not", "operand": [{ "target": "self", "value": "StarReacherAirborne" }] },
+          { "operator": "not", "operand": [{ "target": "self", "value": "StarReacherAirborneEnhanced" }] }
+        ]
+      }
+    ],
+    "cooldownGroup": "StarReacherGrant"
+  },
+  "EmeraldBarrierCancel": {
+    "name": "Emerald Barrier [Cancel]",
+    "shortName": "Fan Q [Cancel]",
+    "castTime": 0.167,
+    "action": [
+      { "type": "apply", "target": "self", "value": "Jadebreak", "time": 0.167 },
+      { "type": "damage", "phyCoef": 0.92712, "attrCoef": 0.92712, "phyBonus": 257, "attrBonus": 140, "time": 0.15006 }
+    ],
+    "modifier": [],
+    "tags": ["MartialArts", "DirectDamage", "Fan", "InkwellFan", "MartialArt"],
+    "martialArt": "inkwellFan",
+    "weapon": "Fan",
+    "cooldown": 15,
+    "cooldownUses": 2,
+    "cooldownRecovery": "sequential",
+    "cooldownGroup": "EmeraldBarrier",
+    "skillBreakdownCategory": "Emerald Barrier",
+    "attackResponse": { "duration": 0.4, "onSuccess": "PerfectDodgeSuccess" }
   },
   "MoonShatterSpring": {
     "name": "Moon Shatter Spring",
-    "shortName": "Fan Pursuit",
-    "ignorePing": true,
+    "shortName": "Fan Heavy Pursuit",
     "castTime": 0,
     "cooldown": 6,
-    "cooldownGroup": "MoonShatterSpring",
-    "skillBreakdownCategory": "Moon Shatter Spring",
     "action": [],
+    "tags": ["MartialArts", "DirectDamage", "Fan", "InkwellFan", "Heavy", "Pursuit", "MoonShatterSpring"],
+    "martialArt": "inkwellFan",
+    "weapon": "Fan",
+    "skillBreakdownCategory": "Moon Shatter Spring",
     "subAction": [
       {
-        "value": "MoonShatterSpringFiveHit",
-        "requirement": [{ "target": "self", "value": "Windrider" }],
-        "fallback": "MoonShatterSpringThreeHit"
+        "value": "MoonShatterSpringDispatch",
+        "requirement": [
+          {
+            "operator": "or",
+            "operand": [
+              { "target": "target", "value": "LingeringBone" },
+              { "target": "target", "value": "Airborne" }
+            ]
+          }
+        ]
       }
-    ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Fan", "InkwellFan", "MoonShatterSpring"],
-    "martialArt": "inkwellFan",
-    "weapon": "Fan"
+    ]
   },
-  "MoonShatterSpringThreeHit": {
-    "name": "Moon Shatter Spring (3 Hits)",
-    "shortName": "Fan Pursuit (3 Hits)",
-    "castTime": 1.55,
+  "MoonShatterSpringNormal": {
+    "name": "Moon Shatter Spring",
+    "shortName": "Fan Heavy Pursuit [3 hits]",
+    "castTime": 1.557,
+    "action": [
+      {
+        "type": "damage",
+        "phyCoef": 0.5427756,
+        "attrCoef": 0.5427756,
+        "phyBonus": 150.51,
+        "attrBonus": 81.78,
+        "time": 0.161
+      },
+      { "type": "apply", "target": "self", "value": "StartlingSpring", "time": 0.161 },
+      {
+        "type": "damage",
+        "phyCoef": 0.5427756,
+        "attrCoef": 0.5427756,
+        "phyBonus": 150.51,
+        "attrBonus": 81.78,
+        "time": 0.5630000000000001
+      },
+      { "type": "apply", "target": "self", "value": "StartlingSpring", "time": 0.5630000000000001 },
+      {
+        "type": "damage",
+        "phyCoef": 0.7237008,
+        "attrCoef": 0.7237008,
+        "phyBonus": 200.68,
+        "attrBonus": 109.04,
+        "time": 1.197
+      },
+      { "type": "apply", "target": "self", "value": "StartlingSpring", "time": 1.197 }
+    ],
+    "tags": ["MartialArts", "DirectDamage", "Fan", "InkwellFan", "Heavy", "Pursuit", "MoonShatterSpring", "SubAction"],
+    "martialArt": "inkwellFan",
+    "weapon": "Fan",
     "skillBreakdownCategory": "Moon Shatter Spring",
+    "ignorePing": true
+  },
+  "MoonShatterSpringWindrider": {
+    "name": "Moon Shatter Spring [Windrider]",
+    "shortName": "Fan Heavy Pursuit [5 hits]",
+    "castTime": 2.433,
     "action": [
       {
         "type": "damage",
-        "phyCoef": 0.37434,
-        "phyBonus": 103.8,
-        "attrBonus": 56.4,
-        "time": 0.16666666666666666,
-        "attrCoef": 0.37434
+        "phyCoef": 0.765954525,
+        "attrCoef": 0.765954525,
+        "phyBonus": 211.88125,
+        "attrBonus": 115.45625,
+        "time": 0.23415384615384616
       },
-      { "type": "apply", "target": "self", "value": "SpringShock", "time": 0.16666666666666666 },
+      { "type": "apply", "target": "self", "value": "StartlingSpring", "time": 0.23415384615384616 },
       {
         "type": "damage",
-        "phyCoef": 0.37434,
-        "phyBonus": 103.8,
-        "attrBonus": 56.4,
-        "time": 0.5666666666666667,
-        "attrCoef": 0.37434
+        "phyCoef": 0.765954525,
+        "attrCoef": 0.765954525,
+        "phyBonus": 211.88125,
+        "attrBonus": 115.45625,
+        "time": 0.5418461538461538,
+        "requirement": [{ "operator": "not", "operand": [{ "target": "target", "value": "Airborne" }] }]
       },
-      { "type": "apply", "target": "self", "value": "SpringShock", "time": 0.5666666666666667 },
-      { "type": "damage", "phyCoef": 0.49912, "phyBonus": 138.4, "attrBonus": 75.2, "time": 1.2, "attrCoef": 0.49912 },
-      { "type": "apply", "target": "self", "value": "SpringShock", "time": 1.2 }
+      {
+        "type": "damage",
+        "phyCoef": 0.765954525,
+        "attrCoef": 0.765954525,
+        "phyBonus": 211.88125,
+        "attrBonus": 115.45625,
+        "time": 0.5372307692307692,
+        "requirement": [{ "target": "target", "value": "Airborne" }]
+      },
+      {
+        "type": "apply",
+        "target": "self",
+        "value": "StartlingSpring",
+        "time": 0.5418461538461538,
+        "requirement": [{ "operator": "not", "operand": [{ "target": "target", "value": "Airborne" }] }]
+      },
+      {
+        "type": "apply",
+        "target": "self",
+        "value": "StartlingSpring",
+        "time": 0.5372307692307692,
+        "requirement": [{ "target": "target", "value": "Airborne" }]
+      },
+      {
+        "type": "damage",
+        "phyCoef": 0.765954525,
+        "attrCoef": 0.765954525,
+        "phyBonus": 211.88125,
+        "attrBonus": 115.45625,
+        "time": 1.1495384615384614
+      },
+      { "type": "apply", "target": "self", "value": "StartlingSpring", "time": 1.1495384615384614 },
+      {
+        "type": "damage",
+        "phyCoef": 0.765954525,
+        "attrCoef": 0.765954525,
+        "phyBonus": 211.88125,
+        "attrBonus": 115.45625,
+        "time": 1.4033846153846155
+      },
+      { "type": "apply", "target": "self", "value": "StartlingSpring", "time": 1.4033846153846155 },
+      {
+        "type": "damage",
+        "phyCoef": 1.3130649,
+        "attrCoef": 1.3130649,
+        "phyBonus": 363.225,
+        "attrBonus": 197.925,
+        "time": 1.864923076923077
+      },
+      { "type": "apply", "target": "self", "value": "StartlingSpring", "time": 1.864923076923077 }
     ],
-    "modifier": [{ "effect": { "baseDMGBonus": 0.45 } }],
-    "tags": ["DirectDamage", "MartialArts", "Heavy", "Pursuit", "Fan", "InkwellFan", "MoonShatterSpring", "SubAction"],
+    "tags": ["MartialArts", "DirectDamage", "Fan", "InkwellFan", "Heavy", "Pursuit", "MoonShatterSpring", "SubAction"],
     "martialArt": "inkwellFan",
-    "weapon": "Fan"
-  },
-  "MoonShatterSpringFiveHit": {
-    "name": "Moon Shatter Spring (5 Hits)",
-    "shortName": "Fan Pursuit (5 Hits)",
-    "castTime": 2.433333333333333,
+    "weapon": "Fan",
     "skillBreakdownCategory": "Moon Shatter Spring",
-    "action": [
-      { "type": "consume", "target": "self", "value": "Windrider", "stack": "all", "time": 0 },
-      {
-        "type": "damage",
-        "phyCoef": 0.5282375,
-        "phyBonus": 146.125,
-        "attrBonus": 79.625,
-        "time": 0.23333333333333334,
-        "attrCoef": 0.5282375
-      },
-      { "type": "apply", "target": "self", "value": "SpringShock", "time": 0.23333333333333334 },
-      {
-        "type": "damage",
-        "phyCoef": 0.5282375,
-        "phyBonus": 146.125,
-        "attrBonus": 79.625,
-        "time": 0.55,
-        "attrCoef": 0.5282375
-      },
-      { "type": "apply", "target": "self", "value": "SpringShock", "time": 0.55 },
-      {
-        "type": "damage",
-        "phyCoef": 0.5282375,
-        "phyBonus": 146.125,
-        "attrBonus": 79.625,
-        "time": 1.15,
-        "attrCoef": 0.5282375
-      },
-      { "type": "apply", "target": "self", "value": "SpringShock", "time": 1.15 },
-      {
-        "type": "damage",
-        "phyCoef": 0.5282375,
-        "phyBonus": 146.125,
-        "attrBonus": 79.625,
-        "time": 1.4,
-        "attrCoef": 0.5282375
-      },
-      { "type": "apply", "target": "self", "value": "SpringShock", "time": 1.4 },
-      {
-        "type": "damage",
-        "phyCoef": 0.90555,
-        "phyBonus": 250.5,
-        "attrBonus": 136.5,
-        "time": 1.8666666666666667,
-        "attrCoef": 0.90555
-      },
-      { "type": "apply", "target": "self", "value": "SpringShock", "time": 1.8666666666666667 }
-    ],
-    "modifier": [{ "effect": { "baseDMGBonus": 0.45 } }],
-    "tags": ["DirectDamage", "MartialArts", "Heavy", "Pursuit", "Fan", "InkwellFan", "MoonShatterSpring", "SubAction"],
-    "martialArt": "inkwellFan",
-    "weapon": "Fan"
+    "ignorePing": true
   },
-  "GlowAndFlow": {
-    "name": "Glow and Flow",
-    "shortName": "Fan Heavy Charged",
-    "castTime": 1.1666666666666667,
-    "cooldown": 0.2,
-    "cooldownGroup": "GlowAndFlow",
-    "skillBreakdownCategory": "Glow and Flow",
-    "action": [
-      { "type": "consumeResource", "value": "Endurance", "amount": 10, "time": 0 },
+  "MoonShatterSpringDispatch": {
+    "name": "Moon Shatter Spring",
+    "castTime": 0,
+    "action": [],
+    "tags": ["MartialArts", "DirectDamage", "Fan", "InkwellFan", "Heavy", "Pursuit", "MoonShatterSpring", "SubAction"],
+    "martialArt": "inkwellFan",
+    "weapon": "Fan",
+    "skillBreakdownCategory": "Moon Shatter Spring",
+    "subAction": [
       {
-        "type": "damage",
-        "phyCoef": 0.612395,
-        "phyBonus": 169.5,
-        "attrBonus": 92.25,
-        "time": 0.3,
-        "attrCoef": 0.612395
-      },
-      {
-        "type": "damage",
-        "phyCoef": 0.612395,
-        "phyBonus": 169.5,
-        "attrBonus": 92.25,
-        "time": 0.3,
-        "attrCoef": 0.612395
+        "value": "MoonShatterSpringWindrider",
+        "fallback": "MoonShatterSpringNormal",
+        "requirement": [{ "target": "self", "value": "Windrider" }]
       }
     ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Charged", "Heavy", "Fan", "InkwellFan", "GlowAndFlow"],
-    "martialArt": "inkwellFan",
-    "weapon": "Fan"
+    "ignorePing": true
   },
-  "GlowAndFlowFull": {
-    "name": "Glow and Flow (Full Charge)",
-    "shortName": "Fan Heavy Charged (Full)",
-    "castTime": 1.8,
-    "cooldown": 0.2,
-    "cooldownGroup": "GlowAndFlow",
-    "skillBreakdownCategory": "Glow and Flow",
+  "PeaksSpringlessSilence": {
+    "name": "Peak's Springless Silence",
+    "shortName": "Fan Special",
+    "castTime": 1.1133333333333333,
+    "cooldown": 12,
+    "cooldownGroup": "PeaksSpringlessSilence",
+    "skillBreakdownCategory": "Peak's Springless Silence",
     "action": [
-      { "type": "consumeResource", "value": "Endurance", "amount": 10, "time": 0 },
-      { "type": "consumeResource", "value": "Endurance", "amount": 8.82, "time": 0.3 },
       {
         "type": "damage",
-        "phyCoef": 1.22479,
-        "phyBonus": 339,
-        "attrBonus": 184.5,
-        "time": 0.9333333333333333,
-        "attrCoef": 1.22479
+        "phyCoef": 0.006399,
+        "attrCoef": 0.006399,
+        "phyBonus": 1.775,
+        "attrBonus": 0.965,
+        "time": 0.35,
+        "requirement": [
+          { "target": "distance", "comparison": "<", "amount": 2.5 },
+          { "operator": "not", "operand": [{ "target": "target", "value": "Airborne" }] }
+        ]
       },
       {
         "type": "damage",
-        "phyCoef": 1.22479,
-        "phyBonus": 339,
-        "attrBonus": 184.5,
-        "time": 0.9333333333333333,
-        "attrCoef": 1.22479
+        "phyCoef": 1.273401,
+        "attrCoef": 1.273401,
+        "phyBonus": 353.225,
+        "attrBonus": 192.035,
+        "time": 0.557581475
+      },
+      {
+        "type": "apply",
+        "target": "self",
+        "value": "Windrider",
+        "duration": 3,
+        "time": 0.557581475,
+        "requirement": [
+          {
+            "operator": "or",
+            "operand": [
+              { "target": "target", "value": "LingeringBone" },
+              { "target": "target", "value": "Airborne" }
+            ]
+          }
+        ]
+      },
+      { "type": "apply", "target": "target", "value": "LingeringBone", "time": 0.557581475 },
+      {
+        "type": "trigger",
+        "value": "StarReacherGrant",
+        "time": 0.557581475,
+        "requirement": [
+          { "target": "self", "value": "StarReacherT0" },
+          { "operator": "not", "operand": [{ "target": "target", "value": "Airborne" }] }
+        ]
+      },
+      {
+        "type": "trigger",
+        "value": "StarReacherAirborneGrant",
+        "time": 0.557581475,
+        "requirement": [
+          { "target": "self", "value": "StarReacherT0" },
+          { "target": "target", "value": "Airborne" }
+        ]
       }
     ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Charged", "Heavy", "Fan", "InkwellFan", "GlowAndFlow"],
+    "tags": ["MartialArts", "DirectDamage", "Fan", "InkwellFan", "Special"],
     "martialArt": "inkwellFan",
     "weapon": "Fan"
   },
-  "FanLight": {
-    "name": "Inkwell Fan Light Attack",
-    "shortName": "Fan Light",
-    "castTime": 0.6166666666666667,
-    "cooldown": 0.2,
-    "skillBreakdownCategory": "Inkwell Fan Light Attack",
+  "PeaksSpringlessSilenceCancel": {
+    "name": "Peak's Springless Silence [Cancel]",
+    "shortName": "Fan Special [Cancel]",
+    "castTime": 0.557581475,
+    "cooldown": 12,
+    "cooldownGroup": "PeaksSpringlessSilence",
+    "skillBreakdownCategory": "Peak's Springless Silence",
     "action": [
       {
         "type": "damage",
-        "phyCoef": 0.408064,
-        "phyBonus": 113,
-        "attrBonus": 61.6,
-        "time": 0.4666666666666667,
-        "attrCoef": 0.408064
+        "phyCoef": 0.006399,
+        "attrCoef": 0.006399,
+        "phyBonus": 1.775,
+        "attrBonus": 0.965,
+        "time": 0.35,
+        "requirement": [
+          { "target": "distance", "comparison": "<", "amount": 2.5 },
+          { "operator": "not", "operand": [{ "target": "target", "value": "Airborne" }] }
+        ]
+      },
+      {
+        "type": "damage",
+        "phyCoef": 1.273401,
+        "attrCoef": 1.273401,
+        "phyBonus": 353.225,
+        "attrBonus": 192.035,
+        "time": 0.557581475
+      },
+      {
+        "type": "apply",
+        "target": "self",
+        "value": "Windrider",
+        "duration": 3,
+        "time": 0.557581475,
+        "requirement": [
+          {
+            "operator": "or",
+            "operand": [
+              { "target": "target", "value": "LingeringBone" },
+              { "target": "target", "value": "Airborne" }
+            ]
+          }
+        ]
+      },
+      { "type": "apply", "target": "target", "value": "LingeringBone", "time": 0.557581475 },
+      {
+        "type": "trigger",
+        "value": "StarReacherGrant",
+        "time": 0.557581475,
+        "requirement": [
+          { "target": "self", "value": "StarReacherT0" },
+          { "operator": "not", "operand": [{ "target": "target", "value": "Airborne" }] }
+        ]
+      },
+      {
+        "type": "trigger",
+        "value": "StarReacherAirborneGrant",
+        "time": 0.557581475,
+        "requirement": [
+          { "target": "self", "value": "StarReacherT0" },
+          { "target": "target", "value": "Airborne" }
+        ]
       }
     ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Light", "Fan", "InkwellFan", "InkwellFanLight"],
+    "tags": ["MartialArts", "DirectDamage", "Fan", "InkwellFan", "Special"],
     "martialArt": "inkwellFan",
     "weapon": "Fan"
   },
-  "FanLightChain": {
-    "name": "Inkwell Fan Light Attack (4 Stages)",
-    "shortName": "Fan Light x4",
-    "castTime": 2.5,
-    "skillBreakdownCategory": "Inkwell Fan Light Attack",
+  "StarReacherAirborneGrant": {
+    "name": "Star Reacher",
+    "castTime": 0,
+    "cooldown": 1,
+    "tags": ["Triggered"],
     "action": [
+      { "type": "consume", "target": "self", "value": "StarReacherBone", "stack": "all" },
+      { "type": "consume", "target": "self", "value": "StarReacherBoneEnhanced", "stack": "all" },
+      { "type": "consume", "target": "self", "value": "StarReacherAirborne", "stack": "all" },
       {
-        "type": "damage",
-        "phyCoef": 0.408064,
-        "phyBonus": 113,
-        "attrBonus": 61.6,
-        "time": 0.4666666666666667,
-        "attrCoef": 0.408064
+        "type": "consume",
+        "target": "self",
+        "value": "StarReacherAirborneEnhanced",
+        "stack": "all",
+        "requirement": [
+          { "target": "self", "value": "StarReacherT3" },
+          {
+            "operator": "or",
+            "operand": [
+              { "target": "target", "value": "Exhausted" },
+              { "target": "targetQiPercentage", "comparison": "<", "amount": 30 }
+            ]
+          }
+        ]
       },
       {
-        "type": "damage",
-        "phyCoef": 0.306048,
-        "phyBonus": 84.75,
-        "attrBonus": 46.2,
-        "time": 0.9166666666666666,
-        "attrCoef": 0.306048
+        "type": "apply",
+        "target": "self",
+        "value": "StarReacherAirborne",
+        "time": 0,
+        "requirement": [
+          {
+            "operator": "not",
+            "operand": [
+              [
+                { "target": "self", "value": "StarReacherT3" },
+                {
+                  "operator": "or",
+                  "operand": [
+                    { "target": "target", "value": "Exhausted" },
+                    { "target": "targetQiPercentage", "comparison": "<", "amount": 30 }
+                  ]
+                }
+              ]
+            ]
+          },
+          { "operator": "not", "operand": [{ "target": "self", "value": "StarReacherAirborneEnhanced" }] }
+        ]
       },
-      { "type": "damage", "phyCoef": 0.408064, "phyBonus": 113, "attrBonus": 61.6, "time": 1.25, "attrCoef": 0.408064 },
       {
-        "type": "damage",
-        "phyCoef": 0.918144,
-        "phyBonus": 254.25,
-        "attrBonus": 138.6,
-        "time": 1.7166666666666666,
-        "attrCoef": 0.918144
+        "type": "apply",
+        "target": "self",
+        "value": "StarReacherAirborneEnhanced",
+        "time": 0,
+        "requirement": [
+          { "target": "self", "value": "StarReacherT3" },
+          {
+            "operator": "or",
+            "operand": [
+              { "target": "target", "value": "Exhausted" },
+              { "target": "targetQiPercentage", "comparison": "<", "amount": 30 }
+            ]
+          }
+        ]
       }
     ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Light", "Fan", "InkwellFan", "InkwellFanLight"],
-    "martialArt": "inkwellFan",
-    "weapon": "Fan"
-  },
-  "FanDash": {
-    "name": "Inkwell Fan Dash",
-    "shortName": "Fan Dash",
-    "castTime": 1.05,
-    "action": [
-      {
-        "type": "damage",
-        "phyCoef": 0.301464,
-        "phyBonus": 83.7,
-        "attrBonus": 45.6,
-        "time": 0.21666666666666667,
-        "attrCoef": 0.301464
-      },
-      {
-        "type": "damage",
-        "phyCoef": 0.301464,
-        "phyBonus": 83.7,
-        "attrBonus": 45.6,
-        "time": 0.55,
-        "attrCoef": 0.301464
-      },
-      {
-        "type": "damage",
-        "phyCoef": 0.301464,
-        "phyBonus": 83.7,
-        "attrBonus": 45.6,
-        "time": 0.65,
-        "attrCoef": 0.301464
-      },
-      { "type": "damage", "phyCoef": 0.401952, "phyBonus": 111.6, "attrBonus": 60.8, "time": 1, "attrCoef": 0.401952 }
-    ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Fan", "InkwellFan", "FanDash"],
-    "martialArt": "inkwellFan",
-    "weapon": "Fan"
-  },
-  "InkwellFanConversion": {
-    "name": "Inkwell Fan Conversion",
-    "shortName": "Fan Tab",
-    "castTime": 0.85,
-    "cooldown": 3,
-    "action": [
-      {
-        "type": "damage",
-        "phyCoef": 0.54132,
-        "phyBonus": 150,
-        "attrBonus": 82,
-        "time": 0.11666666666666667,
-        "attrCoef": 0.54132
-      },
-      { "type": "damage", "phyCoef": 0.54132, "phyBonus": 150, "attrBonus": 82, "time": 0.6, "attrCoef": 0.54132 }
-    ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Conversion", "Ballistic", "Fan", "InkwellFan", "InkwellFanConversion"],
-    "martialArt": "inkwellFan",
-    "weapon": "Fan"
+    "cooldownGroup": "StarReacherGrant"
   }
 }
