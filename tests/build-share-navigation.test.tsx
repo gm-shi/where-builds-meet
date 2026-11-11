@@ -61,7 +61,7 @@ it("offers links in an open tab and waits for Dev mode before importing a dev-pa
     const before = useGearStore.getState().buildState
     const pathBefore = useLoadoutStore.getState().pathId
     const exported = exportSharedBuild(
-      { id: "shared-mixed", name: "Mixed build", martialArts: ["vernalUmbrella", "heavenwill"] },
+      { id: "shared-mixed", name: "Mixed build", martialArts: ["vernalUmbrella", "namelessSword"] },
       { items: [], equipped: {} },
       "Mixed build",
     )

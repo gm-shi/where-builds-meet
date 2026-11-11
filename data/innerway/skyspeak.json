@@ -32,14 +32,18 @@
                 0.087,
                 0.094,
                 0.101,
-                0.109
+                0.109,
+                0.117,
+                0.126,
+                0.135,
+                0.145
               ]
             }
           }
         }
       ]
     },
-    "SkyspeakT3": {},
+    "SkyspeakT3": { "effect": [{ "target": "InebriateDeepdaze", "modify": { "duration": 10 } }] },
     "SkyspeakT4": {},
     "SkyspeakT5": { "effect": [{ "rawStat": { "critDmgBonus": 0.04 } }] },
     "SkyspeakT6": {}

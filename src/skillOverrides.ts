@@ -7,6 +7,12 @@ import { migrateSkillId } from "@/skillIdMigrations"
 
 export type SkillMap = Record<string, SkillRecord>
 export type SkillCategory =
+  | "JueyuXuanfengSpear"
+  | "BoshanQuyueSpear"
+  | "Skystrike"
+  | "Riven"
+  | "VernalUmbrella"
+  | "InkwellFan"
   | "MuseflowWaistDrum"
   | "WillowbendFan"
   | "Snowparting"
@@ -17,8 +23,6 @@ export type SkillCategory =
   | "Skygrasp"
   | "Panacea"
   | "Soulshade"
-  | "Vernal"
-  | "Inkwell"
   | "Infernal"
   | "Mortal"
   | "Everspring"

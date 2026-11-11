@@ -2,6 +2,7 @@ import { emptyStats } from "@/data/statDefinitions"
 import type { CharacterStats } from "@/types"
 
 export const unconditionalDamageEffectFields = [
+  "leech",
   "physicalAttackBonus",
   "flatAttackBonus",
   "coefficientBonusWithoutFlatAttack",
@@ -20,6 +21,7 @@ export const unconditionalDamageEffectFields = [
   "dmgBonus",
   "hpDMGBonus",
   "baseDMGBonus",
+  "targetCorrectionBonus",
   "globalDmgBonus",
   "globalHPDMGBonus",
   "globalBellstrikeDMGBonus",

@@ -2,760 +2,916 @@
   "SpringSorrow": {
     "name": "Spring Sorrow",
     "shortName": "Umbrella Q",
-    "castTime": 1.4516666666666667,
-    "cooldown": 15,
-    "cooldownUses": {
-      "function": "switch",
-      "param1": "BlossomBarrageT6",
-      "param2": { "true": 3 },
-      "fallback": { "function": "switch", "param1": "BlossomBarrageT0", "param2": { "true": 2 }, "fallback": 1 }
-    },
-    "cooldownRecovery": "sequential",
-    "action": [
-      {
-        "type": "damage",
-        "phyCoef": 2.3397,
-        "phyBonus": 648,
-        "attrBonus": 353,
-        "time": 1.0833333333333333,
-        "attrCoef": 2.3397
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 20, "time": 1.0833333333333333 }
-    ],
+    "castTime": 0,
+    "action": [],
     "modifier": [
       {
-        "requirement": [{ "target": "self", "value": "BlossomBarrageT3" }],
-        "effect": { "castTimeMultiplier": 0.7692307692307692 }
-      }
+        "requirement": [
+          { "target": "self", "value": "BlossomBarrageT0" },
+          { "operator": "not", "operand": [{ "target": "self", "value": "BlossomBarrageT6" }] }
+        ],
+        "effect": { "cooldownUses": 2 }
+      },
+      { "requirement": [{ "target": "self", "value": "BlossomBarrageT6" }], "effect": { "cooldownUses": 3 } }
     ],
-    "tags": ["DirectDamage", "MartialArts", "MartialArt", "Ballistic", "Umbrella", "VernalUmbrella", "SpringSorrow"],
+    "tags": ["MartialArts", "DirectDamage", "Umbrella", "VernalUmbrella", "MartialArt", "Ballistic", "SpringSorrow"],
     "martialArt": "vernalUmbrella",
-    "weapon": "Umbrella"
+    "weapon": "Umbrella",
+    "cooldown": 15,
+    "cooldownUses": 1,
+    "cooldownRecovery": "sequential",
+    "cooldownReductionCarries": true,
+    "subAction": [
+      {
+        "value": "SpringSorrowBarrage",
+        "fallback": "SpringSorrowNormal",
+        "requirement": [{ "target": "self", "value": "BlossomBarrageT3" }]
+      }
+    ]
   },
-  "ColorfulPhoenix": {
-    "name": "Colorful Phoenix",
-    "shortName": "Umbrella Heavy VC",
-    "castTime": 1.3,
-    "cooldown": 0.2,
-    "skillBreakdownCategory": "Colorful Phoenix",
+  "VernalHeavy": {
+    "name": "Vernal Umbrella Heavy",
+    "shortName": "Umbrella Heavy",
+    "castTime": 0.4592,
     "action": [
       {
         "type": "damage",
         "phyCoef": 0.539718,
+        "attrCoef": 0.539718,
         "phyBonus": 149.4,
         "attrBonus": 81.4,
-        "time": 0.1,
-        "attrCoef": 0.539718
+        "time": 0.10645634
       },
-      { "type": "addResource", "value": "Blossoms", "amount": 5, "time": 0.1 },
-      { "type": "trigger", "value": "ColorfulPhoenixStrikes", "time": 0.1 }
+      { "type": "addResource", "value": "Blossoms", "amount": 5, "time": 0.10645634 }
     ],
     "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Heavy", "Umbrella", "VernalUmbrella", "ColorfulPhoenix"],
+    "tags": ["MartialArts", "DirectDamage", "Umbrella", "VernalUmbrella", "Heavy"],
     "martialArt": "vernalUmbrella",
     "weapon": "Umbrella"
-  },
-  "ColorfulPhoenixStrikes": {
-    "name": "Colorful Phoenix Strikes",
-    "castTime": 0,
-    "skillBreakdownCategory": "Colorful Phoenix",
-    "action": [
-      {
-        "type": "damage",
-        "phyCoef": 0.382932,
-        "phyBonus": 106.26,
-        "attrBonus": 57.75,
-        "time": 0,
-        "attrCoef": 0.382932
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 13.333333333333, "time": 0 },
-      {
-        "type": "damage",
-        "phyCoef": 0.382932,
-        "phyBonus": 106.26,
-        "attrBonus": 57.75,
-        "time": 0.4166666666666667,
-        "attrCoef": 0.382932
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 13.333333333333, "time": 0.4166666666666667 },
-      {
-        "type": "damage",
-        "phyCoef": 0.382932,
-        "phyBonus": 106.26,
-        "attrBonus": 57.75,
-        "time": 0.8333333333333334,
-        "attrCoef": 0.382932
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 13.333333333333, "time": 0.8333333333333334 }
-    ],
-    "modifier": [],
-    "tags": [
-      "Triggered",
-      "DirectDamage",
-      "MartialArts",
-      "Heavy",
-      "VariedCombo",
-      "Umbrella",
-      "VernalUmbrella",
-      "ColorfulPhoenix"
-    ]
   },
   "UnfadingFlower": {
     "name": "Unfading Flower",
-    "shortName": "Umbrella Special",
-    "castTime": 1.1,
-    "cooldown": 0.2,
+    "shortName": "UF",
+    "castTime": 0,
+    "modifier": [],
+    "tags": ["MartialArts", "DirectDamage", "Umbrella", "VernalUmbrella", "Special"],
+    "martialArt": "vernalUmbrella",
+    "weapon": "Umbrella",
+    "subAction": [
+      {
+        "value": "UnfadingFlowerRelease",
+        "waitForRequirement": true,
+        "requirement": [
+          { "target": "resource", "value": "Blossoms", "comparison": ">=", "amount": 50 },
+          { "operator": "not", "operand": [{ "target": "self", "value": "UnfadingFlowerMode" }] }
+        ]
+      }
+    ],
+    "silent": true
+  },
+  "UnfadingFlowerVolley": {
+    "name": "Unfading Flower Volley",
+    "castTime": 0,
+    "tags": ["Triggered"],
     "action": [
       {
-        "type": "damage",
-        "phyCoef": 0.539718,
-        "phyBonus": 149.4,
-        "attrBonus": 81.4,
-        "time": 0.6,
-        "attrCoef": 0.539718,
-        "requirement": {
-          "resolveAt": "skillStart",
-          "operand": [{ "target": "resource", "value": "Blossoms", "comparison": ">=", "amount": 50 }]
-        }
+        "type": "trigger",
+        "value": "UnfadingFlowerProjectile",
+        "time": 0,
+        "requirement": [
+          { "target": "self", "value": "UnfadingFlowerMode" },
+          { "target": "resource", "value": "Blossoms", "comparison": ">", "amount": 0 }
+        ]
+      },
+      {
+        "type": "trigger",
+        "value": "UnfadingFlowerProjectile",
+        "time": 0.15,
+        "requirement": [
+          { "target": "self", "value": "UnfadingFlowerMode" },
+          { "target": "resource", "value": "Blossoms", "comparison": ">", "amount": 0 },
+          { "target": "target", "value": "LingeringBone", "resolveAt": "skillStart" },
+          { "operator": "not", "operand": [{ "target": "target", "value": "Airborne", "resolveAt": "skillStart" }] }
+        ]
+      },
+      {
+        "type": "trigger",
+        "value": "UnfadingFlowerProjectile",
+        "time": 0.1,
+        "requirement": [
+          { "target": "self", "value": "UnfadingFlowerMode" },
+          { "target": "resource", "value": "Blossoms", "comparison": ">", "amount": 0 },
+          { "target": "target", "value": "Airborne", "resolveAt": "skillStart" }
+        ]
+      },
+      {
+        "type": "trigger",
+        "value": "UnfadingFlowerProjectile",
+        "time": 0.2,
+        "requirement": [
+          { "target": "self", "value": "UnfadingFlowerMode" },
+          { "target": "resource", "value": "Blossoms", "comparison": ">", "amount": 0 },
+          { "target": "target", "value": "Airborne", "resolveAt": "skillStart" }
+        ]
       },
       {
         "type": "apply",
-        "target": "self",
-        "value": "FloatingUmbrella",
-        "time": 0.6,
-        "requirement": {
-          "resolveAt": "skillStart",
-          "operand": [{ "target": "resource", "value": "Blossoms", "comparison": ">=", "amount": 50 }]
-        }
+        "target": "target",
+        "value": "LingeringBone",
+        "duration": 5,
+        "time": 0,
+        "requirement": [{ "target": "target", "value": "LingeringBone" }]
+      }
+    ]
+  },
+  "UnfadingFlowerProjectile": {
+    "name": "Unfading Flower",
+    "shortName": "UF",
+    "castTime": 0,
+    "action": [
+      {
+        "type": "consumeResource",
+        "value": "Blossoms",
+        "amount": 5,
+        "time": 0,
+        "creditResourceSpend": false,
+        "requirement": [{ "operator": "not", "operand": [{ "target": "target", "value": "Airborne" }] }]
+      },
+      {
+        "type": "damage",
+        "phyCoef": 0.51082875,
+        "attrCoef": 0.51082875,
+        "phyBonus": 141.375,
+        "attrBonus": 77,
+        "time": 0,
+        "damageScale": 1.15
       }
     ],
     "modifier": [],
     "tags": [
-      "DirectDamage",
       "MartialArts",
-      "Special",
-      "Heavy",
-      "FrequentProjectile",
+      "DirectDamage",
       "Umbrella",
       "VernalUmbrella",
-      "UnfadingFlower"
+      "Ballistic",
+      "UnfadingFlowerProjectile",
+      "FrequentProjectile",
+      "Triggered"
     ],
     "martialArt": "vernalUmbrella",
     "weapon": "Umbrella"
   },
-  "FloatingUmbrellaShot": {
-    "name": "Floating Umbrella Shot",
-    "castTime": 0,
-    "skillBreakdownCategory": "Floating Umbrella",
-    "action": [
-      { "type": "damage", "phyCoef": 0.510829, "phyBonus": 141.375, "attrBonus": 77, "time": 0, "attrCoef": 0.510829 }
-    ],
-    "modifier": [{ "effect": { "baseDMGBonus": 0.15 } }],
-    "tags": [
-      "Triggered",
-      "DirectDamage",
-      "MartialArts",
-      "Special",
-      "Ballistic",
-      "FrequentProjectile",
-      "Umbrella",
-      "VernalUmbrella",
-      "FloatingUmbrella"
-    ]
-  },
-  "FloatingUmbrellaExtraShot": {
-    "name": "Floating Umbrella Shot (Lingering Bone)",
-    "castTime": 0.15,
-    "skillBreakdownCategory": "Floating Umbrella",
+  "UnfadingFlowerRelease": {
+    "name": "Unfading Flower",
+    "shortName": "UF",
+    "castTime": 1.093,
     "action": [
       {
         "type": "damage",
-        "phyCoef": 0.510829,
-        "phyBonus": 141.375,
-        "attrBonus": 77,
-        "time": 0.15,
-        "attrCoef": 0.510829
-      }
-    ],
-    "modifier": [{ "effect": { "baseDMGBonus": 0.15 } }],
-    "tags": [
-      "Triggered",
-      "DirectDamage",
-      "MartialArts",
-      "Special",
-      "Ballistic",
-      "FrequentProjectile",
-      "Umbrella",
-      "VernalUmbrella",
-      "FloatingUmbrella"
-    ]
-  },
-  "FloatingUmbrellaRecall": {
-    "name": "Floating Umbrella Recall",
-    "castTime": 0,
-    "action": [
-      { "type": "consume", "target": "self", "value": "FloatingUmbrella", "stack": "all", "time": 0 },
-      { "type": "addResource", "value": "Blossoms", "amount": 15, "time": 0, "cooldown": 5 }
+        "phyCoef": 0.539718,
+        "attrCoef": 0.539718,
+        "phyBonus": 149.4,
+        "attrBonus": 81.4,
+        "time": 0.5963992753846155
+      },
+      { "type": "apply", "target": "self", "value": "UnfadingFlowerMode", "time": 0.6 }
     ],
     "modifier": [],
-    "tags": ["Triggered", "FloatingUmbrellaRecall"]
+    "tags": ["MartialArts", "DirectDamage", "Umbrella", "VernalUmbrella", "Special", "SubAction"],
+    "martialArt": "vernalUmbrella",
+    "weapon": "Umbrella",
+    "ignorePing": true,
+    "skillBreakdownCategory": "Unfading Flower Heavy Attack"
+  },
+  "JadeComboExtension": {
+    "name": "Combo Extension",
+    "castTime": 0,
+    "tags": ["Triggered"],
+    "action": [{ "type": "extend", "target": "target", "value": "JadeCombo", "duration": 1, "time": 0 }]
+  },
+  "SpringSorrowNormal": {
+    "name": "Spring Sorrow",
+    "shortName": "Umbrella Q",
+    "castTime": 1.4583333333333335,
+    "ignorePing": true,
+    "tags": [
+      "MartialArts",
+      "DirectDamage",
+      "Umbrella",
+      "VernalUmbrella",
+      "MartialArt",
+      "Ballistic",
+      "SpringSorrow",
+      "SubAction"
+    ],
+    "martialArt": "vernalUmbrella",
+    "weapon": "Umbrella",
+    "action": [
+      {
+        "type": "damage",
+        "phyCoef": 2.3396925,
+        "attrCoef": 2.3396925,
+        "phyBonus": 648.41,
+        "attrBonus": 353.25,
+        "time": 1.0066666666666666,
+        "requirement": []
+      },
+      {
+        "type": "addResource",
+        "value": "Blossoms",
+        "amount": 25,
+        "time": 1.0066666666666666,
+        "requirement": [
+          { "target": "self", "value": "BlossomBarrageT6" },
+          { "target": "target", "value": "JadeCombo" }
+        ]
+      },
+      {
+        "type": "clearCD",
+        "value": "SpringSorrow",
+        "seconds": 5,
+        "time": 1.0066666666666666,
+        "requirement": [
+          { "target": "self", "value": "BlossomBarrageT6" },
+          { "target": "target", "value": "JadeCombo" }
+        ]
+      },
+      { "type": "addResource", "value": "Blossoms", "amount": 20, "time": 1.0066666666666666, "requirement": [] },
+      {
+        "type": "apply",
+        "target": "target",
+        "value": "JadeCombo",
+        "time": 1.0066666666666666,
+        "requirement": [{ "target": "self", "value": "BlossomBarrageT0" }]
+      }
+    ]
+  },
+  "SpringSorrowBarrage": {
+    "name": "Spring Sorrow",
+    "shortName": "Umbrella Q",
+    "castTime": 1.1217948717948718,
+    "ignorePing": true,
+    "tags": [
+      "MartialArts",
+      "DirectDamage",
+      "Umbrella",
+      "VernalUmbrella",
+      "MartialArt",
+      "Ballistic",
+      "SpringSorrow",
+      "SubAction"
+    ],
+    "martialArt": "vernalUmbrella",
+    "weapon": "Umbrella",
+    "action": [
+      {
+        "type": "damage",
+        "phyCoef": 2.3396925,
+        "attrCoef": 2.3396925,
+        "phyBonus": 648.41,
+        "attrBonus": 353.25,
+        "time": 0.7779487179487179,
+        "requirement": []
+      },
+      {
+        "type": "addResource",
+        "value": "Blossoms",
+        "amount": 25,
+        "time": 0.7779487179487179,
+        "requirement": [
+          { "target": "self", "value": "BlossomBarrageT6" },
+          { "target": "target", "value": "JadeCombo" }
+        ]
+      },
+      {
+        "type": "clearCD",
+        "value": "SpringSorrow",
+        "seconds": 5,
+        "time": 0.7779487179487179,
+        "requirement": [
+          { "target": "self", "value": "BlossomBarrageT6" },
+          { "target": "target", "value": "JadeCombo" }
+        ]
+      },
+      { "type": "addResource", "value": "Blossoms", "amount": 20, "time": 0.7779487179487179, "requirement": [] },
+      {
+        "type": "apply",
+        "target": "target",
+        "value": "JadeCombo",
+        "time": 0.7779487179487179,
+        "requirement": [{ "target": "self", "value": "BlossomBarrageT0" }]
+      }
+    ]
+  },
+  "colorfulphoenix1": {
+    "name": "Colorful Phoenix [1 hits]",
+    "shortName": "Colorful Phoenix [1 hits]",
+    "castTime": 0.3251,
+    "action": [
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.03 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.13 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.23 },
+      {
+        "type": "damage",
+        "phyCoef": 0.382932,
+        "attrCoef": 0.382932,
+        "phyBonus": 106.26,
+        "attrBonus": 57.75,
+        "time": 0.3251
+      },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.3251 }
+    ],
+    "modifier": [],
+    "tags": ["MartialArts", "DirectDamage", "Umbrella", "VernalUmbrella", "Light", "VariedCombo"],
+    "martialArt": "vernalUmbrella",
+    "weapon": "Umbrella",
+    "skillBreakdownCategory": "Colorful Phoenix"
+  },
+  "colorfulphoenix2": {
+    "name": "Colorful Phoenix [2 hits]",
+    "shortName": "Colorful Phoenix [2 hits]",
+    "castTime": 0.53,
+    "action": [
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.03 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.13 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.23 },
+      {
+        "type": "damage",
+        "phyCoef": 0.382932,
+        "attrCoef": 0.382932,
+        "phyBonus": 106.26,
+        "attrBonus": 57.75,
+        "time": 0.3251
+      },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.3251 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.33 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.43 },
+      {
+        "type": "damage",
+        "phyCoef": 0.382932,
+        "attrCoef": 0.382932,
+        "phyBonus": 106.26,
+        "attrBonus": 57.75,
+        "time": 0.4442
+      },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.4442 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.53 }
+    ],
+    "modifier": [],
+    "tags": ["MartialArts", "DirectDamage", "Umbrella", "VernalUmbrella", "Light", "VariedCombo"],
+    "martialArt": "vernalUmbrella",
+    "weapon": "Umbrella",
+    "skillBreakdownCategory": "Colorful Phoenix",
+    "attackResponse": { "duration": 0.4, "onSuccess": "PerfectDodgeSuccess" }
+  },
+  "ColorfulPhoenix": {
+    "name": "Colorful Phoenix",
+    "shortName": "Colorful Phoenix",
+    "castTime": 0.7442,
+    "action": [
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.03 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.13 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.23 },
+      {
+        "type": "damage",
+        "phyCoef": 0.382932,
+        "attrCoef": 0.382932,
+        "phyBonus": 106.26,
+        "attrBonus": 57.75,
+        "time": 0.3251
+      },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.3251 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.33 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.43 },
+      {
+        "type": "damage",
+        "phyCoef": 0.382932,
+        "attrCoef": 0.382932,
+        "phyBonus": 106.26,
+        "attrBonus": 57.75,
+        "time": 0.4442
+      },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.4442 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.53 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.63 },
+      {
+        "type": "damage",
+        "phyCoef": 0.382932,
+        "attrCoef": 0.382932,
+        "phyBonus": 106.26,
+        "attrBonus": 57.75,
+        "time": 0.7442
+      },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.7442 }
+    ],
+    "modifier": [],
+    "tags": ["MartialArts", "DirectDamage", "Umbrella", "VernalUmbrella", "Light", "VariedCombo"],
+    "martialArt": "vernalUmbrella",
+    "weapon": "Umbrella",
+    "skillBreakdownCategory": "Colorful Phoenix",
+    "attackResponse": { "duration": 0.4, "onSuccess": "PerfectDodgeSuccess" }
+  },
+  "UnfadingFlowerCancel": {
+    "name": "Unfading Flower [Cancel]",
+    "shortName": "UF [Cancel]",
+    "castTime": 0,
+    "modifier": [],
+    "tags": ["MartialArts", "DirectDamage", "Umbrella", "VernalUmbrella", "Special"],
+    "martialArt": "vernalUmbrella",
+    "weapon": "Umbrella",
+    "subAction": [
+      {
+        "value": "UnfadingFlowerReleaseCancel",
+        "waitForRequirement": true,
+        "requirement": [
+          { "target": "resource", "value": "Blossoms", "comparison": ">=", "amount": 50 },
+          { "operator": "not", "operand": [{ "target": "self", "value": "UnfadingFlowerMode" }] }
+        ]
+      }
+    ],
+    "silent": true
+  },
+  "UnfadingFlowerReleaseCancel": {
+    "name": "Unfading Flower [Cancel]",
+    "shortName": "UF [Cancel]",
+    "castTime": 0.6,
+    "action": [
+      {
+        "type": "damage",
+        "phyCoef": 0.539718,
+        "attrCoef": 0.539718,
+        "phyBonus": 149.4,
+        "attrBonus": 81.4,
+        "time": 0.5963992753846155
+      },
+      { "type": "apply", "target": "self", "value": "UnfadingFlowerMode", "time": 0.6 }
+    ],
+    "modifier": [],
+    "tags": ["MartialArts", "DirectDamage", "Umbrella", "VernalUmbrella", "Special", "SubAction"],
+    "martialArt": "vernalUmbrella",
+    "weapon": "Umbrella",
+    "ignorePing": true,
+    "skillBreakdownCategory": "Unfading Flower Heavy Attack"
   },
   "SpringAway": {
     "name": "Spring Away",
     "shortName": "Umbrella Light Charged",
-    "castTime": 2.3333333333333335,
-    "skillBreakdownCategory": "Spring Away",
+    "castTime": 11.330909090909092,
+    "editableCastTime": {
+      "effect": "SpringAwayChannel",
+      "max": 10,
+      "required": true,
+      "startup": 0.74,
+      "recovery": 0.5909090909090908,
+      "endOnEffectRemoval": true
+    },
     "action": [
-      { "type": "consumeResource", "value": "Endurance", "amount": 10, "time": 0.7333333333333333 },
-      { "type": "trigger", "value": "SpringAwayLift", "time": 0.9666666666666667 },
+      { "type": "apply", "target": "self", "value": "SpringAwayChannel", "time": 0.74 },
       {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 0.9666666666666667,
-        "attrCoef": 0.286244
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 0.7900250007454306,
+        "sourceEffect": "SpringAwayChannel"
       },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 0.9666666666666667 },
       {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 1.1333333333333333,
-        "attrCoef": 0.286244
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 0.9501049934402108,
+        "sourceEffect": "SpringAwayChannel"
       },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 1.1333333333333333 },
       {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 1.3,
-        "attrCoef": 0.286244
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 1.1101850047707558,
+        "sourceEffect": "SpringAwayChannel"
       },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 1.3 },
       {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 1.4666666666666666,
-        "attrCoef": 0.286244
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 1.2902750119268895,
+        "sourceEffect": "SpringAwayChannel"
       },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 1.4666666666666666 },
       {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 1.6333333333333333,
-        "attrCoef": 0.286244
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 1.450354978531599,
+        "sourceEffect": "SpringAwayChannel"
       },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 1.6333333333333333 },
       {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 1.8,
-        "attrCoef": 0.286244
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 1.6104350047707556,
+        "sourceEffect": "SpringAwayChannel"
       },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 1.8 }
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 1.7905249522924422,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 1.950605038166046,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 2.1106850047707555,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 2.290774952292442,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 2.450855038166046,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 2.610935004770756,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 2.7910250007454303,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 2.9511049934402105,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 3.111185004770755,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 3.291275011926889,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 3.4513549785315987,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 3.6114350047707555,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 3.791524952292442,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 3.9516050381660457,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 4.111685004770756,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 4.291774952292442,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 4.4518550381660456,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 4.611935004770755,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 4.79202500074543,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 4.95210499344021,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 5.1121850047707555,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 5.29227501192689,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 5.452354978531599,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 5.612435004770756,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 5.7925249522924425,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 5.9526050381660465,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 6.112685004770755,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 6.292774952292442,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 6.452855038166046,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 6.612935004770756,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 6.7930250007454305,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 6.953104993440211,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 7.113185004770756,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 7.29327501192689,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 7.4533549785316,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 7.613435004770756,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 7.793524952292443,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 7.953605038166046,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 8.113685004770756,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 8.293774952292443,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 8.453855038166047,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 8.613935004770756,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 8.79402500074543,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 8.954104993440211,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 9.114185004770755,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 9.294275011926889,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 9.4543549785316,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 9.614435004770755,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 9.794524952292441,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 9.954605038166045,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 10.114685004770756,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 10.294774952292443,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 10.454855038166047,
+        "sourceEffect": "SpringAwayChannel"
+      },
+      {
+        "type": "trigger",
+        "value": "SpringAwayProjectile",
+        "time": 10.614935004770755,
+        "sourceEffect": "SpringAwayChannel"
+      }
     ],
-    "modifier": [{ "effect": { "baseDMGBonus": 0.25 } }],
+    "modifier": [],
     "tags": [
-      "DirectDamage",
       "MartialArts",
-      "Charged",
+      "DirectDamage",
+      "Umbrella",
+      "VernalUmbrella",
       "Light",
-      "Ballistic",
-      "FrequentProjectile",
-      "Umbrella",
-      "VernalUmbrella",
-      "SpringAway"
-    ],
-    "martialArt": "vernalUmbrella",
-    "weapon": "Umbrella"
-  },
-  "SpringAway12": {
-    "name": "Spring Away (12 Shots)",
-    "shortName": "Umbrella Light Charged (12)",
-    "castTime": 3.3333333333333335,
-    "skillBreakdownCategory": "Spring Away",
-    "action": [
-      { "type": "consumeResource", "value": "Endurance", "amount": 20, "time": 0.7333333333333333 },
-      { "type": "trigger", "value": "SpringAwayLift", "time": 0.9666666666666667 },
-      {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 0.9666666666666667,
-        "attrCoef": 0.286244
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 0.9666666666666667 },
-      {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 1.1333333333333333,
-        "attrCoef": 0.286244
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 1.1333333333333333 },
-      {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 1.3,
-        "attrCoef": 0.286244
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 1.3 },
-      {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 1.4666666666666666,
-        "attrCoef": 0.286244
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 1.4666666666666666 },
-      {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 1.6333333333333333,
-        "attrCoef": 0.286244
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 1.6333333333333333 },
-      {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 1.8,
-        "attrCoef": 0.286244
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 1.8 },
-      {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 1.9666666666666666,
-        "attrCoef": 0.286244
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 1.9666666666666666 },
-      {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 2.1333333333333333,
-        "attrCoef": 0.286244
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 2.1333333333333333 },
-      {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 2.3,
-        "attrCoef": 0.286244
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 2.3 },
-      {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 2.466666666666667,
-        "attrCoef": 0.286244
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 2.466666666666667 },
-      {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 2.6333333333333333,
-        "attrCoef": 0.286244
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 2.6333333333333333 },
-      {
-        "type": "damage",
-        "phyCoef": 0.286244,
-        "phyBonus": 79.16,
-        "attrBonus": 43.16,
-        "time": 2.8,
-        "attrCoef": 0.286244
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 2.8 }
-    ],
-    "modifier": [{ "effect": { "baseDMGBonus": 0.25 } }],
-    "tags": [
-      "DirectDamage",
-      "MartialArts",
       "Charged",
-      "Light",
       "Ballistic",
-      "FrequentProjectile",
-      "Umbrella",
-      "VernalUmbrella",
-      "SpringAway"
+      "SpringAway",
+      "FrequentProjectile"
     ],
     "martialArt": "vernalUmbrella",
-    "weapon": "Umbrella"
+    "weapon": "Umbrella",
+    "skillBreakdownCategory": "Spring Away"
   },
-  "SpringAwayLift": {
-    "name": "Spring Away Lift",
+  "SpringAwayProjectile": {
+    "name": "Spring Away Projectile",
+    "shortName": "Umbrella Light Charged",
     "castTime": 0,
-    "skillBreakdownCategory": "Spring Away",
     "action": [
-      { "type": "damage", "phyCoef": 0.304656, "phyBonus": 84.4, "attrBonus": 46, "time": 0, "attrCoef": 0.304656 },
-      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0 }
-    ],
-    "modifier": [],
-    "tags": ["Triggered", "DirectDamage", "MartialArts", "Charged", "Light", "Umbrella", "VernalUmbrella", "SpringAway"]
-  },
-  "ApricotHeaven": {
-    "name": "Apricot Heaven",
-    "shortName": "Umbrella Heavy Charged",
-    "castTime": 3.566666666666667,
-    "skillBreakdownCategory": "Apricot Heaven",
-    "action": [
-      { "type": "consumeResource", "value": "Endurance", "amount": 5, "time": 0 },
       {
         "type": "damage",
-        "phyCoef": 0.626038,
-        "phyBonus": 173.2,
-        "attrBonus": 94.4,
-        "time": 0.9,
-        "attrCoef": 0.626038
+        "phyCoef": 0.2862444,
+        "attrCoef": 0.2862444,
+        "phyBonus": 79.16,
+        "attrBonus": 43.16,
+        "time": 0.04
       },
-      { "type": "addResource", "value": "Blossoms", "amount": 5, "time": 0.9 },
-      { "type": "damage", "phyCoef": 1.565095, "phyBonus": 433, "attrBonus": 236, "time": 1.2, "attrCoef": 1.565095 },
-      { "type": "addResource", "value": "Blossoms", "amount": 5, "time": 1.2 },
-      { "type": "consumeResource", "value": "Endurance", "amount": 5, "time": 1.6 }
+      { "type": "addResource", "value": "Blossoms", "amount": 3.4, "time": 0.04 }
     ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Charged", "Heavy", "Umbrella", "VernalUmbrella", "ApricotHeaven"],
-    "martialArt": "vernalUmbrella",
-    "weapon": "Umbrella"
-  },
-  "ApricotHeavenEnhanced": {
-    "name": "Apricot Heaven (Enhanced Fall)",
-    "shortName": "Umbrella Heavy Charged (Enhanced)",
-    "castTime": 5.066666666666666,
-    "skillBreakdownCategory": "Apricot Heaven",
-    "action": [
-      { "type": "consumeResource", "value": "Endurance", "amount": 5, "time": 0 },
-      {
-        "type": "damage",
-        "phyCoef": 0.626038,
-        "phyBonus": 173.2,
-        "attrBonus": 94.4,
-        "time": 0.9,
-        "attrCoef": 0.626038
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 5, "time": 0.9 },
-      { "type": "consumeResource", "value": "Endurance", "amount": 22.5, "time": 1.2 },
-      { "type": "consumeResource", "value": "Endurance", "amount": 5, "time": 1.6 },
-      {
-        "type": "damage",
-        "phyCoef": 2.504152,
-        "phyBonus": 692.8,
-        "attrBonus": 377.6,
-        "time": 2.7,
-        "attrCoef": 2.504152
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 5, "time": 2.7 }
-    ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Charged", "Heavy", "Umbrella", "VernalUmbrella", "ApricotHeaven"],
-    "martialArt": "vernalUmbrella",
-    "weapon": "Umbrella"
-  },
-  "BambooBreeze": {
-    "name": "Bamboo Breeze",
-    "shortName": "Umbrella Light VC",
-    "castTime": 1.0333333333333334,
-    "cooldown": 0.2,
-    "action": [
-      {
-        "type": "damage",
-        "phyCoef": 0.49758,
-        "phyBonus": 138,
-        "attrBonus": 75,
-        "time": 0.18333333333333332,
-        "attrCoef": 0.49758
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 3, "time": 0.18333333333333332 },
-      {
-        "type": "damage",
-        "phyCoef": 0.49758,
-        "phyBonus": 138,
-        "attrBonus": 75,
-        "time": 0.2833333333333333,
-        "attrCoef": 0.49758
-      },
-      { "type": "addResource", "value": "Blossoms", "amount": 3, "time": 0.2833333333333333 }
-    ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Light", "VariedCombo", "Umbrella", "VernalUmbrella", "BambooBreeze"],
-    "martialArt": "vernalUmbrella",
-    "weapon": "Umbrella"
-  },
-  "HiddenSwordLight1": {
-    "name": "Hidden Sword Light Attack 1",
-    "shortName": "Hidden Sword L1",
-    "castTime": 0.5166666666666667,
-    "cooldown": 0.1,
-    "skillBreakdownCategory": "Hidden Sword",
-    "action": [
-      { "type": "damage", "phyCoef": 0.19041, "phyBonus": 52.75, "attrBonus": 28.75, "time": 0.35, "attrCoef": 0.19041 }
-    ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Light", "Umbrella", "VernalUmbrella", "HiddenSword"],
-    "martialArt": "vernalUmbrella",
-    "weapon": "Umbrella"
-  },
-  "HiddenSwordLight2": {
-    "name": "Hidden Sword Light Attack 2",
-    "shortName": "Hidden Sword L2",
-    "castTime": 0.6,
-    "cooldown": 0.1,
-    "skillBreakdownCategory": "Hidden Sword",
-    "action": [
-      { "type": "damage", "phyCoef": 0.19041, "phyBonus": 52.75, "attrBonus": 28.75, "time": 0.2, "attrCoef": 0.19041 },
-      {
-        "type": "damage",
-        "phyCoef": 0.228492,
-        "phyBonus": 63.3,
-        "attrBonus": 34.5,
-        "time": 0.5333333333333333,
-        "attrCoef": 0.228492
-      }
-    ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Light", "Umbrella", "VernalUmbrella", "HiddenSword"],
-    "martialArt": "vernalUmbrella",
-    "weapon": "Umbrella"
-  },
-  "HiddenSwordLight3": {
-    "name": "Hidden Sword Light Attack 3",
-    "shortName": "Hidden Sword L3",
-    "castTime": 0.6833333333333333,
-    "cooldown": 0.1,
-    "skillBreakdownCategory": "Hidden Sword",
-    "action": [
-      {
-        "type": "damage",
-        "phyCoef": 0.228492,
-        "phyBonus": 63.3,
-        "attrBonus": 34.5,
-        "time": 0.13333333333333333,
-        "attrCoef": 0.228492
-      },
-      {
-        "type": "damage",
-        "phyCoef": 0.114246,
-        "phyBonus": 31.65,
-        "attrBonus": 17.25,
-        "time": 0.35,
-        "attrCoef": 0.114246
-      },
-      {
-        "type": "damage",
-        "phyCoef": 0.114246,
-        "phyBonus": 31.65,
-        "attrBonus": 17.25,
-        "time": 0.5666666666666667,
-        "attrCoef": 0.114246
-      }
-    ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Light", "Umbrella", "VernalUmbrella", "HiddenSword"],
-    "martialArt": "vernalUmbrella",
-    "weapon": "Umbrella"
-  },
-  "HiddenSwordLight4": {
-    "name": "Hidden Sword Light Attack 4",
-    "shortName": "Hidden Sword L4",
-    "castTime": 0.55,
-    "cooldown": 0.1,
-    "skillBreakdownCategory": "Hidden Sword",
-    "action": [
-      {
-        "type": "damage",
-        "phyCoef": 0.456984,
-        "phyBonus": 126.6,
-        "attrBonus": 69,
-        "time": 0.21666666666666667,
-        "attrCoef": 0.456984
-      }
-    ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Light", "Umbrella", "VernalUmbrella", "HiddenSword"],
-    "martialArt": "vernalUmbrella",
-    "weapon": "Umbrella"
-  },
-  "HiddenSwordLightAlt": {
-    "name": "Hidden Sword Light Attack (Alt)",
-    "shortName": "Hidden Sword L (Alt)",
-    "castTime": 0.8666666666666667,
-    "cooldown": 0.7,
-    "skillBreakdownCategory": "Hidden Sword",
-    "action": [
-      {
-        "type": "damage",
-        "phyCoef": 0.685476,
-        "phyBonus": 189.9,
-        "attrBonus": 103.5,
-        "time": 0.38333333333333336,
-        "attrCoef": 0.685476
-      }
-    ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Light", "Umbrella", "VernalUmbrella", "HiddenSword"],
-    "martialArt": "vernalUmbrella",
-    "weapon": "Umbrella"
-  },
-  "HiddenSwordHeavy1": {
-    "name": "Hidden Sword Heavy Attack 1",
-    "shortName": "Hidden Sword H1",
-    "castTime": 0.6166666666666667,
-    "cooldown": 0.1,
-    "skillBreakdownCategory": "Hidden Sword",
-    "action": [
-      { "type": "damage", "phyCoef": 0.304656, "phyBonus": 84.4, "attrBonus": 46, "time": 0.4, "attrCoef": 0.304656 }
-    ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Heavy", "Umbrella", "VernalUmbrella", "HiddenSword"],
-    "martialArt": "vernalUmbrella",
-    "weapon": "Umbrella"
-  },
-  "HiddenSwordHeavy2": {
-    "name": "Hidden Sword Heavy Attack 2",
-    "shortName": "Hidden Sword H2",
-    "castTime": 1.05,
-    "cooldown": 0.1,
-    "skillBreakdownCategory": "Hidden Sword",
-    "action": [
-      {
-        "type": "damage",
-        "phyCoef": 0.228492,
-        "phyBonus": 63.3,
-        "attrBonus": 34.5,
-        "time": 0.16666666666666666,
-        "attrCoef": 0.228492
-      },
-      {
-        "type": "damage",
-        "phyCoef": 0.228492,
-        "phyBonus": 63.3,
-        "attrBonus": 34.5,
-        "time": 0.7333333333333333,
-        "attrCoef": 0.228492
-      }
-    ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Heavy", "Umbrella", "VernalUmbrella", "HiddenSword"],
-    "martialArt": "vernalUmbrella",
-    "weapon": "Umbrella"
-  },
-  "HiddenSwordHeavy3": {
-    "name": "Hidden Sword Heavy Attack 3",
-    "shortName": "Hidden Sword H3",
-    "castTime": 1.2,
-    "cooldown": 0.1,
-    "skillBreakdownCategory": "Hidden Sword",
-    "action": [
-      {
-        "type": "damage",
-        "phyCoef": 0.304656,
-        "phyBonus": 84.4,
-        "attrBonus": 46,
-        "time": 0.23333333333333334,
-        "attrCoef": 0.304656
-      },
-      { "type": "damage", "phyCoef": 0.456984, "phyBonus": 126.6, "attrBonus": 69, "time": 0.8, "attrCoef": 0.456984 }
-    ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Heavy", "Umbrella", "VernalUmbrella", "HiddenSword"],
-    "martialArt": "vernalUmbrella",
-    "weapon": "Umbrella"
-  },
-  "HiddenSwordHeavyAlt": {
-    "name": "Hidden Sword Heavy Attack (Alt)",
-    "shortName": "Hidden Sword H (Alt)",
-    "castTime": 0.5833333333333334,
-    "cooldown": 0.1,
-    "skillBreakdownCategory": "Hidden Sword",
-    "action": [
-      { "type": "damage", "phyCoef": 0.913968, "phyBonus": 253.2, "attrBonus": 138, "time": 0, "attrCoef": 0.913968 }
-    ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Heavy", "Umbrella", "VernalUmbrella", "HiddenSword"],
-    "martialArt": "vernalUmbrella",
-    "weapon": "Umbrella"
-  },
-  "UmbrellaDash": {
-    "name": "Umbrella Dash",
-    "shortName": "Umbrella Dash",
-    "castTime": 1.4666666666666666,
-    "skillBreakdownCategory": "Umbrella Dash",
-    "action": [
-      {
-        "type": "damage",
-        "phyCoef": 0.439065,
-        "phyBonus": 122,
-        "attrBonus": 66.5,
-        "time": 0.2833333333333333,
-        "attrCoef": 0.439065
-      },
-      { "type": "damage", "phyCoef": 0.439065, "phyBonus": 122, "attrBonus": 66.5, "time": 0.85, "attrCoef": 0.439065 },
-      { "type": "trigger", "value": "UmbrellaDashBullet", "time": 0.85 }
-    ],
-    "modifier": [],
-    "tags": ["DirectDamage", "MartialArts", "Umbrella", "VernalUmbrella", "UmbrellaDash"],
-    "martialArt": "vernalUmbrella",
-    "weapon": "Umbrella"
-  },
-  "UmbrellaDashBullet": {
-    "name": "Umbrella Dash Bullet",
-    "castTime": 0,
-    "skillBreakdownCategory": "Umbrella Dash",
-    "action": [
-      { "type": "damage", "phyCoef": 0.304656, "phyBonus": 84.4, "attrBonus": 46, "time": 0, "attrCoef": 0.304656 },
-      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0 }
-    ],
-    "modifier": [],
-    "tags": ["Triggered", "DirectDamage", "MartialArts", "Ballistic", "Umbrella", "VernalUmbrella", "UmbrellaDash"]
-  },
-  "VernalUmbrellaConversion": {
-    "name": "Vernal Umbrella Conversion",
-    "shortName": "Umbrella Tab",
-    "castTime": 0.7666666666666667,
-    "cooldown": 3,
-    "action": [
-      { "type": "damage", "phyCoef": 0.31677, "phyBonus": 88, "attrBonus": 48, "time": 0.2, "attrCoef": 0.31677 },
-      { "type": "damage", "phyCoef": 0.63354, "phyBonus": 176, "attrBonus": 96, "time": 0.3, "attrCoef": 0.63354 }
-    ],
-    "modifier": [],
+    "modifier": [{ "effect": { "hpDMGBonus": 0.25 } }],
     "tags": [
-      "DirectDamage",
       "MartialArts",
-      "Conversion",
-      "Ballistic",
+      "DirectDamage",
       "Umbrella",
       "VernalUmbrella",
-      "VernalUmbrellaConversion"
+      "Light",
+      "Charged",
+      "Ballistic",
+      "SpringAway",
+      "FrequentProjectile",
+      "Triggered"
     ],
     "martialArt": "vernalUmbrella",
-    "weapon": "Umbrella"
+    "weapon": "Umbrella",
+    "skillBreakdownCategory": "Spring Away"
+  },
+  "ColorfulPhoenix35Blossoms": {
+    "name": "Colorful Phoenix [35 Blossoms]",
+    "shortName": "Colorful Phoenix [35 Blossoms]",
+    "castTime": 0.63,
+    "action": [
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.03 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.13 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.23 },
+      {
+        "type": "damage",
+        "phyCoef": 0.382932,
+        "attrCoef": 0.382932,
+        "phyBonus": 106.26,
+        "attrBonus": 57.75,
+        "time": 0.3251
+      },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.3251 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.33 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.43 },
+      {
+        "type": "damage",
+        "phyCoef": 0.382932,
+        "attrCoef": 0.382932,
+        "phyBonus": 106.26,
+        "attrBonus": 57.75,
+        "time": 0.4442
+      },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.4442 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.53 },
+      { "type": "addResource", "value": "Blossoms", "amount": 4, "time": 0.63 }
+    ],
+    "modifier": [],
+    "tags": ["MartialArts", "DirectDamage", "Umbrella", "VernalUmbrella", "Light", "VariedCombo"],
+    "martialArt": "vernalUmbrella",
+    "weapon": "Umbrella",
+    "skillBreakdownCategory": "Colorful Phoenix",
+    "attackResponse": { "duration": 0.4, "onSuccess": "PerfectDodgeSuccess" }
   }
 }

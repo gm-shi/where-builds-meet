@@ -76,6 +76,12 @@ describe("skill-override-calculation", () => {
     // Only the categories this probe overrides carry skills; the rest are the empty
     // maps the calculator takes, which is what the app supplies for them too.
     const defaults: Record<SkillCategory, SkillMap> = {
+      JueyuXuanfengSpear: {},
+      BoshanQuyueSpear: {},
+      Skystrike: {},
+      Riven: {},
+      VernalUmbrella: {},
+      InkwellFan: {},
       MuseflowWaistDrum: {},
       WillowbendFan: {},
       Snowparting: { Attack: { name: "Attack", castTime: 1, action: [{ type: "damage", time: 1 }] } },
@@ -86,8 +92,6 @@ describe("skill-override-calculation", () => {
       Skygrasp: {},
       Panacea: {},
       Soulshade: {},
-      Vernal: {},
-      Inkwell: {},
       Infernal: {},
       Mortal: {},
       Everspring: {},
